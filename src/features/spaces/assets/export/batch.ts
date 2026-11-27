@@ -2,6 +2,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 
 import { invokeCommand } from "../../../../foundation/ipc/invoke-command";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import { renderNodeMermaidDiagrams } from "./diagrams";
 import { nodeExportFormats } from "./formats";
 import { safeExportFileName } from "./naming";
 import { serializePayloadExport } from "./payloads";
@@ -29,10 +30,13 @@ export function selectionExportTarget(spaceId: string, nodes: readonly SpaceCanv
         snapshot.map(async (node, index) => {
           const extension = format === DEFAULT_EXPORT_FORMAT ? offers[index]!.formats[0]! : format;
           const text = await serializePayloadExport(node, extension);
+          const renderedDiagrams =
+            text === undefined ? await renderNodeMermaidDiagrams(node.data, extension) : undefined;
           return {
             nodeId: node.id,
             fileName: `${safeExportFileName(node.data.title) || node.data.kind}.${extension}`,
             text,
+            renderedDiagrams,
           };
         }),
       );

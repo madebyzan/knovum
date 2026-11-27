@@ -74,6 +74,13 @@
   opacity: 0.85;
 }
 
+.canvas-text-prose div[data-type="callout"] {
+  border-inline-start: 2px solid var(--color-fg-accent);
+  border-radius: 0.375rem;
+  background: var(--color-surface-control);
+  padding: 0.45em 0.65em;
+}
+
 .canvas-text-prose code {
   border-radius: 0.25rem;
   background: var(--color-surface-control);
@@ -123,4 +130,23 @@
 .canvas-text-prose mark {
   border-radius: 0.18rem;
   padding: 0.05em 0.18em;
+}
+
+.canvas-text-prose [data-type="block-math"] {
+  padding: 0.35em 0.45em;
+}
+
+.canvas-text-prose [data-type="inline-math"] {
+  padding-inline: 0.12em;
+}
+
+.canvas-text-prose .ui-mermaid-diagram {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.45em;
+  overflow: hidden;
+  border-radius: 0.375rem;
+  background: color-mix(in oklab, var(--color-surface-canvas) 75%, transparent);
+  padding: 0.55em;
 }

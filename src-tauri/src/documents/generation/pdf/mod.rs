@@ -1,3 +1,4 @@
+mod fonts;
 mod rich;
 mod rich_blocks;
 mod rich_inlines;
@@ -21,15 +22,24 @@ pub(crate) fn render(input: &DocumentSource) -> Result<Vec<u8>, String> {
 }
 
 pub(super) fn compile(source: String, binaries: Vec<(String, Vec<u8>)>) -> Result<Vec<u8>, String> {
-    let engine = TypstEngine::builder()
-        .main_file(source)
+    let verified = fonts::load_verified_fonts();
+    let use_targeted = verified.has_cjk && !fonts::uses_custom_font(&source, &verified);
+    let preamble = fonts::typst_font_preamble(&verified);
+    let full_source = format!("{preamble}{source}");
+    let builder = TypstEngine::builder()
+        .main_file(full_source)
         .with_static_file_resolver(
             binaries
                 .iter()
                 .map(|(name, bytes)| (name.as_str(), bytes.as_slice())),
-        )
-        .search_fonts_with(TypstKitFontOptions::default())
-        .build();
+        );
+    let engine = if use_targeted {
+        builder.fonts(verified.files).build()
+    } else {
+        builder
+            .search_fonts_with(TypstKitFontOptions::default())
+            .build()
+    };
     let compilation = engine.compile();
     if !compilation.warnings.is_empty() {
         log::warn!(

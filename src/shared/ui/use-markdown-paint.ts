@@ -1,4 +1,4 @@
-import { watchEffect, type ShallowRef } from "vue";
+import { onScopeDispose, watchEffect, type ShallowRef } from "vue";
 
 import {
   createMarkdownRenderer,
@@ -6,10 +6,15 @@ import {
   type MarkdownRendererOptions,
 } from "./markdown-renderer";
 import { createMarkdownStream, type MarkdownFrame } from "./markdown-stream";
+import { hydrateRichPreviewContainer } from "./rich-block-hydrator";
 
 interface MarkdownSource {
   content: string;
   citations?: MarkdownCitations | undefined;
+}
+
+function hasUnclosedCodeFence(markdown: string): boolean {
+  return ((markdown.match(/^[ \t]{0,3}(?:```|~~~)/gmu)?.length ?? 0) & 1) === 1;
 }
 
 /**
@@ -29,6 +34,7 @@ export function useMarkdownPaint(
   let render = createMarkdownStream(md);
   let painted = 0;
   let open: ChildNode[] = [];
+  let themeObserver: MutationObserver | undefined;
 
   function clear(element: HTMLElement) {
     element.replaceChildren();
@@ -36,7 +42,19 @@ export function useMarkdownPaint(
     open = [];
   }
 
-  function paint(element: HTMLElement, frame: MarkdownFrame) {
+  function ensureThemeObserver() {
+    if (themeObserver || typeof MutationObserver === "undefined") return;
+    themeObserver = new MutationObserver(() => {
+      const element = root.value;
+      if (element) void hydrateRichPreviewContainer(element);
+    });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
+  }
+
+  function paint(element: HTMLElement, frame: MarkdownFrame, unclosedFence: boolean) {
     if (frame.restarted) clear(element);
     for (const node of open) node.remove();
     for (; painted < frame.settled.length; painted += 1)
@@ -45,6 +63,12 @@ export function useMarkdownPaint(
     template.innerHTML = frame.open;
     open = [...template.content.childNodes];
     element.append(template.content);
+    const skipMermaidNodes = unclosedFence ? new Set<Node>(open) : undefined;
+    void hydrateRichPreviewContainer(element, undefined, skipMermaidNodes);
+    const hasHydratableMermaid = [...element.querySelectorAll("pre > code.language-mermaid")].some(
+      (code) => !code.parentElement || !skipMermaidNodes?.has(code.parentElement),
+    );
+    if (hasHydratableMermaid) ensureThemeObserver();
   }
 
   watchEffect(
@@ -58,8 +82,10 @@ export function useMarkdownPaint(
         render = createMarkdownStream(md, citations);
         clear(element);
       }
-      paint(element, render(next.content));
+      paint(element, render(next.content), hasUnclosedCodeFence(next.content));
     },
     { flush: "post" },
   );
+
+  onScopeDispose(() => themeObserver?.disconnect());
 }

@@ -1,16 +1,15 @@
 {
   "ai": {
-    "title": "KI-Schreiben",
+    "title": "Knovum Schreiben",
     "selectText": "Wählen Sie zunächst den Textinhalt aus.",
-    "failed": "KI-Generierung fehlgeschlagen",
-    "applyFailed": "Das AI-Ergebnis konnte nicht angewendet werden",
+    "failed": "Knovum-Generierung fehlgeschlagen",
+    "applyFailed": "Ergebnis konnte nicht angewendet werden",
     "actions": {
       "adjustTone": "Ton anpassen",
       "fixGrammar": "Korrigieren Sie Grammatik und Rechtschreibung",
       "extend": "Text erweitern",
       "reduce": "Zusammenfassen und verdichten",
       "simplify": "Formulierung vereinfachen",
-      "emojify": "Emoji hinzufügen",
       "improve": "Polieren und verbessern",
       "complete": "AutoVervollständigen",
       "summarize": "Zusammenfassen",
@@ -29,7 +28,26 @@
       "objective": "Ziel",
       "persuasive": "Überzeugend"
     },
-    "needContext": "Platzieren Sie den Cursor hinter vorhandenem Text oder wählen Sie Text als Kontext aus."
+    "needContext": "Platzieren Sie den Cursor hinter vorhandenem Text oder wählen Sie Text als Kontext aus.",
+    "panel": {
+      "ask": "Knovum fragen",
+      "placeholder": "Knovum bitten zu schreiben, umzuschreiben oder zu entwerfen…",
+      "followUpPlaceholder": "Knovum sagen, wie der Entwurf angepasst werden soll…",
+      "thinking": "Knovum denkt nach…",
+      "generating": "Knovum schreibt…",
+      "stop": "Stoppen",
+      "replace": "Ersetzen",
+      "insert": "Einfügen",
+      "insertBelow": "Darunter einfügen",
+      "retry": "Wiederholen",
+      "discard": "Verwerfen",
+      "addReference": "Wissensraum-Quelle anhängen",
+      "searchReferences": "Quellen durchsuchen…",
+      "noReferences": "Keine passenden Quellen",
+      "compare": "Vergleichen",
+      "original": "Original",
+      "proposed": "Vorschlag"
+    }
   },
   "find": {
     "title": "Text suchen",
@@ -93,7 +111,27 @@
     "uploadFailed": "Einfügen des Bildes fehlgeschlagen",
     "dropDocumentHint": "Wählen Sie eine Datei aus oder ziehen Sie ein Bild in den Dokumenteditor.",
     "dropNow": "Lassen Sie es fallen, um ein Bild einzufügen",
-    "insertFailed": "Bild konnte nicht eingefügt werden"
+    "insertFailed": "Bild konnte nicht eingefügt werden",
+    "caption": "Bildunterschrift hinzufügen",
+    "captionPlaceholder": "Bildunterschrift eingeben…",
+    "preview": "Vollbildansicht",
+    "zoomIn": "Vergrößern",
+    "zoomOut": "Verkleinern",
+    "previous": "Vorheriges Bild",
+    "next": "Nächstes Bild",
+    "group": {
+      "auto": "Auto",
+      "gallery": "Galerie",
+      "compare": "Vergleich",
+      "masonry": "Masonry",
+      "cards": "Karten",
+      "stack": "Stapel",
+      "before": "Vorher",
+      "after": "Nachher",
+      "addImage": "Bild hinzufügen",
+      "split": "In einzelne Bilder trennen",
+      "cardPlaceholder": "Titel | Beschreibung…"
+    }
   },
   "link": {
     "label": "Hyperlink",
@@ -107,7 +145,9 @@
     "invalid": "Bitte geben Sie einen gültigen HTTP-, HTTPS- oder Mailto-Link ein.",
     "open": "Link öffnen",
     "updateFailed": "Link konnte nicht aktualisiert werden",
-    "openFailed": "Link konnte nicht geöffnet werden"
+    "openFailed": "Link konnte nicht geöffnet werden",
+    "copy": "Link kopieren",
+    "edit": "Link bearbeiten"
   },
   "bulletList": "Bullet-Liste",
   "orderedList": "Geordnete Liste",
@@ -118,10 +158,138 @@
     "title": "Tabelle",
     "addRow": "Zeile unten einfügen",
     "addColumn": "Spalte rechts einfügen",
-    "delete": "Tabelle löschen"
+    "delete": "Tabelle löschen",
+    "addRowBefore": "Zeile darüber einfügen",
+    "addRowAfter": "Zeile darunter einfügen",
+    "deleteRow": "Zeile löschen",
+    "addColumnBefore": "Spalte links einfügen",
+    "addColumnAfter": "Spalte rechts einfügen",
+    "deleteColumn": "Spalte löschen",
+    "toggleHeaderRow": "Kopfzeile umschalten",
+    "mergeCells": "Zellen verbinden",
+    "splitCell": "Zelle teilen"
   },
   "statistics": {
     "words": "{count} Wort | {count} Wörter",
-    "characters": "{count} Zeichen"
+    "characters": "{count} Zeichen",
+    "readingMinutes": "{count} Min. Lesezeit"
+  },
+  "codeBlock": {
+    "title": "Codeblock",
+    "plainText": "Klartext",
+    "copy": "Kopieren",
+    "copied": "Kopiert",
+    "toggleWrap": "Zeilenumbruch umschalten",
+    "searchLanguage": "Sprache suchen…"
+  },
+  "callout": {
+    "title": "Hinweisbox",
+    "kinds": {
+      "note": "Hinweis",
+      "tip": "Tipp",
+      "important": "Wichtig",
+      "warning": "Warnung",
+      "caution": "Vorsicht"
+    }
+  },
+  "slash": {
+    "title": "Block einfügen",
+    "empty": "Keine passenden Befehle",
+    "groups": {
+      "ai": "Knovum",
+      "blocks": "Struktur",
+      "lists": "Listen",
+      "insert": "Einfügen"
+    },
+    "items": {
+      "askAi": {
+        "label": "Knovum fragen",
+        "description": "Freie Anweisung zum Entwerfen oder Bearbeiten"
+      },
+      "continue": {
+        "label": "Weiterschreiben",
+        "description": "Nahtlos aus dem Kontext fortsetzen"
+      },
+      "summarize": {
+        "label": "Zusammenfassen",
+        "description": "Dokument auf Kernpunkte verdichten"
+      },
+      "h1": {
+        "description": "Hauptüberschrift"
+      },
+      "h2": {
+        "description": "Abschnittsüberschrift"
+      },
+      "h3": {
+        "description": "Unterüberschrift"
+      },
+      "callout": {
+        "description": "Hervorgehobener Hinweis oder Warnung"
+      },
+      "blockquote": {
+        "description": "Zitat"
+      },
+      "bulletList": {
+        "description": "Aufzählung"
+      },
+      "orderedList": {
+        "description": "Nummerierte Liste"
+      },
+      "taskList": {
+        "description": "Aufgabenliste"
+      },
+      "codeBlock": {
+        "description": "Codeblock mit Syntaxhervorhebung"
+      },
+      "table": {
+        "description": "3 × 3-Tabelle einfügen"
+      },
+      "divider": {
+        "description": "Trennlinie"
+      },
+      "mathBlock": {
+        "description": "Abgesetzter LaTeX-Formelblock (KaTeX)"
+      },
+      "mathInline": {
+        "description": "Inline-LaTeX-Formel im Text"
+      },
+      "mermaid": {
+        "description": "Fluss-, Sequenz- oder Architekturdiagramm"
+      }
+    }
+  },
+  "blockMenu": {
+    "trigger": "Ziehen zum Verschieben oder klicken für Aktionen",
+    "askAi": "Knovum zu diesem Block fragen",
+    "askInChat": "Im Chat fragen",
+    "moveUp": "Nach oben",
+    "moveDown": "Nach unten",
+    "duplicate": "Duplizieren",
+    "delete": "Löschen",
+    "addBelow": "Block darunter hinzufügen",
+    "turnInto": "Umwandeln in"
+  },
+  "modes": {
+    "source": "Markdown-Quelltext",
+    "rich": "Rich-Editor",
+    "pageOptions": "Seitenoptionen",
+    "formattingBar": "Formatierungsleiste",
+    "fullWidth": "Volle Breite"
+  },
+  "math": {
+    "blockTitle": "Matheblock",
+    "inlineTitle": "Inline-Formel",
+    "blockPlaceholder": "LaTeX-Gleichung eingeben, z. B. \\int_0^1 x^2 \\, dx",
+    "inlinePlaceholder": "Inline-LaTeX eingeben, z. B. E = mc^2",
+    "emptyBlock": "TeX-Gleichung hinzufügen",
+    "convertAction": "In Formel umwandeln (⌘⇧E)"
+  },
+  "mermaid": {
+    "title": "Mermaid-Diagramm",
+    "preview": "Vorschau",
+    "split": "Geteilt",
+    "code": "Code",
+    "empty": "Mermaid-Syntax für Live-Vorschau eingeben",
+    "syntaxError": "Diagramm-Syntaxfehler"
   }
 }

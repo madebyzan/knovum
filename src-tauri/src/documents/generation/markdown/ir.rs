@@ -45,6 +45,27 @@ pub(super) fn blocks(content: &[Block], images: &Images) -> Result<Vec<Element>,
                 content: blocks(value, images)?,
                 ..Default::default()
             })),
+            Block::Callout {
+                kind,
+                blocks: value,
+            } => {
+                let mut content = Vec::with_capacity(value.len() + 1);
+                content.push(Element::Paragraph(Paragraph {
+                    content: vec![office_oxide::ir::InlineContent::Text(
+                        office_oxide::ir::TextSpan {
+                            text: kind.label().into(),
+                            bold: true,
+                            ..Default::default()
+                        },
+                    )],
+                    ..Default::default()
+                }));
+                content.extend(blocks(value, images)?);
+                elements.push(Element::TextBox(TextBox {
+                    content,
+                    ..Default::default()
+                }));
+            }
             Block::Rule => elements.push(Element::ThematicBreak),
             Block::List { start, items } => elements.push(Element::List(List {
                 ordered: start.is_some(),
@@ -95,6 +116,16 @@ pub(super) fn blocks(content: &[Block], images: &Images) -> Result<Vec<Element>,
                 }
                 elements.push(Element::Table(Table {
                     rows,
+                    ..Default::default()
+                }));
+            }
+            Block::Math(latex) => {
+                elements.push(Element::Paragraph(Paragraph {
+                    content: super::super::math::to_ir_spans(
+                        latex,
+                        &office_oxide::ir::TextSpan::default(),
+                    ),
+                    alignment: Some(ParagraphAlignment::Center),
                     ..Default::default()
                 }));
             }

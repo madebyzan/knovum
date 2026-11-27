@@ -1,16 +1,15 @@
 {
   "ai": {
-    "title": "AI 寫作",
+    "title": "問 Knovum",
     "selectText": "請先選中文字內容。",
-    "failed": "AI 生成失敗",
-    "applyFailed": "應用 AI 結果失敗",
+    "failed": "Knovum 生成失敗",
+    "applyFailed": "套用生成結果失敗",
     "actions": {
       "adjustTone": "調整語氣",
       "fixGrammar": "文法與拼字校對",
       "extend": "文字擴寫",
       "reduce": "精簡凝練",
       "simplify": "簡化表述",
-      "emojify": "添加 Emoji",
       "improve": "潤飾優化",
       "complete": "智慧續寫",
       "summarize": "生成總結",
@@ -29,7 +28,26 @@
       "objective": "客觀中立",
       "persuasive": "具說服力"
     },
-    "needContext": "請選取文字或將遊標置於段落末尾作為上下文。"
+    "needContext": "請選取文字或將遊標置於段落末尾作為上下文。",
+    "panel": {
+      "ask": "問 Knovum",
+      "placeholder": "讓 Knovum 寫作、改寫或起草…",
+      "followUpPlaceholder": "繼續告訴 Knovum 如何調整…",
+      "thinking": "Knovum 正在思考…",
+      "generating": "Knovum 正在寫作…",
+      "stop": "停止",
+      "replace": "取代選取內容",
+      "insert": "插入",
+      "insertBelow": "插入下方",
+      "retry": "重試",
+      "discard": "放棄",
+      "addReference": "引用空間資料",
+      "searchReferences": "搜尋空間資料…",
+      "noReferences": "沒有符合的空間資料",
+      "compare": "對比原文",
+      "original": "原文",
+      "proposed": "建議改寫"
+    }
   },
   "find": {
     "title": "尋找文本",
@@ -93,7 +111,27 @@
     "uploadFailed": "圖片插入失敗",
     "dropDocumentHint": "選擇文件或拖曳圖片至文件編輯器。",
     "dropNow": "鬆開即可插入圖片",
-    "insertFailed": "插入圖片失敗"
+    "insertFailed": "插入圖片失敗",
+    "caption": "新增圖片說明",
+    "captionPlaceholder": "新增圖片說明…",
+    "preview": "放大檢視",
+    "zoomIn": "放大",
+    "zoomOut": "縮小",
+    "previous": "上一張",
+    "next": "下一張",
+    "group": {
+      "auto": "自動",
+      "gallery": "畫廊",
+      "compare": "對比",
+      "masonry": "瀑布流",
+      "cards": "卡片",
+      "stack": "縱向",
+      "before": "對比前",
+      "after": "對比後",
+      "addImage": "新增圖片",
+      "split": "拆分為獨立圖片",
+      "cardPlaceholder": "標題 | 卡片說明…"
+    }
   },
   "link": {
     "label": "超連結",
@@ -107,7 +145,9 @@
     "invalid": "請輸入有效的 HTTP、HTTPS 或 mailto 格式連結。",
     "open": "訪問",
     "updateFailed": "更新連結失敗",
-    "openFailed": "無法開啟連結"
+    "openFailed": "無法開啟連結",
+    "copy": "複製連結",
+    "edit": "編輯連結"
   },
   "bulletList": "無序列表",
   "orderedList": "有序列表",
@@ -118,10 +158,138 @@
     "title": "表格",
     "addRow": "下方插入行",
     "addColumn": "右側插入列",
-    "delete": "刪除表格"
+    "delete": "刪除表格",
+    "addRowBefore": "上方插入列",
+    "addRowAfter": "下方插入列",
+    "deleteRow": "刪除目前列",
+    "addColumnBefore": "左側插入欄",
+    "addColumnAfter": "右側插入欄",
+    "deleteColumn": "刪除目前欄",
+    "toggleHeaderRow": "切換標題列",
+    "mergeCells": "合併儲存格",
+    "splitCell": "分割儲存格"
   },
   "statistics": {
     "words": "{count} 字詞",
-    "characters": "{count} 字元"
+    "characters": "{count} 字元",
+    "readingMinutes": "約 {count} 分鐘閱讀"
+  },
+  "codeBlock": {
+    "title": "程式碼區塊",
+    "plainText": "純文字",
+    "copy": "複製",
+    "copied": "已複製",
+    "toggleWrap": "切換自動換行",
+    "searchLanguage": "搜尋語言…"
+  },
+  "callout": {
+    "title": "提示區塊",
+    "kinds": {
+      "note": "說明",
+      "tip": "技巧",
+      "important": "重要",
+      "warning": "注意",
+      "caution": "警示"
+    }
+  },
+  "slash": {
+    "title": "插入區塊或命令",
+    "empty": "沒有符合的命令",
+    "groups": {
+      "ai": "Knovum",
+      "blocks": "結構",
+      "lists": "清單",
+      "insert": "插入"
+    },
+    "items": {
+      "askAi": {
+        "label": "問 Knovum",
+        "description": "輸入自由指令起草或改寫內容"
+      },
+      "continue": {
+        "label": "智慧續寫",
+        "description": "結合上下文自然續寫"
+      },
+      "summarize": {
+        "label": "總結全文",
+        "description": "提煉目前文件核心重點"
+      },
+      "h1": {
+        "description": "文件主標題"
+      },
+      "h2": {
+        "description": "主要章節標題"
+      },
+      "h3": {
+        "description": "子章節標題"
+      },
+      "callout": {
+        "description": "帶語意標註的提示與警示區塊"
+      },
+      "blockquote": {
+        "description": "引用段落"
+      },
+      "bulletList": {
+        "description": "項目符號清單"
+      },
+      "orderedList": {
+        "description": "編號清單"
+      },
+      "taskList": {
+        "description": "可勾選的待辦清單"
+      },
+      "codeBlock": {
+        "description": "支援語法高亮的程式碼區塊"
+      },
+      "table": {
+        "description": "插入 3 × 3 表格"
+      },
+      "divider": {
+        "description": "水平分隔線"
+      },
+      "mathBlock": {
+        "description": "置中顯示的 LaTeX 數學公式區塊"
+      },
+      "mathInline": {
+        "description": "在段落中插入行內 LaTeX 公式"
+      },
+      "mermaid": {
+        "description": "即時渲染流程圖、循序圖或架構圖"
+      }
+    }
+  },
+  "blockMenu": {
+    "trigger": "拖曳排序或點擊開啟區塊操作",
+    "askAi": "問 Knovum",
+    "askInChat": "傳送到空間對話",
+    "moveUp": "上移",
+    "moveDown": "下移",
+    "duplicate": "複製區塊",
+    "delete": "刪除區塊",
+    "addBelow": "在下方新增區塊",
+    "turnInto": "轉換為"
+  },
+  "modes": {
+    "source": "Markdown 原始碼",
+    "rich": "富文字檢視",
+    "pageOptions": "頁面選項",
+    "formattingBar": "格式工具列",
+    "fullWidth": "寬螢幕模式"
+  },
+  "math": {
+    "blockTitle": "數學公式區塊",
+    "inlineTitle": "行內公式",
+    "blockPlaceholder": "輸入 LaTeX 公式，例如 \\int_0^1 x^2 \\, dx",
+    "inlinePlaceholder": "輸入行內 LaTeX，例如 E = mc^2",
+    "emptyBlock": "輸入 TeX 公式",
+    "convertAction": "轉為行內公式 (⌘⇧E)"
+  },
+  "mermaid": {
+    "title": "Mermaid 圖表",
+    "preview": "預覽",
+    "split": "分割",
+    "code": "程式碼",
+    "empty": "輸入 Mermaid 圖表語法即可即時預覽",
+    "syntaxError": "圖表語法錯誤"
   }
 }

@@ -17,6 +17,9 @@ type ContentChange = { id: string; data: SpaceNodePayload };
 
 const mocks = vi.hoisted(() => ({
   store: {
+    nodes: [] as unknown[],
+    activeSpaceId: "space",
+    openSpace: vi.fn<(spaceId: string) => Promise<void>>(),
     saveNodeContentForSpace:
       vi.fn<(spaceId: string, change: { id: string; data: unknown }) => Promise<unknown>>(),
     discardUnavailableEditorTab: vi.fn<(tabId: string) => Promise<void>>(),
@@ -26,8 +29,8 @@ const mocks = vi.hoisted(() => ({
 vi.mock("../../../session/space-store", () => ({ useSpaceStore: () => mocks.store }));
 vi.mock("../../tiptap-text-statistics", () => ({
   createTiptapTextStatistics: () => ({
-    wordCount: 0,
-    characterCount: 0,
+    wordCount: shallowRef(0),
+    characterCount: shallowRef(0),
     update: () => {},
     dispose: () => {},
   }),

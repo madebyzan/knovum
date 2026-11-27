@@ -1,172 +1,183 @@
 <script setup lang="ts">
-import { Download, FileText, ImagePlus, StickyNote } from "@lucide/vue";
 import { EditorContent } from "@tiptap/vue-3";
-import { toRef, useTemplateRef, watch } from "vue";
+import { shallowRef, toRef, useTemplateRef } from "vue";
 import { useI18n } from "vue-i18n";
-import { toast } from "vue-sonner";
 
-import { getErrorMessage } from "../../../../foundation/errors/error-format";
-import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
-import { exportSpaceMarkdown } from "../../assets/export/text";
-import { registerDocumentEditCommands } from "../../commands/document-edit-commands";
-import SpaceCitationPreview from "../../conversation/presentation/SpaceCitationPreview.vue";
 import { useCitationHover } from "../../conversation/presentation/use-citation-hover";
-import { unescapeCitationMarkers } from "../../knowledge/model/citation-markers";
 import { useSpaceStore } from "../../session/space-store";
-import SpaceEditorSaveStatus from "../../workspace/presentation/SpaceEditorSaveStatus.vue";
 import type { SpaceEditorTab } from "../../workspace/workbench-tab";
+import { createSpaceSlashCallbacks } from "../slash-commands";
+import type { MathEditTarget } from "../tiptap-math";
+import { convertSelectionToInlineMath } from "../tiptap-math-rules";
+import { createSlashCommandController } from "../tiptap-slash-command";
+import { createUntitledTitlePromoter } from "../tiptap-writing-text";
 import { useSpaceTiptapEditor } from "../use-space-tiptap-editor";
 import { useSpaceTiptapImageDrop } from "../use-space-tiptap-image-drop";
 import { useSpaceTiptapWritingTools } from "../use-space-tiptap-writing-tools";
-import SpaceDocumentOutline from "./SpaceDocumentOutline.vue";
 import SpaceDocumentSource from "./SpaceDocumentSource.vue";
 import SpaceEditorProblem from "./SpaceEditorProblem.vue";
-import SpaceTiptapBubbleMenu from "./SpaceTiptapBubbleMenu.vue";
-import SpaceTiptapSearch from "./SpaceTiptapSearch.vue";
+import SpaceTiptapCalloutView from "./SpaceTiptapCalloutView.vue";
+import SpaceTiptapCodeBlockView from "./SpaceTiptapCodeBlockView.vue";
+import SpaceTiptapHeader from "./SpaceTiptapHeader.vue";
+import SpaceTiptapImageGroupView from "./SpaceTiptapImageGroupView.vue";
+import SpaceTiptapImageView from "./SpaceTiptapImageView.vue";
+import SpaceTiptapOverlays from "./SpaceTiptapOverlays.vue";
+import SpaceTiptapSourceEditor from "./SpaceTiptapSourceEditor.vue";
+import SpaceTiptapTitle from "./SpaceTiptapTitle.vue";
 import SpaceTiptapToolbar from "./SpaceTiptapToolbar.vue";
+import SpaceTiptapViewportOverlays from "./SpaceTiptapViewportOverlays.vue";
+import { useSpaceTiptapSurface } from "./use-space-tiptap-surface";
 
 const props = defineProps<{ tab: SpaceEditorTab; active: boolean }>();
 const store = useSpaceStore();
 const { t } = useI18n();
+const activeRef = toRef(props, "active");
 const scrollRoot = useTemplateRef<HTMLElement>("scrollRoot");
-const {
-  activeHeadingId,
-  characterCount,
-  error,
-  editorLabel,
-  editorNode,
-  editor,
-  groundedCitations,
-  headings,
-  isGroundedMarkdownDocument,
-  openGroundedCitation,
-  sourceReadingTarget,
-  closeSourceReading,
-  persist,
-  revealHeading,
-  saveStatus,
-  suspended,
-  syncActiveHeading,
-  title,
-  wordCount,
-} = useSpaceTiptapEditor(props.tab, toRef(props, "active"), scrollRoot);
-const writing = useSpaceTiptapWritingTools(editor);
-const citationHover = useCitationHover(groundedCitations);
-const imageDragging = useSpaceTiptapImageDrop(editor, scrollRoot, toRef(props, "active"));
-const search = useTemplateRef<InstanceType<typeof SpaceTiptapSearch>>("search");
-const outline = useTemplateRef<InstanceType<typeof SpaceDocumentOutline>>("outline");
-watch(
-  [editor, () => props.active, error, suspended],
-  ([instance], _previous, cleanup) => {
-    if (!instance || !props.active || error.value || suspended.value) return;
-    cleanup(
-      registerDocumentEditCommands({
-        canUndo: () => instance.can().undo(),
-        canRedo: () => instance.can().redo(),
-        undo: () => {
-          instance.commands.undo();
-        },
-        redo: () => {
-          instance.commands.redo();
-        },
-        find: () => search.value?.show(),
-        hasOutline: () => headings.value.length > 0,
-        focusOutline: () => {
-          void outline.value?.focus();
-        },
-        save: persist,
-      }),
-    );
+const articleHost = useTemplateRef<HTMLElement>("articleHost");
+const proseHost = useTemplateRef<HTMLElement>("proseHost");
+const titleField = useTemplateRef<InstanceType<typeof SpaceTiptapTitle>>("titleField");
+const header = useTemplateRef<InstanceType<typeof SpaceTiptapHeader>>("header");
+const viewportOverlays = useTemplateRef<InstanceType<typeof SpaceTiptapViewportOverlays>>("viewportOverlays");
+const scrolled = shallowRef(false);
+const mathTarget = shallowRef<MathEditTarget | null>(null);
+const slashController = createSlashCommandController();
+const openMath = (target: MathEditTarget) => (mathTarget.value = target);
+
+const doc = useSpaceTiptapEditor(props.tab, activeRef, scrollRoot, {
+  nodeViews: {
+    codeBlock: SpaceTiptapCodeBlockView,
+    callout: SpaceTiptapCalloutView,
+    image: SpaceTiptapImageView,
+    imageGroup: SpaceTiptapImageGroupView,
   },
-  { immediate: true },
-);
-async function exportMarkdown() {
-  if (!editor.value) return;
-  try {
-    await persist();
-    const stripCitations = await isGroundedMarkdownDocument();
-    const markdown = unescapeCitationMarkers(editor.value.getMarkdown());
-    if (await exportSpaceMarkdown(title.value, markdown, { stripCitations }))
-      toast.success(t("spaces.importExport.export.completed"));
-  } catch (caught) {
-    toast.error(getErrorMessage(caught));
-  }
+  slashExtension: slashController.createExtension(),
+  onOpenAi: () => {
+    if (!surface.sourceMode.value) writing.openPrompt();
+  },
+  onFocusTitle: () => titleField.value?.focusEnd(),
+  onEditMath: openMath,
+  mathPlaceholders: { block: `Σ  ${t("spaces.richtext.math.emptyBlock")}`, inline: "TeX" },
+});
+const writing = useSpaceTiptapWritingTools(doc.editor, {
+  documentTitle: doc.title,
+  promoteTitle: createUntitledTitlePromoter(doc.title, () => titlePlaceholder.value),
+});
+const surface = useSpaceTiptapSurface({
+  active: activeRef,
+  doc,
+  writing,
+  onFind: () => header.value?.showSearch(),
+  onFocusOutline: () => viewportOverlays.value?.focusOutline(),
+});
+const { showToolbar, fullWidth, sourceMode, sourceDraft, readOnly, titlePlaceholder } = surface;
+slashController.attachCallbacks(createSpaceSlashCallbacks(() => doc.editor.value, writing, openMath));
+const citationHover = useCitationHover(doc.groundedCitations);
+const imageDrop = useSpaceTiptapImageDrop(doc.editor, scrollRoot, proseHost, activeRef);
+
+function handleScroll() {
+  scrolled.value = (scrollRoot.value?.scrollTop ?? 0) > 8;
+  doc.syncActiveHeading();
 }
 </script>
 
 <template>
   <section v-show="active" class="absolute inset-0 z-30 flex min-h-0 flex-col bg-surface-canvas">
-    <header
-      class="flex h-toolbar shrink-0 items-center gap-2 border-b border-stroke-divider bg-surface-chrome px-3"
+    <SpaceTiptapHeader
+      ref="header"
+      :kind="doc.editorNode.value.data.kind"
+      :editor-label="doc.editorLabel.value"
+      :save-status="doc.saveStatus.value"
+      :editor="doc.editor.value"
+      :active="active"
+      :show-toolbar="showToolbar"
+      :full-width="fullWidth"
+      :source-mode="sourceMode"
+      :scrolled="scrolled"
+      :word-count="doc.wordCount.value"
+      :character-count="doc.characterCount.value"
+      @open-ai="writing.openPrompt()"
+      @ask-in-chat="surface.askInChat()"
+      @toggle-toolbar="showToolbar = !showToolbar"
+      @toggle-full-width="fullWidth = !fullWidth"
+      @toggle-source-mode="surface.toggleSourceMode"
+      @export-markdown="surface.exportMarkdown"
+    />
+    <SpaceEditorProblem
+      v-if="doc.error.value"
+      :error="doc.error.value"
+      @discard="store.discardUnavailableEditorTab(tab.id)"
+    />
+    <div
+      v-if="doc.editor.value && !readOnly && showToolbar && !sourceMode"
+      class="relative z-20 border-b border-stroke-divider bg-surface-muted/65"
     >
-      <component
-        :is="editorNode.data.kind === 'note' ? StickyNote : FileText"
-        class="size-3.5 text-fg-secondary"
-        :stroke-width="1.55"
-      />
-      <span class="text-caption font-medium text-fg-secondary">{{ editorLabel }}</span>
-      <div class="flex-1" />
-      <SpaceEditorSaveStatus :status="saveStatus" />
-      <SpaceTiptapSearch ref="search" v-if="editor && active" :editor="editor" />
-      <UiIconButton :label="t('spaces.importExport.markdown.export')" size="sm" @click="exportMarkdown">
-        <Download class="size-3.5" />
-      </UiIconButton>
-      <span class="hidden text-caption-sm text-fg-tertiary sm:block">
-        {{ t("spaces.richtext.statistics.words", { count: wordCount }, wordCount) }} ·
-        {{ t("spaces.richtext.statistics.characters", { count: characterCount }, characterCount) }}
-      </span>
-    </header>
-    <SpaceEditorProblem v-if="error" :error="error" @discard="store.discardUnavailableEditorTab(tab.id)" />
-    <div v-if="editor && !error && !suspended" class="border-b border-stroke-divider bg-surface-chrome/80">
-      <SpaceTiptapToolbar :editor="editor" />
+      <SpaceTiptapToolbar :editor="doc.editor.value" />
     </div>
-    <SpaceDocumentSource :active="active" :target="sourceReadingTarget" @close="closeSourceReading">
-      <div ref="scrollRoot" class="relative min-h-0 flex-1 overflow-auto" @scroll.passive="syncActiveHeading">
-        <div
-          v-if="imageDragging"
-          class="pointer-events-none sticky top-2 z-40 mx-2 -mb-18 flex h-16 items-center justify-center gap-2 rounded-panel border border-dashed border-stroke-accent bg-surface-overlay/92 text-label font-medium text-fg-accent shadow-popover backdrop-blur"
+    <SpaceDocumentSource
+      :active="active"
+      :target="doc.sourceReadingTarget.value"
+      @close="doc.closeSourceReading"
+    >
+      <div
+        ref="scrollRoot"
+        class="relative isolate z-0 min-h-0 flex-1 overflow-auto"
+        @scroll.passive="handleScroll"
+      >
+        <article
+          ref="articleHost"
+          class="relative mx-auto min-h-full w-full px-12 pt-12 pb-44 transition-[max-width] duration-200 sm:px-20"
+          :class="fullWidth ? 'max-w-5xl' : 'max-w-[780px]'"
         >
-          <ImagePlus class="size-4" />{{ t("spaces.richtext.image.dropNow") }}
-        </div>
-        <article class="mx-auto min-h-full w-full max-w-3xl px-10 py-12 sm:px-14">
-          <input
-            v-model="title"
-            :disabled="!!error || suspended"
-            class="w-full bg-transparent text-display font-semibold tracking-title text-fg-primary outline-none placeholder:text-fg-tertiary"
-            :aria-label="t('spaces.editor.markdown.title')"
-            :placeholder="
-              editorNode.data.kind === 'note'
-                ? t('spaces.editor.note.new')
-                : t('spaces.editor.markdown.untitled')
-            "
-            @blur="persist"
+          <SpaceTiptapTitle
+            ref="titleField"
+            v-model="doc.title.value"
+            :disabled="readOnly"
+            :label="t('spaces.editor.markdown.title')"
+            :placeholder="titlePlaceholder"
+            @enter-body="doc.editor.value?.commands.focus('start')"
+            @blur="surface.persistDocument"
           />
-          <!--
-            The bubble menu moves its root element out of this tree and into the ProseMirror
-            plugin, so its lifetime must follow the editor instance. Visibility is the plugin's
-            own concern: it stays hidden while the editor is not editable or not focused.
-          -->
-          <SpaceTiptapBubbleMenu v-if="editor" :editor="editor" :writing="writing" />
-          <EditorContent
-            v-if="editor"
-            :editor="editor"
-            class="mt-7"
-            @pointerover="citationHover.onBodyPointerOver"
-            @pointerout="citationHover.onBodyPointerOut"
+          <SpaceTiptapSourceEditor
+            v-if="sourceMode"
+            v-model="sourceDraft"
+            :disabled="readOnly"
+            @blur="surface.persistDocument"
           />
+          <div v-else-if="doc.editor.value" ref="proseHost" class="relative mt-6">
+            <EditorContent
+              :editor="doc.editor.value"
+              @pointerover="citationHover.onBodyPointerOver"
+              @pointerout="citationHover.onBodyPointerOut"
+            />
+            <SpaceTiptapOverlays
+              :editor="doc.editor.value"
+              :writing="writing"
+              :article-host="articleHost"
+              :prose-host="proseHost"
+              :scroll-root="scrollRoot"
+              :math-target="mathTarget"
+              :drop-active="imageDrop.active.value"
+              :drop-indicator-top="imageDrop.dropIndicator.value?.lineTop ?? null"
+              @ask-in-chat="(quote) => surface.askInChat(quote)"
+              @close-math="mathTarget = null"
+              @convert-to-math="doc.editor.value && convertSelectionToInlineMath(doc.editor.value, openMath)"
+            />
+          </div>
         </article>
       </div>
-      <SpaceCitationPreview
-        :state="citationHover.active.value"
-        @open="(citation) => (citationHover.dismiss(), openGroundedCitation(citation))"
-        @preview-enter="citationHover.onPreviewPointerEnter"
-        @preview-leave="citationHover.onPreviewPointerLeave"
-      />
-      <SpaceDocumentOutline
-        ref="outline"
-        :headings="headings"
-        :active-id="activeHeadingId"
-        @select="revealHeading"
+      <SpaceTiptapViewportOverlays
+        ref="viewportOverlays"
+        :editor="doc.editor.value"
+        :node-id="doc.editorNode.value.id"
+        :writing="writing"
+        :full-width="fullWidth"
+        :source-mode="sourceMode"
+        :slash-controller="slashController"
+        :citation-hover="citationHover"
+        :headings="doc.headings.value"
+        :active-heading-id="doc.activeHeadingId.value"
+        @open-citation="doc.openGroundedCitation"
+        @reveal-heading="doc.revealHeading"
       />
     </SpaceDocumentSource>
   </section>

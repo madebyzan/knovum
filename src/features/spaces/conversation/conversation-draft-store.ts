@@ -92,6 +92,7 @@ export const useConversationDraftStore = defineStore("spaces-conversation-drafts
     if (current)
       saveCached(spaceId, conversationId, {
         ...current,
+        attachments: persisted.attachments,
         reacquireFileNames: persisted.reacquireFileNames,
       });
   }

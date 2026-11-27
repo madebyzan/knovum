@@ -16,7 +16,7 @@ import { useSpaceStore } from "../session/space-store";
 import type { SpaceEditorTab } from "../workspace/workbench-tab";
 import { useDocumentSessionStore } from "./document-session-store";
 import { isDocumentEdit } from "./tiptap-edits";
-import { createSpaceTiptapExtensions } from "./tiptap-extensions";
+import { createSpaceTiptapExtensions, type SpaceTiptapExtensionExtras } from "./tiptap-extensions";
 import { revealKnowledgeInEditor } from "./tiptap-locator";
 import { spaceTiptapHeadings } from "./tiptap-outline";
 import { createTiptapTextStatistics } from "./tiptap-text-statistics";
@@ -27,6 +27,7 @@ export function useSpaceTiptapEditor(
   tab: SpaceEditorTab,
   active: Ref<boolean>,
   scrollRoot: Readonly<ShallowRef<HTMLElement | null>>,
+  extras: SpaceTiptapExtensionExtras = {},
 ) {
   const store = useSpaceStore();
   const { editorLocateRequest } = storeToRefs(store);
@@ -97,6 +98,7 @@ export function useSpaceTiptapEditor(
         const citation = findGroundedCitation(groundedCitations.value, index);
         if (citation) openGroundedCitation(citation);
       },
+      extras,
     ),
     ...editorContent(editorNode.value.data),
     editorProps: { attributes: { class: "space-tiptap-prose", spellcheck: "true" } },
@@ -181,6 +183,5 @@ export function useSpaceTiptapEditor(
 
 function editorContent(data: SpaceEditorPayload) {
   if (data.tiptapContent) return { content: data.tiptapContent };
-  if (data.kind === "markdown") return { content: data.text, contentType: "markdown" as const };
-  return { content: data.tiptapContent };
+  return data.kind === "markdown" ? { content: data.text, contentType: "markdown" as const } : {};
 }

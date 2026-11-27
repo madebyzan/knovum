@@ -2,7 +2,7 @@ mod citations;
 mod images;
 mod source;
 
-use std::path::Path;
+use std::{collections::BTreeMap, path::Path};
 
 use serde_json::Value;
 use tokio_util::sync::CancellationToken;
@@ -21,8 +21,9 @@ pub(super) async fn write(
     format: DocumentFormat,
     destination: &Path,
     cancellation: &CancellationToken,
+    rendered_diagrams: BTreeMap<String, String>,
 ) -> Result<(), AppError> {
-    let input = source::load(app, node_id, payload, format).await?;
+    let input = source::load(app, node_id, payload, format, rendered_diagrams).await?;
     let snapshots = input.snapshots();
     let bytes = worker::render(format, input, cancellation).await?;
     crate::foundation::blocking::run({

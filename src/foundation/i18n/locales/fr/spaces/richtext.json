@@ -1,16 +1,15 @@
 {
   "ai": {
-    "title": "Écriture IA",
+    "title": "Demander à Knovum",
     "selectText": "Sélectionnez d'abord le contenu du texte.",
-    "failed": "Échec de la génération IA",
-    "applyFailed": "Impossible d'appliquer le résultat AI",
+    "failed": "Échec de la génération Knovum",
+    "applyFailed": "Impossible d’appliquer le résultat",
     "actions": {
       "adjustTone": "Ajuster la tonalité",
       "fixGrammar": "Corriger la grammaire et l'orthographe",
       "extend": "Étendre le texte",
       "reduce": "Résumer et condenser",
       "simplify": "Simplifier la formulation",
-      "emojify": "Ajouter un emoji",
       "improve": "Poliser et améliorer",
       "complete": "Saisie semi-automatique",
       "summarize": "Résumer",
@@ -29,7 +28,26 @@
       "objective": "Objectif",
       "persuasive": "Persuasif"
     },
-    "needContext": "Placez le curseur après le texte existant ou sélectionnez le texte comme contexte."
+    "needContext": "Placez le curseur après le texte existant ou sélectionnez le texte comme contexte.",
+    "panel": {
+      "ask": "Demander à Knovum",
+      "placeholder": "Demander à Knovum d’écrire, modifier ou rédiger…",
+      "followUpPlaceholder": "Indiquer à Knovum comment affiner…",
+      "thinking": "Knovum réfléchit…",
+      "generating": "Knovum rédige…",
+      "stop": "Arrêter",
+      "replace": "Remplacer",
+      "insert": "Insérer",
+      "insertBelow": "Insérer dessous",
+      "retry": "Réessayer",
+      "discard": "Ignorer",
+      "addReference": "Joindre une source de l'espace",
+      "searchReferences": "Rechercher des sources…",
+      "noReferences": "Aucune source correspondante",
+      "compare": "Comparer",
+      "original": "Original",
+      "proposed": "Proposition"
+    }
   },
   "find": {
     "title": "Rechercher du texte",
@@ -93,7 +111,27 @@
     "uploadFailed": "Échec de l'insertion de l'image",
     "dropDocumentHint": "Choisissez un fichier ou faites glisser l'image dans l'éditeur de documents.",
     "dropNow": "Déposer pour insérer une image",
-    "insertFailed": "Impossible d'insérer l'image"
+    "insertFailed": "Impossible d'insérer l'image",
+    "caption": "Ajouter une légende",
+    "captionPlaceholder": "Écrire une légende…",
+    "preview": "Afficher en plein écran",
+    "zoomIn": "Zoomer",
+    "zoomOut": "Dézoomer",
+    "previous": "Image précédente",
+    "next": "Image suivante",
+    "group": {
+      "auto": "Auto",
+      "gallery": "Galerie",
+      "compare": "Comparer",
+      "masonry": "Mosaïque",
+      "cards": "Cartes",
+      "stack": "Empilé",
+      "before": "Avant",
+      "after": "Après",
+      "addImage": "Ajouter une image",
+      "split": "Séparer les images",
+      "cardPlaceholder": "Titre | Description…"
+    }
   },
   "link": {
     "label": "Lien hypertexte",
@@ -107,7 +145,9 @@
     "invalid": "Veuillez saisir un lien HTTP, HTTPS ou mailto valide.",
     "open": "Ouvrir le lien",
     "updateFailed": "Impossible de mettre à jour le lien",
-    "openFailed": "Impossible d'ouvrir le lien"
+    "openFailed": "Impossible d'ouvrir le lien",
+    "copy": "Copier le lien",
+    "edit": "Modifier le lien"
   },
   "bulletList": "Liste à puces",
   "orderedList": "Liste ordonnée",
@@ -118,10 +158,138 @@
     "title": "Tableau",
     "addRow": "Insérer la ligne ci-dessous",
     "addColumn": "Insérer la colonne de droite",
-    "delete": "Supprimer la table"
+    "delete": "Supprimer la table",
+    "addRowBefore": "Insérer une ligne au-dessus",
+    "addRowAfter": "Insérer une ligne en dessous",
+    "deleteRow": "Supprimer la ligne",
+    "addColumnBefore": "Insérer une colonne à gauche",
+    "addColumnAfter": "Insérer une colonne à droite",
+    "deleteColumn": "Supprimer la colonne",
+    "toggleHeaderRow": "Basculer la ligne d'en-tête",
+    "mergeCells": "Fusionner les cellules",
+    "splitCell": "Fractionner la cellule"
   },
   "statistics": {
     "words": "{count} mot | {count} mots",
-    "characters": "{count} caractère | {count} caractères"
+    "characters": "{count} caractère | {count} caractères",
+    "readingMinutes": "{count} min de lecture"
+  },
+  "codeBlock": {
+    "title": "Bloc de code",
+    "plainText": "Texte brut",
+    "copy": "Copier",
+    "copied": "Copié",
+    "toggleWrap": "Activer/désactiver le retour à la ligne",
+    "searchLanguage": "Rechercher un langage…"
+  },
+  "callout": {
+    "title": "Encadré",
+    "kinds": {
+      "note": "Note",
+      "tip": "Astuce",
+      "important": "Important",
+      "warning": "Avertissement",
+      "caution": "Attention"
+    }
+  },
+  "slash": {
+    "title": "Insérer un bloc",
+    "empty": "Aucune commande correspondante",
+    "groups": {
+      "ai": "Knovum",
+      "blocks": "Structure",
+      "lists": "Listes",
+      "insert": "Insérer"
+    },
+    "items": {
+      "askAi": {
+        "label": "Demander à Knovum",
+        "description": "Rédiger ou réécrire avec une consigne libre"
+      },
+      "continue": {
+        "label": "Continuer la rédaction",
+        "description": "Poursuivre naturellement d'après le contexte"
+      },
+      "summarize": {
+        "label": "Résumer",
+        "description": "Condenser le document en points clés"
+      },
+      "h1": {
+        "description": "Titre principal"
+      },
+      "h2": {
+        "description": "Titre de section"
+      },
+      "h3": {
+        "description": "Sous-titre"
+      },
+      "callout": {
+        "description": "Note, astuce ou avertissement mis en avant"
+      },
+      "blockquote": {
+        "description": "Citation"
+      },
+      "bulletList": {
+        "description": "Liste à puces"
+      },
+      "orderedList": {
+        "description": "Liste numérotée"
+      },
+      "taskList": {
+        "description": "Liste de tâches"
+      },
+      "codeBlock": {
+        "description": "Code avec coloration syntaxique"
+      },
+      "table": {
+        "description": "Insérer un tableau 3 × 3"
+      },
+      "divider": {
+        "description": "Séparateur"
+      },
+      "mathBlock": {
+        "description": "Bloc d’équation LaTeX (KaTeX)"
+      },
+      "mathInline": {
+        "description": "Formule LaTeX intégrée au texte"
+      },
+      "mermaid": {
+        "description": "Organigramme, diagramme de séquence ou d’architecture"
+      }
+    }
+  },
+  "blockMenu": {
+    "trigger": "Glisser pour déplacer ou cliquer pour les actions",
+    "askAi": "Demander à Knovum sur ce bloc",
+    "askInChat": "Envoyer au chat",
+    "moveUp": "Monter",
+    "moveDown": "Descendre",
+    "duplicate": "Dupliquer",
+    "delete": "Supprimer",
+    "addBelow": "Ajouter un bloc dessous",
+    "turnInto": "Transformer en"
+  },
+  "modes": {
+    "source": "Source Markdown",
+    "rich": "Éditeur enrichi",
+    "pageOptions": "Options de page",
+    "formattingBar": "Barre de mise en forme",
+    "fullWidth": "Pleine largeur"
+  },
+  "math": {
+    "blockTitle": "Bloc mathématique",
+    "inlineTitle": "Formule en ligne",
+    "blockPlaceholder": "Saisissez une équation LaTeX, ex. \\int_0^1 x^2 \\, dx",
+    "inlinePlaceholder": "Saisissez du LaTeX en ligne, ex. E = mc^2",
+    "emptyBlock": "Ajouter une équation TeX",
+    "convertAction": "Convertir en équation (⌘⇧E)"
+  },
+  "mermaid": {
+    "title": "Diagramme Mermaid",
+    "preview": "Aperçu",
+    "split": "Partagé",
+    "code": "Code",
+    "empty": "Saisissez une syntaxe Mermaid pour prévisualiser",
+    "syntaxError": "Erreur de syntaxe du diagramme"
   }
 }

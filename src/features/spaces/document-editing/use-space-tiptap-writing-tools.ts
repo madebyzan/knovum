@@ -1,152 +1,181 @@
 import type { Editor } from "@tiptap/vue-3";
-import { computed, onScopeDispose, readonly, shallowRef, watch, type Ref } from "vue";
+import { computed, onScopeDispose, readonly, watch, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
-import { admitAiRequirements } from "../../../foundation/ai/ai-readiness-admission";
 import { cancelAiJob } from "../../../foundation/ai/ai-runtime";
-import { transformEditorTextStream } from "../../../foundation/ai/editor-transform";
 import {
   LABEL_KEY_BY_TRANSLATION_TARGET,
-  translateTextStream,
   TRANSLATION_TARGETS,
   type TranslationTarget,
 } from "../../../foundation/ai/translation";
 import { getErrorMessage } from "../../../foundation/errors/error-format";
 import type { EditorTransformAction } from "../../../shared/contracts/generated/EditorTransformAction";
-import type { RoutingPurpose } from "../../../shared/contracts/generated/RoutingPurpose";
-import type { TaskTarget } from "../../../shared/contracts/generated/TaskTarget";
-import { clearReasoningTrace } from "./tiptap-reasoning-trace";
-import { actionSource, applyGeneratedText, markReasoning } from "./tiptap-writing-text";
+import { executeWritingSession, startEditorTransform, startEditorTranslation } from "./tiptap-ai-runner";
+import { TONE_ACTION_KEYS } from "./tiptap-writing-catalog";
+import {
+  createWritingSessionState,
+  type LastWritingExecution,
+  type RunTransformParams,
+} from "./tiptap-writing-session-state";
+import {
+  acceptGeneratedDraft,
+  actionSource,
+  insertGeneratedTextBelow,
+  type TransformSource,
+  type WritingToolsOptions,
+} from "./tiptap-writing-text";
 
-type RunningAction = EditorTransformAction | `translate:${TranslationTarget}`;
-interface EditorWritingJob {
-  id: string;
-  editor: Editor;
-  cancellation: AbortController;
-}
-
-export function useSpaceTiptapWritingTools(editor: Readonly<Ref<Editor | undefined>>) {
+export function useSpaceTiptapWritingTools(
+  editor: Readonly<Ref<Editor | undefined>>,
+  options: WritingToolsOptions = {},
+) {
   const { t } = useI18n();
-  const runningAction = shallowRef<RunningAction>();
-  const writingTarget = shallowRef<TaskTarget>();
-  let activeJob: EditorWritingJob | undefined;
-  const tones = computed(
-    () =>
-      [
-        ["tone_academic", t("spaces.richtext.ai.tones.academic")],
-        ["tone_business", t("spaces.richtext.ai.tones.business")],
-        ["tone_casual", t("spaces.richtext.ai.tones.casual")],
-        ["tone_confident", t("spaces.richtext.ai.tones.confident")],
-        ["tone_creative", t("spaces.richtext.ai.tones.creative")],
-        ["tone_friendly", t("spaces.richtext.ai.tones.friendly")],
-        ["tone_humorous", t("spaces.richtext.ai.tones.humorous")],
-        ["tone_informative", t("spaces.richtext.ai.tones.informative")],
-        ["tone_inspirational", t("spaces.richtext.ai.tones.inspirational")],
-        ["tone_objective", t("spaces.richtext.ai.tones.objective")],
-        ["tone_persuasive", t("spaces.richtext.ai.tones.persuasive")],
-      ] as const satisfies readonly (readonly [EditorTransformAction, string])[],
-  );
+  const state = createWritingSessionState();
+  let lastExecution: LastWritingExecution | undefined;
+
+  const tones = computed(() => TONE_ACTION_KEYS.map(([action, key]) => [action, t(key)] as const));
   const translations = computed(() =>
     TRANSLATION_TARGETS.map((target) => [target, t(LABEL_KEY_BY_TRANSLATION_TARGET[target])] as const),
   );
+  const onError = (description: string) => toast.error(t("spaces.richtext.ai.failed"), { description });
+  const idleEditor = () =>
+    !state.getActiveJob() && editor.value && !editor.value.isDestroyed ? editor.value : undefined;
 
-  function notifyMissingSource(action: EditorTransformAction) {
-    toast.info(t(action === "complete" ? "spaces.richtext.ai.needContext" : "spaces.richtext.ai.selectText"));
-  }
-
-  function releaseJob() {
-    const job = activeJob;
-    activeJob = undefined;
-    runningAction.value = undefined;
-    if (job && !job.editor.isDestroyed) clearReasoningTrace(job.editor.view);
-    return job;
-  }
   async function cancel() {
-    const job = releaseJob();
+    const job = state.releaseJob(state.phase.value !== "review");
     if (!job) return;
     job.cancellation.abort();
+    if (state.phase.value === "streaming")
+      state.phase.value = state.draftText.value.trim() ? "review" : "prompt";
     await cancelAiJob(job.id);
   }
 
-  function cancelInBackground() {
-    void cancel().catch((error: unknown) => toast.error(getErrorMessage(error)));
+  const cancelQuietly = () => {
+    if (state.getActiveJob()) void cancel().catch((error: unknown) => toast.error(getErrorMessage(error)));
+  };
+  function discard() {
+    cancelQuietly();
+    state.reset(editor.value);
+    lastExecution = undefined;
   }
-  watch(editor, cancelInBackground, { flush: "sync" });
-  onScopeDispose(cancelInBackground);
+  watch(
+    editor,
+    (instance, _previous, cleanup) => {
+      discard();
+      if (!instance) return;
+      instance.on("transaction", state.onTransaction);
+      cleanup(() => instance.off("transaction", state.onTransaction));
+    },
+    { flush: "sync" },
+  );
+  onScopeDispose(cancelQuietly);
 
-  /** Claims the editor for one writing task on what `action` reads, or explains why there is nothing. */
-  function claimJob(actionLabel: RunningAction, action: EditorTransformAction) {
-    const instance = editor.value;
-    if (activeJob || !instance || instance.isDestroyed) return undefined;
-    const source = actionSource(instance, action);
-    if (!source) return notifyMissingSource(action);
-    const job: EditorWritingJob = {
-      id: crypto.randomUUID(),
-      editor: instance,
-      cancellation: new AbortController(),
-    };
-    runningAction.value = actionLabel;
-    activeJob = job;
-    return { job, source };
+  function openPrompt(explicitRange?: { from: number; to: number }) {
+    if (editor.value && !editor.value.isDestroyed && editor.value.isEditable)
+      state.openPrompt(editor.value, explicitRange);
   }
-
-  async function executeTransformAction(
-    actionLabel: RunningAction,
-    actionContext: EditorTransformAction,
-    purpose: Extract<RoutingPurpose, "writing" | "translation">,
-    transform: (text: string, jobId: string, signal: AbortSignal) => Promise<string>,
-  ) {
-    const claimed = claimJob(actionLabel, actionContext);
-    if (!claimed) return;
-    const { job, source } = claimed;
-    const instance = job.editor;
-    const isCurrent = () => activeJob === job && !instance.isDestroyed;
-    const target = writingTarget.value;
-    try {
-      // The task is claimed before admission, so the editor stays busy while it is decided.
-      if (!(await admitAiRequirements([{ kind: "routed", purpose, target }])) || !isCurrent()) return;
-      markReasoning(instance, source);
-      const generated = await transform(source.text, job.id, job.cancellation.signal);
-      if (isCurrent()) applyResult(instance, actionContext, source, generated);
-    } catch (error) {
-      if (isCurrent()) toast.error(t("spaces.richtext.ai.failed"), { description: getErrorMessage(error) });
-    } finally {
-      if (activeJob === job) releaseJob();
-    }
+  async function run(action: EditorTransformAction, params: RunTransformParams = {}) {
+    const instance = idleEditor();
+    if (!instance) return;
+    const source = state.activeSource.value ?? actionSource(instance, action, params.range);
+    if (!source)
+      return void toast.info(
+        t(action === "complete" ? "spaces.richtext.ai.needContext" : "spaces.richtext.ai.selectText"),
+      );
+    const instruction = params.instruction?.trim() || undefined;
+    const previousDraft = params.followUp ? state.draftText.value.trim() || undefined : undefined;
+    lastExecution = { kind: "transform", action, instruction };
+    await executeWritingSession({
+      instance,
+      state,
+      actionLabel: action,
+      purpose: "writing",
+      source,
+      onError,
+      executor: (job) =>
+        startEditorTransform(job, {
+          action,
+          source,
+          target: state.writingTarget.value,
+          instruction,
+          previousDraft,
+          documentTitle: options.documentTitle?.value,
+          references: state.attachedReferences.value,
+          onEvent: (event) => state.onStreamEvent(job, event),
+        }),
+    });
   }
-
-  function applyResult(...result: Parameters<typeof applyGeneratedText>) {
-    if (!applyGeneratedText(...result)) toast.error(t("spaces.richtext.ai.applyFailed"));
+  async function runTranslation(targetLanguage: TranslationTarget) {
+    const instance = idleEditor();
+    if (!instance) return;
+    const source = state.activeSource.value ?? actionSource(instance, "improve");
+    if (!source?.text.trim()) return void toast.info(t("spaces.richtext.ai.selectText"));
+    lastExecution = { kind: "translate", action: "improve", translationTarget: targetLanguage };
+    await executeWritingSession({
+      instance,
+      state,
+      actionLabel: `translate:${targetLanguage}`,
+      purpose: "translation",
+      source,
+      onError,
+      executor: (job) =>
+        startEditorTranslation(job, {
+          source,
+          targetLanguage,
+          executionTarget: state.writingTarget.value,
+          onEvent: (event) => state.onStreamEvent(job, event),
+        }),
+    });
   }
-
-  async function run(action: EditorTransformAction) {
-    await executeTransformAction(action, action, "writing", (text, jobId, signal) =>
-      transformEditorTextStream({
-        action,
-        text,
-        jobId,
-        signal,
-        target: writingTarget.value,
-        onEvent: () => {},
-      }),
-    );
+  function commitResult(apply: (instance: Editor, source: TransformSource) => boolean) {
+    if (!editor.value || !state.activeSource.value || !state.draftText.value.trim()) return;
+    if (!apply(editor.value, state.activeSource.value)) toast.error(t("spaces.richtext.ai.applyFailed"));
+    else discard();
   }
-
-  async function runTranslation(target: TranslationTarget) {
-    await executeTransformAction(`translate:${target}`, "improve", "translation", (text, jobId, signal) =>
-      translateTextStream({ text, target, executionTarget: writingTarget.value }, jobId, () => {}, signal),
-    );
-  }
-
   return {
-    runningAction: readonly(runningAction),
-    writingTarget,
-    cancel,
+    phase: readonly(state.phase),
+    runningAction: readonly(state.runningAction),
+    writingTarget: state.writingTarget,
+    promptText: state.promptText,
+    draftText: readonly(state.draftText),
+    thinking: readonly(state.thinking),
+    errorMessage: readonly(state.errorMessage),
+    activeSource: readonly(state.activeSource),
+    attachedReferences: readonly(state.attachedReferences),
     tones,
     translations,
+    openPrompt,
+    attachReference: state.attachReference,
+    removeReference: state.removeReference,
+    submitPrompt: async () => {
+      const instruction = state.promptText.value.trim();
+      if (!instruction) return;
+      const followUp = state.phase.value === "review" && Boolean(state.draftText.value.trim());
+      state.promptText.value = "";
+      await run("custom", { instruction, followUp });
+    },
     run,
     runTranslation,
+    retry: async () => {
+      if (!lastExecution) return;
+      await (lastExecution.kind === "translate" && lastExecution.translationTarget
+        ? runTranslation(lastExecution.translationTarget)
+        : run(lastExecution.action, { instruction: lastExecution.instruction }));
+    },
+    acceptReplace: () =>
+      commitResult((instance, source) =>
+        acceptGeneratedDraft(instance, {
+          action: lastExecution?.action ?? "custom",
+          source,
+          draft: state.draftText.value,
+          promoteTitle: options.promoteTitle,
+        }),
+      ),
+    acceptInsertBelow: () =>
+      commitResult((instance, source) => insertGeneratedTextBelow(instance, source, state.draftText.value)),
+    cancel,
+    discard,
   };
 }
 

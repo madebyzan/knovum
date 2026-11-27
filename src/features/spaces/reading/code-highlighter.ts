@@ -1,4 +1,6 @@
-import { tokenizeCodeLines } from "./code-highlighter-engine";
+import { tokenizeCodeLines, tokenizeCodeSpans, type CodeTokenSpan } from "./code-highlighter-engine";
+
+export type { CodeTokenSpan };
 
 const LANGUAGE_ALIASES: Record<string, string> = {
   js: "javascript",
@@ -24,28 +26,35 @@ const LANGUAGE_ALIASES: Record<string, string> = {
   txt: "text",
 };
 
-const MAX_CACHE_ENTRIES = 12;
-const highlightCache = new Map<string, readonly string[]>();
+const MAX_CACHE_ENTRIES = 24;
+const lineCache = new Map<string, readonly string[]>();
+const spanCache = new Map<string, readonly CodeTokenSpan[]>();
+
+interface WorkerResponse {
+  id: number;
+  lines?: readonly string[] | undefined;
+  spans?: readonly CodeTokenSpan[] | undefined;
+}
 
 let workerInstance: Worker | undefined;
 let workerFailed = false;
 let nextRequestId = 0;
-const pendingRequests = new Map<number, (lines: readonly string[] | undefined) => void>();
+const pendingRequests = new Map<number, (response: WorkerResponse) => void>();
 
-function cacheGet(key: string): readonly string[] | undefined {
-  const cached = highlightCache.get(key);
+function lruGet<T>(cache: Map<string, T>, key: string): T | undefined {
+  const cached = cache.get(key);
   if (!cached) return undefined;
-  highlightCache.delete(key);
-  highlightCache.set(key, cached);
+  cache.delete(key);
+  cache.set(key, cached);
   return cached;
 }
 
-function cacheSet(key: string, lines: readonly string[]) {
-  highlightCache.delete(key);
-  highlightCache.set(key, lines);
-  if (highlightCache.size > MAX_CACHE_ENTRIES) {
-    const oldest = highlightCache.keys().next().value;
-    if (oldest !== undefined) highlightCache.delete(oldest);
+function lruSet<T>(cache: Map<string, T>, key: string, value: T) {
+  cache.delete(key);
+  cache.set(key, value);
+  if (cache.size > MAX_CACHE_ENTRIES) {
+    const oldest = cache.keys().next().value;
+    if (oldest !== undefined) cache.delete(oldest);
   }
 }
 
@@ -56,19 +65,16 @@ function getWorker(): Worker | undefined {
     const worker = new Worker(new URL("./code-highlighter-worker.ts", import.meta.url), {
       type: "module",
     });
-    worker.addEventListener(
-      "message",
-      (event: MessageEvent<{ id: number; lines?: readonly string[] | undefined }>) => {
-        const resolve = pendingRequests.get(event.data.id);
-        if (!resolve) return;
-        pendingRequests.delete(event.data.id);
-        resolve(event.data.lines);
-      },
-    );
+    worker.addEventListener("message", (event: MessageEvent<WorkerResponse>) => {
+      const resolve = pendingRequests.get(event.data.id);
+      if (!resolve) return;
+      pendingRequests.delete(event.data.id);
+      resolve(event.data);
+    });
     worker.addEventListener("error", () => {
       workerFailed = true;
       workerInstance = undefined;
-      for (const resolve of pendingRequests.values()) resolve(undefined);
+      for (const resolve of pendingRequests.values()) resolve({ id: 0 });
       pendingRequests.clear();
     });
     workerInstance = worker;
@@ -79,14 +85,19 @@ function getWorker(): Worker | undefined {
   }
 }
 
-function runHighlight(code: string, language: string, dark: boolean): Promise<readonly string[] | undefined> {
+function postWorkerRequest(
+  mode: "lines" | "spans",
+  code: string,
+  language: string,
+  dark: boolean,
+): Promise<WorkerResponse | undefined> {
   const worker = getWorker();
-  if (!worker) return tokenizeCodeLines(code, language, dark);
+  if (!worker) return Promise.resolve(undefined);
   return new Promise((resolve) => {
     const id = ++nextRequestId;
     pendingRequests.set(id, resolve);
     // oxlint-disable-next-line unicorn/require-post-message-target-origin -- Worker.postMessage has no targetOrigin parameter.
-    worker.postMessage({ id, code, language, dark });
+    worker.postMessage({ id, mode, code, language, dark });
   });
 }
 
@@ -101,10 +112,7 @@ export function normalizeCodeLanguage(raw?: string, fileName?: string): string |
   return LANGUAGE_ALIASES[candidate] ?? candidate;
 }
 
-/**
- * Highlights source code into per-line HTML strings off the UI main thread via a dedicated Shiki
- * Web Worker with an LRU cache, so large files never block view switching or scrolling.
- */
+/** Highlights source code into per-line HTML strings off the UI main thread via the Shiki Worker. */
 export async function highlightCodeLines(
   code: string,
   language: string | undefined,
@@ -113,11 +121,29 @@ export async function highlightCodeLines(
   const normalized = normalizeCodeLanguage(language);
   if (!normalized || normalized === "text") return undefined;
   const key = `${dark ? 1 : 0}:${normalized}\0${code}`;
-  const cached = cacheGet(key);
+  const cached = lruGet(lineCache, key);
   if (cached) return cached;
-  const lines = await runHighlight(code, normalized, dark);
-  if (lines) cacheSet(key, lines);
+  const response = await postWorkerRequest("lines", code, normalized, dark);
+  const lines = response ? response.lines : await tokenizeCodeLines(code, normalized, dark);
+  if (lines) lruSet(lineCache, key, lines);
   return lines;
+}
+
+/** Highlights source code into UTF-16 offset style spans off the UI main thread for live editors. */
+export async function highlightCodeSpans(
+  code: string,
+  language: string | undefined,
+  dark: boolean,
+): Promise<readonly CodeTokenSpan[] | undefined> {
+  const normalized = normalizeCodeLanguage(language);
+  if (!normalized || normalized === "text" || !code) return undefined;
+  const key = `${dark ? 1 : 0}:${normalized}\0${code}`;
+  const cached = lruGet(spanCache, key);
+  if (cached) return cached;
+  const response = await postWorkerRequest("spans", code, normalized, dark);
+  const spans = response ? response.spans : await tokenizeCodeSpans(code, normalized, dark);
+  if (spans) lruSet(spanCache, key, spans);
+  return spans;
 }
 
 function languageFromCodeElement(codeElement: HTMLElement): string | undefined {
@@ -135,7 +161,7 @@ export async function highlightContainerCodeBlocks(container: HTMLElement, dark:
     codeBlocks.map(async (codeElement) => {
       if (codeElement.dataset.shikiTheme === themeKey) return;
       const language = languageFromCodeElement(codeElement);
-      if (!language) return;
+      if (!language || language === "mermaid") return;
       const rawSource = codeElement.dataset.rawCode ?? codeElement.textContent ?? "";
       codeElement.dataset.rawCode = rawSource;
       const lines = await highlightCodeLines(rawSource, language, dark);

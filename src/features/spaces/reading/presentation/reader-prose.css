@@ -57,12 +57,12 @@
   line-height: 1.78;
 }
 
-.reader-prose ul,
+.reader-prose ul:not([data-type="taskList"]),
 .reader-prose ol {
   padding-left: 1.5em;
 }
 
-.reader-prose ul {
+.reader-prose ul:not([data-type="taskList"]) {
   list-style: disc;
 }
 
@@ -74,19 +74,15 @@
   margin-top: 0.35em;
 }
 
-.reader-prose ul[data-type="taskList"] {
-  list-style: none;
-  padding-left: 0.15em;
-}
-
-.reader-prose ul[data-type="taskList"] li {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.5em;
+.reader-prose ul[data-type="taskList"] li > label {
+  display: inline-flex;
+  align-items: center;
+  height: 1.78em;
+  flex-shrink: 0;
+  user-select: none;
 }
 
 .reader-prose ul[data-type="taskList"] input[type="checkbox"] {
-  margin-top: 0.38em;
   pointer-events: none;
 }
 
@@ -132,17 +128,37 @@
 
 .reader-prose table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   font-size: calc(var(--reader-size) * 0.92);
   border: 1px solid var(--color-stroke-divider);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
 }
 
 .reader-prose th,
 .reader-prose td {
-  border: 1px solid var(--color-stroke-divider);
-  padding: 0.45rem 0.65rem;
+  border-right: 1px solid var(--color-stroke-divider);
+  border-bottom: 1px solid var(--color-stroke-divider);
+  padding: 0.55rem 0.85rem;
   text-align: left;
   vertical-align: top;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.reader-prose th:last-child,
+.reader-prose td:last-child {
+  border-right: 0;
+}
+
+.reader-prose tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.reader-prose th:first-child,
+.reader-prose td:first-child {
+  min-width: 6.5rem;
 }
 
 .reader-prose th {
@@ -151,6 +167,8 @@
 }
 
 .reader-prose img {
+  display: block;
+  margin-inline: auto;
   max-width: 100%;
   height: auto;
   border-radius: var(--radius-lg);
@@ -171,4 +189,12 @@
 [data-reader-find-active] {
   background-color: rgb(254 240 138 / 0.58);
   border-radius: 3px;
+}
+
+.reader-prose [data-type="block-math"] {
+  padding: 0.75rem 1rem;
+}
+
+.reader-prose .ui-mermaid-diagram {
+  margin-block: 1em;
 }

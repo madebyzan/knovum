@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, path::Path};
+use std::collections::BTreeMap;
 
 use pulldown_cmark::{Event, Parser, Tag};
 use serde_json::Value;
@@ -43,31 +43,16 @@ pub(super) fn load(
 /// (a badge served over the network, a path outside the Space, a file that is gone) is not
 /// held, and the document model reads such a reference as its alt text.
 fn held(app: &tauri::AppHandle, destination: String, path: &str) -> Option<ImageSource> {
-    let path = Path::new(path);
-    let path = if path.is_absolute() {
-        path.to_owned()
-    } else {
-        crate::spaces::assets::asset_directory(app).ok()?.join(path)
-    };
-    if std::fs::symlink_metadata(&path)
-        .ok()?
-        .file_type()
-        .is_symlink()
-    {
-        return None;
-    }
-    let path = crate::spaces::assets::authorize_spaces_asset(app, &path).ok()?;
-    let metadata = std::fs::metadata(&path).ok()?;
-    if !metadata.is_file() || metadata.len() > crate::documents::generation::images::MAX_IMAGE_BYTES
-    {
+    let canonical = super::super::markdown_file::resolve_managed_asset_url(app, path)?;
+    if crate::spaces::assets::markdown_media::is_video_path(&canonical) {
         return None;
     }
     Some(ImageSource {
         destination,
         file: DocumentFileSource {
             title: String::new(),
-            source_revision: crate::file_inspection::content_revision(&path).ok()?,
-            path,
+            source_revision: crate::file_inspection::content_revision(&canonical).ok()?,
+            path: canonical,
         },
     })
 }

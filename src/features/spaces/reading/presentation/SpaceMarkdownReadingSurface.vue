@@ -2,6 +2,7 @@
 import { computed, nextTick, onMounted, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import { hydrateRichPreviewContainer } from "../../../../shared/ui/rich-block-hydrator";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
 import UiOutlineRail, { type UiOutlineItem } from "../../../../shared/ui/UiOutlineRail.vue";
 import UiScrollEdgeFade from "../../../../shared/ui/UiScrollEdgeFade.vue";
@@ -87,7 +88,10 @@ watch(
   async ([container]) => {
     if (!container) return;
     await nextTick();
-    await highlightContainerCodeBlocks(container, isDark.value);
+    await Promise.all([
+      hydrateRichPreviewContainer(container, isDark.value),
+      highlightContainerCodeBlocks(container, isDark.value),
+    ]);
   },
   { immediate: true, flush: "post" },
 );
@@ -118,7 +122,7 @@ watch(
   >
     <SpaceReaderProseToolbar :find="find" :typography="typography" />
     <div class="relative flex min-h-0 flex-1 overflow-hidden">
-      <div ref="scroller" class="min-h-0 flex-1 overflow-y-auto bg-surface-raised pt-7 pr-12 pb-14 pl-8">
+      <div ref="scroller" class="min-h-0 flex-1 overflow-y-auto bg-surface-raised pt-8 pr-14 pb-16 pl-10">
         <article class="mx-auto max-w-[66ch]">
           <h1
             v-if="showInlineTitle"

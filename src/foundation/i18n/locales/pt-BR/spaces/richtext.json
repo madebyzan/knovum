@@ -1,16 +1,15 @@
 {
   "ai": {
-    "title": "Escrita AI",
+    "title": "Perguntar ao Knovum",
     "selectText": "Selecione o conteúdo do texto primeiro.",
-    "failed": "Falha na geração de IA",
-    "applyFailed": "Não foi possível aplicar o resultado AI",
+    "failed": "Falha na geração do Knovum",
+    "applyFailed": "Não foi possível aplicar o resultado",
     "actions": {
       "adjustTone": "Ajustar tom",
       "fixGrammar": "Corrigir gramática e ortografia",
       "extend": "Estender texto",
       "reduce": "Resumir e condensar",
       "simplify": "Simplificar fraseado",
-      "emojify": "Adicionar emoji",
       "improve": "Pololar e melhorar",
       "complete": "AutoCompletar",
       "summarize": "Resumir",
@@ -29,7 +28,26 @@
       "objective": "Objetivo",
       "persuasive": "Persuasivo"
     },
-    "needContext": "Coloque o cursor após o texto existente ou selecione o texto como contexto."
+    "needContext": "Coloque o cursor após o texto existente ou selecione o texto como contexto.",
+    "panel": {
+      "ask": "Perguntar ao Knovum",
+      "placeholder": "Peça ao Knovum para escrever, editar ou redigir…",
+      "followUpPlaceholder": "Diga ao Knovum como refinar este rascunho…",
+      "thinking": "Knovum está pensando…",
+      "generating": "Knovum está escrevendo…",
+      "stop": "Parar",
+      "replace": "Substituir",
+      "insert": "Inserir",
+      "insertBelow": "Inserir abaixo",
+      "retry": "Tentar novamente",
+      "discard": "Descartar",
+      "addReference": "Anexar fonte do espaço",
+      "searchReferences": "Pesquisar fontes…",
+      "noReferences": "Nenhuma fonte encontrada",
+      "compare": "Comparar",
+      "original": "Original",
+      "proposed": "Proposta"
+    }
   },
   "find": {
     "title": "Encontrar texto",
@@ -93,7 +111,27 @@
     "uploadFailed": "Falha na inserção da imagem",
     "dropDocumentHint": "Escolha o arquivo ou arraste a imagem para o editor de documentos.",
     "dropNow": "Solte para inserir a imagem",
-    "insertFailed": "Não foi possível inserir a imagem"
+    "insertFailed": "Não foi possível inserir a imagem",
+    "caption": "Adicionar legenda",
+    "captionPlaceholder": "Escreva uma legenda…",
+    "preview": "Ver em tela cheia",
+    "zoomIn": "Ampliar",
+    "zoomOut": "Reduzir",
+    "previous": "Imagem anterior",
+    "next": "Próxima imagem",
+    "group": {
+      "auto": "Auto",
+      "gallery": "Galeria",
+      "compare": "Comparar",
+      "masonry": "Mosaico",
+      "cards": "Cartões",
+      "stack": "Empilhado",
+      "before": "Antes",
+      "after": "Depois",
+      "addImage": "Adicionar imagem",
+      "split": "Separar imagens",
+      "cardPlaceholder": "Título | Descrição…"
+    }
   },
   "link": {
     "label": "Hiperlink",
@@ -107,7 +145,9 @@
     "invalid": "Insira um link HTTP, HTTPS ou mailto válido.",
     "open": "Link aberto",
     "updateFailed": "Não foi possível atualizar o link",
-    "openFailed": "Não foi possível abrir o link"
+    "openFailed": "Não foi possível abrir o link",
+    "copy": "Copiar link",
+    "edit": "Editar link"
   },
   "bulletList": "Lista com marcadores",
   "orderedList": "Lista ordenada",
@@ -118,10 +158,138 @@
     "title": "Tabela",
     "addRow": "Inserir linha abaixo",
     "addColumn": "Inserir coluna à direita",
-    "delete": "Excluir tabela"
+    "delete": "Excluir tabela",
+    "addRowBefore": "Inserir linha acima",
+    "addRowAfter": "Inserir linha abaixo",
+    "deleteRow": "Excluir linha",
+    "addColumnBefore": "Inserir coluna à esquerda",
+    "addColumnAfter": "Inserir coluna à direita",
+    "deleteColumn": "Excluir coluna",
+    "toggleHeaderRow": "Alternar linha de cabeçalho",
+    "mergeCells": "Mesclar células",
+    "splitCell": "Dividir célula"
   },
   "statistics": {
     "words": "{count} palavra | {count} palavras",
-    "characters": "{count} caractere | {count} caracteres"
+    "characters": "{count} caractere | {count} caracteres",
+    "readingMinutes": "{count} min de leitura"
+  },
+  "codeBlock": {
+    "title": "Bloco de código",
+    "plainText": "Texto simples",
+    "copy": "Copiar",
+    "copied": "Copiado",
+    "toggleWrap": "Alternar quebra de linha",
+    "searchLanguage": "Buscar linguagem…"
+  },
+  "callout": {
+    "title": "Destaque",
+    "kinds": {
+      "note": "Nota",
+      "tip": "Dica",
+      "important": "Importante",
+      "warning": "Aviso",
+      "caution": "Cuidado"
+    }
+  },
+  "slash": {
+    "title": "Inserir bloco",
+    "empty": "Nenhum comando encontrado",
+    "groups": {
+      "ai": "Knovum",
+      "blocks": "Estrutura",
+      "lists": "Listas",
+      "insert": "Inserir"
+    },
+    "items": {
+      "askAi": {
+        "label": "Perguntar ao Knovum",
+        "description": "Escreva ou edite com uma instrução livre"
+      },
+      "continue": {
+        "label": "Continuar escrevendo",
+        "description": "Continuar naturalmente a partir do contexto"
+      },
+      "summarize": {
+        "label": "Resumir",
+        "description": "Condensar o documento em pontos-chave"
+      },
+      "h1": {
+        "description": "Título principal"
+      },
+      "h2": {
+        "description": "Título de seção"
+      },
+      "h3": {
+        "description": "Subtítulo"
+      },
+      "callout": {
+        "description": "Nota, dica ou aviso em destaque"
+      },
+      "blockquote": {
+        "description": "Citação"
+      },
+      "bulletList": {
+        "description": "Lista com marcadores"
+      },
+      "orderedList": {
+        "description": "Lista numerada"
+      },
+      "taskList": {
+        "description": "Lista de tarefas"
+      },
+      "codeBlock": {
+        "description": "Código com destaque de sintaxe"
+      },
+      "table": {
+        "description": "Inserir tabela 3 × 3"
+      },
+      "divider": {
+        "description": "Divisor"
+      },
+      "mathBlock": {
+        "description": "Bloco de equação LaTeX (KaTeX)"
+      },
+      "mathInline": {
+        "description": "Fórmula LaTeX no meio do texto"
+      },
+      "mermaid": {
+        "description": "Fluxograma, sequência ou diagrama de arquitetura"
+      }
+    }
+  },
+  "blockMenu": {
+    "trigger": "Arraste para mover ou clique para ações",
+    "askAi": "Perguntar ao Knovum neste bloco",
+    "askInChat": "Enviar para o chat",
+    "moveUp": "Mover para cima",
+    "moveDown": "Mover para baixo",
+    "duplicate": "Duplicar",
+    "delete": "Excluir",
+    "addBelow": "Adicionar bloco abaixo",
+    "turnInto": "Transformar em"
+  },
+  "modes": {
+    "source": "Código Markdown",
+    "rich": "Editor visual",
+    "pageOptions": "Opções da página",
+    "formattingBar": "Barra de formatação",
+    "fullWidth": "Largura total"
+  },
+  "math": {
+    "blockTitle": "Bloco matemático",
+    "inlineTitle": "Fórmula inline",
+    "blockPlaceholder": "Digite equação LaTeX, ex. \\int_0^1 x^2 \\, dx",
+    "inlinePlaceholder": "Digite LaTeX inline, ex. E = mc^2",
+    "emptyBlock": "Adicionar equação TeX",
+    "convertAction": "Converter em equação (⌘⇧E)"
+  },
+  "mermaid": {
+    "title": "Diagrama Mermaid",
+    "preview": "Visualizar",
+    "split": "Dividir",
+    "code": "Código",
+    "empty": "Digite sintaxe Mermaid para visualizar",
+    "syntaxError": "Erro de sintaxe no diagrama"
   }
 }

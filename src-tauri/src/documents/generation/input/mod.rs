@@ -35,9 +35,7 @@ impl DocumentInput {
             Self::Markdown(source) => super::markdown::validate_source(source),
             Self::Note(source) => super::markdown::validate_source(&DocumentSource {
                 title: source.title.clone(),
-                markdown: String::new(),
-                citations: vec![],
-                images: vec![],
+                ..Default::default()
             }),
             Self::File(source) => source.validate(),
             Self::Pdf(source) => source.validate(),
@@ -103,6 +101,7 @@ pub(crate) fn admits(content: AuthoringContent<'_>) -> Result<(), String> {
                 content: content.clone(),
                 citations: vec![],
                 images: vec![],
+                rendered_images: vec![],
             },
             DocumentFormat::Text,
         )

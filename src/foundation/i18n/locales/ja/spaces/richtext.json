@@ -1,16 +1,15 @@
 {
   "ai": {
-    "title": "AI 書き込み",
+    "title": "Knovumに質問",
     "selectText": "最初にテキストコンテンツを選択します。",
-    "failed": "AI 生成に失​​敗しました",
-    "applyFailed": "AI の結果を適用できませんでした",
+    "failed": "Knovumの生成に失敗しました",
+    "applyFailed": "結果を適用できませんでした",
     "actions": {
       "adjustTone": "調整トーン",
       "fixGrammar": "文法とスペルを修正する",
       "extend": "テキストの拡張",
       "reduce": "要約と要約",
       "simplify": "表現を簡略化する",
-      "emojify": "絵文字の追加",
       "improve": "洗練と改善",
       "complete": "オートコンプリート",
       "summarize": "要約",
@@ -29,7 +28,26 @@
       "objective": "客観的",
       "persuasive": "説得力のある"
     },
-    "needContext": "既存のテキストの後にカーソルを置くか、コンテキストとしてテキストを選択します。"
+    "needContext": "既存のテキストの後にカーソルを置くか、コンテキストとしてテキストを選択します。",
+    "panel": {
+      "ask": "Knovumに質問",
+      "placeholder": "Knovumに執筆・編集を依頼…",
+      "followUpPlaceholder": "Knovumに修正指示を続ける…",
+      "thinking": "Knovumが思考中…",
+      "generating": "Knovumが生成中…",
+      "stop": "停止",
+      "replace": "置換",
+      "insert": "挿入",
+      "insertBelow": "下に挿入",
+      "retry": "再試行",
+      "discard": "破棄",
+      "addReference": "スペース資料を参照",
+      "searchReferences": "スペース資料を検索…",
+      "noReferences": "一致する資料がありません",
+      "compare": "原文と比較",
+      "original": "原文",
+      "proposed": "提案"
+    }
   },
   "find": {
     "title": "テキストの検索",
@@ -93,7 +111,27 @@
     "uploadFailed": "画像の挿入に失敗しました",
     "dropDocumentHint": "ファイルを選択するか、画像をドキュメントエディタにドラッグします。",
     "dropNow": "ドロップして画像を挿入",
-    "insertFailed": "画像を挿入できませんでした"
+    "insertFailed": "画像を挿入できませんでした",
+    "caption": "キャプションを追加",
+    "captionPlaceholder": "キャプションを入力…",
+    "preview": "拡大表示",
+    "zoomIn": "拡大",
+    "zoomOut": "縮小",
+    "previous": "前の画像",
+    "next": "次の画像",
+    "group": {
+      "auto": "自動",
+      "gallery": "ギャラリー",
+      "compare": "比較",
+      "masonry": "メイソンリー",
+      "cards": "カード",
+      "stack": "縦並び",
+      "before": "変更前",
+      "after": "変更後",
+      "addImage": "画像を追加",
+      "split": "個別の画像に分割",
+      "cardPlaceholder": "タイトル | 説明…"
+    }
   },
   "link": {
     "label": "ハイパーリンク",
@@ -107,7 +145,9 @@
     "invalid": "有効な HTTP、HTTPS、または mailto リンクを入力してください。",
     "open": "リンクを開く",
     "updateFailed": "リンクを更新できませんでした",
-    "openFailed": "リンクを開けませんでした"
+    "openFailed": "リンクを開けませんでした",
+    "copy": "リンクをコピー",
+    "edit": "リンクを編集"
   },
   "bulletList": "箇条書きリスト",
   "orderedList": "順序付きリスト",
@@ -118,10 +158,138 @@
     "title": "テーブル",
     "addRow": "下に行を挿入",
     "addColumn": "右に列を挿入",
-    "delete": "テーブルの削除"
+    "delete": "テーブルの削除",
+    "addRowBefore": "上に行を挿入",
+    "addRowAfter": "下に行を挿入",
+    "deleteRow": "行を削除",
+    "addColumnBefore": "左に列を挿入",
+    "addColumnAfter": "右に列を挿入",
+    "deleteColumn": "列を削除",
+    "toggleHeaderRow": "ヘッダー行を切替",
+    "mergeCells": "セルを結合",
+    "splitCell": "セルを分割"
   },
   "statistics": {
     "words": "{count} 語",
-    "characters": "{count} 文字"
+    "characters": "{count} 文字",
+    "readingMinutes": "読了目安 {count} 分"
+  },
+  "codeBlock": {
+    "title": "コードブロック",
+    "plainText": "プレーンテキスト",
+    "copy": "コピー",
+    "copied": "コピー済み",
+    "toggleWrap": "折り返し切替",
+    "searchLanguage": "言語を検索…"
+  },
+  "callout": {
+    "title": "コールアウト",
+    "kinds": {
+      "note": "メモ",
+      "tip": "ヒント",
+      "important": "重要",
+      "warning": "警告",
+      "caution": "注意"
+    }
+  },
+  "slash": {
+    "title": "ブロックを挿入",
+    "empty": "一致するコマンドがありません",
+    "groups": {
+      "ai": "Knovum",
+      "blocks": "構成",
+      "lists": "リスト",
+      "insert": "挿入"
+    },
+    "items": {
+      "askAi": {
+        "label": "Knovumに質問",
+        "description": "自由な指示で作成・編集する"
+      },
+      "continue": {
+        "label": "続きを書く",
+        "description": "文脈に合わせて自然に続ける"
+      },
+      "summarize": {
+        "label": "要約する",
+        "description": "文書の要点をまとめる"
+      },
+      "h1": {
+        "description": "大見出し"
+      },
+      "h2": {
+        "description": "セクション見出し"
+      },
+      "h3": {
+        "description": "小見出し"
+      },
+      "callout": {
+        "description": "メモ・ヒント・警告の強調ブロック"
+      },
+      "blockquote": {
+        "description": "引用ブロック"
+      },
+      "bulletList": {
+        "description": "箇条書きリスト"
+      },
+      "orderedList": {
+        "description": "番号付きリスト"
+      },
+      "taskList": {
+        "description": "チェックリスト"
+      },
+      "codeBlock": {
+        "description": "構文ハイライト付きコード"
+      },
+      "table": {
+        "description": "3 × 3 テーブルを挿入"
+      },
+      "divider": {
+        "description": "区切り線"
+      },
+      "mathBlock": {
+        "description": "独立した LaTeX 数式ブロック（KaTeX）"
+      },
+      "mathInline": {
+        "description": "文中にインライン LaTeX 数式を挿入"
+      },
+      "mermaid": {
+        "description": "フローチャートやシーケンス図を描画"
+      }
+    }
+  },
+  "blockMenu": {
+    "trigger": "ドラッグして移動またはクリックして操作",
+    "askAi": "このブロックについてKnovumに質問",
+    "askInChat": "スペースチャットに送る",
+    "moveUp": "上へ移動",
+    "moveDown": "下へ移動",
+    "duplicate": "複製",
+    "delete": "削除",
+    "addBelow": "下にブロックを追加",
+    "turnInto": "ブロックタイプを変換"
+  },
+  "modes": {
+    "source": "Markdown ソース",
+    "rich": "リッチエディタ",
+    "pageOptions": "ページ設定",
+    "formattingBar": "書式ツールバー",
+    "fullWidth": "全幅表示"
+  },
+  "math": {
+    "blockTitle": "数式ブロック",
+    "inlineTitle": "インライン数式",
+    "blockPlaceholder": "LaTeX 数式を入力（例: \\int_0^1 x^2 \\, dx）",
+    "inlinePlaceholder": "インライン LaTeX を入力（例: E = mc^2）",
+    "emptyBlock": "TeX 数式を入力",
+    "convertAction": "インライン数式に変換 (⌘⇧E)"
+  },
+  "mermaid": {
+    "title": "Mermaid 図",
+    "preview": "プレビュー",
+    "split": "分割",
+    "code": "コード",
+    "empty": "Mermaid 構文を入力するとプレビューが表示されます",
+    "syntaxError": "図の構文エラー"
   }
 }

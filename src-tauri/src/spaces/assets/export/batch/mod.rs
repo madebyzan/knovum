@@ -1,4 +1,4 @@
-use std::{fs::OpenOptions, path::PathBuf};
+use std::{collections::BTreeMap, fs::OpenOptions, path::PathBuf};
 
 use tauri::AppHandle;
 
@@ -11,6 +11,8 @@ pub struct ExportMember {
     node_id: String,
     file_name: String,
     text: Option<String>,
+    #[serde(default)]
+    rendered_diagrams: Option<BTreeMap<String, String>>,
 }
 
 /// One directory grant, one cancellable operation. Existing files are never replaced.
@@ -37,7 +39,11 @@ pub async fn export_selection(
         let destination = reserve(&app, &directory, &member.file_name)?;
         let guard = ScratchFile::new(destination.clone());
         if let Some(text) = member.text {
-            files::write(&app, &destination, text.as_bytes())?;
+            if super::markdown_file::is_markdown_destination(&destination) {
+                super::markdown_file::write_markdown(&app, &destination, &text)?;
+            } else {
+                files::write(&app, &destination, text.as_bytes())?;
+            }
         } else {
             write(
                 app.clone(),
@@ -45,6 +51,7 @@ pub async fn export_selection(
                 payload,
                 destination.clone(),
                 &cancellation,
+                member.rendered_diagrams.unwrap_or_default(),
             )
             .await?;
         }

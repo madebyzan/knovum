@@ -1,16 +1,15 @@
 {
   "ai": {
-    "title": "AI writing",
+    "title": "Ask Knovum",
     "selectText": "Select text content first.",
-    "failed": "AI generation failed",
-    "applyFailed": "Could not apply AI result",
+    "failed": "Knovum generation failed",
+    "applyFailed": "Could not apply Knovum result",
     "actions": {
       "adjustTone": "Adjust tone",
       "fixGrammar": "Fix grammar & spelling",
       "extend": "Extend text",
       "reduce": "Summarize & condense",
       "simplify": "Simplify phrasing",
-      "emojify": "Add emoji",
       "improve": "Polish & improve",
       "complete": "AutoComplete",
       "summarize": "Summarize",
@@ -29,7 +28,26 @@
       "objective": "Objective",
       "persuasive": "Persuasive"
     },
-    "needContext": "Place cursor after existing text or select text as context."
+    "needContext": "Place cursor after existing text or select text as context.",
+    "panel": {
+      "ask": "Ask Knovum",
+      "placeholder": "Ask Knovum to write, edit, or draft…",
+      "followUpPlaceholder": "Tell Knovum how to refine this…",
+      "thinking": "Knovum is thinking…",
+      "generating": "Knovum is writing…",
+      "stop": "Stop",
+      "replace": "Replace",
+      "insert": "Insert",
+      "insertBelow": "Insert below",
+      "retry": "Retry",
+      "discard": "Discard",
+      "addReference": "Attach Space source",
+      "searchReferences": "Search Space sources…",
+      "noReferences": "No matching Space sources",
+      "compare": "Compare",
+      "original": "Original",
+      "proposed": "Proposed"
+    }
   },
   "find": {
     "title": "Find text",
@@ -93,7 +111,27 @@
     "uploadFailed": "Image insertion failed",
     "dropDocumentHint": "Choose file or drag image into document editor.",
     "dropNow": "Drop to insert image",
-    "insertFailed": "Could not insert image"
+    "insertFailed": "Could not insert image",
+    "caption": "Add caption",
+    "captionPlaceholder": "Write a caption…",
+    "preview": "View fullscreen",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "previous": "Previous image",
+    "next": "Next image",
+    "group": {
+      "auto": "Auto",
+      "gallery": "Gallery",
+      "compare": "Compare",
+      "masonry": "Masonry",
+      "cards": "Cards",
+      "stack": "Stack",
+      "before": "Before",
+      "after": "After",
+      "addImage": "Add image",
+      "split": "Split into separate images",
+      "cardPlaceholder": "Title | Description…"
+    }
   },
   "link": {
     "label": "Hyperlink",
@@ -107,7 +145,9 @@
     "invalid": "Please enter a valid HTTP, HTTPS, or mailto link.",
     "open": "Open link",
     "updateFailed": "Could not update link",
-    "openFailed": "Could not open link"
+    "openFailed": "Could not open link",
+    "copy": "Copy link",
+    "edit": "Edit link"
   },
   "bulletList": "Bullet list",
   "orderedList": "Ordered list",
@@ -118,10 +158,138 @@
     "title": "Table",
     "addRow": "Insert row below",
     "addColumn": "Insert column right",
-    "delete": "Delete table"
+    "delete": "Delete table",
+    "addRowBefore": "Insert row above",
+    "addRowAfter": "Insert row below",
+    "deleteRow": "Delete row",
+    "addColumnBefore": "Insert column left",
+    "addColumnAfter": "Insert column right",
+    "deleteColumn": "Delete column",
+    "toggleHeaderRow": "Toggle header row",
+    "mergeCells": "Merge cells",
+    "splitCell": "Split cell"
   },
   "statistics": {
     "words": "{count} word | {count} words",
-    "characters": "{count} character | {count} characters"
+    "characters": "{count} character | {count} characters",
+    "readingMinutes": "{count} min read"
+  },
+  "codeBlock": {
+    "title": "Code block",
+    "plainText": "Plain text",
+    "copy": "Copy",
+    "copied": "Copied",
+    "toggleWrap": "Toggle word wrap",
+    "searchLanguage": "Search language…"
+  },
+  "callout": {
+    "title": "Callout",
+    "kinds": {
+      "note": "Note",
+      "tip": "Tip",
+      "important": "Important",
+      "warning": "Warning",
+      "caution": "Caution"
+    }
+  },
+  "slash": {
+    "title": "Insert block",
+    "empty": "No matching commands",
+    "groups": {
+      "ai": "Knovum",
+      "blocks": "Structure",
+      "lists": "Lists",
+      "insert": "Insert"
+    },
+    "items": {
+      "askAi": {
+        "label": "Ask Knovum",
+        "description": "Draft, rewrite, or ask with a custom prompt"
+      },
+      "continue": {
+        "label": "Continue writing",
+        "description": "Draft what comes next from context"
+      },
+      "summarize": {
+        "label": "Summarize",
+        "description": "Condense the document into key points"
+      },
+      "h1": {
+        "description": "Top-level document heading"
+      },
+      "h2": {
+        "description": "Major section heading"
+      },
+      "h3": {
+        "description": "Subsection heading"
+      },
+      "callout": {
+        "description": "Highlighted note, tip, or warning"
+      },
+      "blockquote": {
+        "description": "Quoted passage"
+      },
+      "bulletList": {
+        "description": "Unordered bullet points"
+      },
+      "orderedList": {
+        "description": "Numbered list"
+      },
+      "taskList": {
+        "description": "Checkable to-do list"
+      },
+      "codeBlock": {
+        "description": "Syntax-highlighted code snippet"
+      },
+      "table": {
+        "description": "Insert a 3 × 3 table"
+      },
+      "divider": {
+        "description": "Horizontal section divider"
+      },
+      "mathBlock": {
+        "description": "Display LaTeX equation block (KaTeX)"
+      },
+      "mathInline": {
+        "description": "Inline LaTeX formula inside text"
+      },
+      "mermaid": {
+        "description": "Flowchart, sequence, or architecture diagram"
+      }
+    }
+  },
+  "blockMenu": {
+    "trigger": "Drag to move or click for actions",
+    "askAi": "Ask Knovum on block",
+    "askInChat": "Ask in Space chat",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "duplicate": "Duplicate",
+    "delete": "Delete",
+    "addBelow": "Add block below",
+    "turnInto": "Turn into"
+  },
+  "modes": {
+    "source": "Markdown source",
+    "rich": "Rich editor",
+    "pageOptions": "Page options",
+    "formattingBar": "Formatting toolbar",
+    "fullWidth": "Full width"
+  },
+  "math": {
+    "blockTitle": "Math block",
+    "inlineTitle": "Inline math",
+    "blockPlaceholder": "Enter LaTeX equation, e.g. \\int_0^1 x^2 \\, dx",
+    "inlinePlaceholder": "Enter inline LaTeX, e.g. E = mc^2",
+    "emptyBlock": "Add a TeX equation",
+    "convertAction": "Convert to equation (⌘⇧E)"
+  },
+  "mermaid": {
+    "title": "Mermaid diagram",
+    "preview": "Preview",
+    "split": "Split",
+    "code": "Code",
+    "empty": "Write Mermaid diagram syntax to preview",
+    "syntaxError": "Diagram syntax error"
   }
 }

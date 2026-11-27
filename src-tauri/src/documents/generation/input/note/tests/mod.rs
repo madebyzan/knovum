@@ -13,5 +13,6 @@ fn source(content: Value) -> NoteSource {
         content,
         citations: Vec::new(),
         images: Vec::new(),
+        rendered_images: Vec::new(),
     }
 }

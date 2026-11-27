@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use serde::Serialize;
 use tauri::{ipc::Channel, AppHandle};
 use tokio_util::sync::CancellationToken;
@@ -85,6 +87,31 @@ pub(crate) async fn complete(
                     execution_source: ExecutionSource::Agent { runtime_kind },
                 },
             )?;
+            if input.image.is_none() {
+                let delta_events = events.clone();
+                let thinking_events = events.clone();
+                let text = crate::external_agents::task::complete_stream(
+                    app,
+                    runtime_kind,
+                    input,
+                    Arc::new(move |chunk| {
+                        send_channel_event(&delta_events, TaskStreamEvent::Delta { text: chunk })
+                    }),
+                    Arc::new(move |status| {
+                        send_channel_event(
+                            &thinking_events,
+                            TaskStreamEvent::ThinkingDelta { text: status },
+                        )
+                    }),
+                    cancellation,
+                )
+                .await?;
+                return Ok(TaskCompletionOutput {
+                    text,
+                    execution_source: ExecutionSource::Agent { runtime_kind },
+                    usage: None,
+                });
+            }
             let output = completion::complete(
                 app,
                 TaskExecutionTarget::Agent { runtime_kind },

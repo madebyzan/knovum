@@ -5,6 +5,7 @@ pub(crate) mod images;
 pub(crate) mod input;
 mod links;
 mod markdown;
+pub(crate) mod math;
 pub(crate) mod pdf;
 pub(crate) mod pptx;
 mod structured;

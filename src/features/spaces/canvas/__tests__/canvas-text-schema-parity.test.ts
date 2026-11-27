@@ -53,6 +53,11 @@ describe("canvas text and document editor schema parity", () => {
             content: [{ type: "text", text: "const x = 1;" }],
           },
           {
+            type: "callout",
+            attrs: { kind: "tip" },
+            content: [{ type: "paragraph", content: [{ type: "text", text: "Callout note" }] }],
+          },
+          {
             type: "image",
             attrs: { assetPath: "assets/diagram.png", alt: "Diagram" },
           },
@@ -88,6 +93,8 @@ describe("canvas text and document editor schema parity", () => {
     expect(html).toContain("<sup>2</sup>");
     expect(html).toContain("<hr>");
     expect(html).toContain("<pre>");
+    expect(html).toContain('data-type="callout"');
+    expect(html).toContain("Callout note");
     expect(html).toContain('src="asset://localhost/assets/diagram.png"');
     expect(html).toContain("<table");
 
@@ -106,6 +113,7 @@ describe("canvas text and document editor schema parity", () => {
       "paragraph",
       "horizontalRule",
       "codeBlock",
+      "callout",
       "image",
       "table",
     ]);

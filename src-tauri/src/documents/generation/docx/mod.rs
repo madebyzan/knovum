@@ -73,10 +73,25 @@ impl Writer<'_> {
                     self.paragraph(paragraph);
                 }
                 Block::Quote(children) => self.blocks(children, indent + 360)?,
+                Block::Callout { kind, blocks } => {
+                    let header = Paragraph::new()
+                        .style("KnovumBody")
+                        .indent(Some(indent + 360), None, None, None)
+                        .keep_next(true)
+                        .add_run(inlines::text_run(kind.label()).bold());
+                    self.paragraph(header);
+                    self.blocks(blocks, indent + 360)?;
+                }
                 Block::List { start, items } => self.list(*start, items, indent)?,
                 Block::Table(value) => {
                     let table = tables::render(value, self.images)?;
                     self.document = std::mem::take(&mut self.document).add_table(table);
+                }
+                Block::Math(latex) => {
+                    let paragraph = inlines::math_block_paragraph(latex)
+                        .style("KnovumBody")
+                        .indent(Some(indent), None, None, None);
+                    self.paragraph(paragraph);
                 }
                 Block::Rule => {
                     self.paragraph(Paragraph::new().add_run(Run::new().add_text("────────")));

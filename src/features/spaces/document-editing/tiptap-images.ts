@@ -1,10 +1,48 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import type { Editor } from "@tiptap/vue-3";
-import { basename } from "pathe";
+import { Image } from "@tiptap/extension-image";
+import { VueNodeViewRenderer, type Editor } from "@tiptap/vue-3";
+import type { Component } from "vue";
 
 import { invokeCommand } from "../../../foundation/ipc/invoke-command";
 import { removeSpaceAssets } from "../assets/asset-operations";
+
+function isImageNodeInteractiveTarget(target: EventTarget | null): boolean {
+  return (
+    target instanceof HTMLElement && Boolean(target.closest("input, textarea, button, [data-image-caption]"))
+  );
+}
+
+export function createSpaceImageExtension(interactive: boolean, nodeView?: Component) {
+  return Image.extend({
+    addAttributes() {
+      return {
+        ...this.parent?.(),
+        assetPath: { default: null, rendered: false },
+        width: { default: null },
+        height: { default: null },
+        src: {
+          default: null,
+          renderHTML: (attributes) => ({
+            src: attributes.assetPath ? convertFileSrc(attributes.assetPath) : attributes.src,
+          }),
+        },
+      };
+    },
+    ...(interactive && nodeView
+      ? {
+          addNodeView: () =>
+            VueNodeViewRenderer(nodeView, {
+              stopEvent: ({ event }) => isImageNodeInteractiveTarget(event.target),
+              ignoreMutation: () => true,
+            }),
+        }
+      : {}),
+  }).configure({
+    allowBase64: false,
+    inline: false,
+  });
+}
 
 const TIPTAP_IMAGE_EXTENSIONS = {
   "image/gif": "gif",
@@ -48,7 +86,7 @@ export async function insertSpaceTiptapImagePaths(
       assertEditorAlive(editor);
       content.push({
         type: "image",
-        attrs: { src: convertFileSrc(imported), alt: imageAltName(path), assetPath: imported },
+        attrs: { src: convertFileSrc(imported), alt: "", assetPath: imported },
       });
     }
     assertEditorAlive(editor);
@@ -81,7 +119,7 @@ export async function insertSpaceTiptapImages(
       const image = await saveSpaceTiptapImage(file);
       savedPaths.push(image.assetPath);
       assertEditorAlive(editor);
-      content.push({ type: "image", attrs: { ...image, alt: file.name } });
+      content.push({ type: "image", attrs: { ...image, alt: "" } });
     }
     assertEditorAlive(editor);
     insertImages(editor, content, position);
@@ -121,10 +159,6 @@ function insertImages(editor: SpaceTiptapImageEditor, content: ImageContent[], p
       ? chain.insertContent(content).run()
       : chain.insertContentAt(position, content).run();
   if (!inserted) throw new Error("The editor rejected the image insertion");
-}
-
-function imageAltName(path: string) {
-  return basename(path) || "image";
 }
 
 function assertEditorAlive(editor: SpaceTiptapImageEditor) {
