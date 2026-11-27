@@ -75,7 +75,7 @@ jobs:
           cp website/styles.css website/script.js website/robots.txt website/sitemap.xml website/_site/
           cp -R website/assets website/guides website/zh website/_site/
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: website/_site
 
