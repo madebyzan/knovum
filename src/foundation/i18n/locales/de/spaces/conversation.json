@@ -161,6 +161,9 @@
     "viewCreated": "Ergebnis suchen"
   },
   "activity": {
+    "thinking": "Denkt nach…",
+    "thought": "Nachgedacht",
+    "thoughtFor": "{seconds} s nachgedacht",
     "generating": "Antwort wird generiert…",
     "running": "Funktioniert · {count} Aktion | Arbeiten · {count}-Aktionen",
     "finished": "Abgeschlossen · {count}-Aktion | Abgeschlossene · {count}-Aktionen",

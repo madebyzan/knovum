@@ -1,7 +1,10 @@
 @import "tailwindcss" source("../");
 @import "tw-animate-css";
+@import "katex/dist/katex.min.css";
 @import "./tokens.css";
 @import "../shared/ui/citation-badge.css";
+@import "../shared/ui/rich-blocks.css";
+@import "../shared/ui/rich-image-groups.css";
 @import "../features/spaces/space-tokens.css";
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));

@@ -7,6 +7,36 @@ export interface FormatExportMarkdownOptions {
 }
 
 const LEADING_H1_PATTERN = /^\s*#[ \t]+(.+?)(?:\s+#+)?[ \t]*(?:\r?\n|$)/u;
+const FENCE_LINE_PATTERN = /^[ \t]{0,3}(`{3,}|~{3,})/u;
+const NBSP_ONLY_LINE_PATTERN = /^[ \t]*(?:&nbsp;|\u00a0)+[ \t]*$/u;
+
+function nextFenceState(
+  line: string,
+  fence: { char: string; len: number } | null,
+): { next: { char: string; len: number } | null; matched: boolean } {
+  const match = FENCE_LINE_PATTERN.exec(line);
+  if (!match) return { next: fence, matched: false };
+  const marker = match[1] ?? "";
+  if (!fence) return { next: { char: marker[0] ?? "", len: marker.length }, matched: true };
+  const closes = marker[0] === fence.char && marker.length >= fence.len && line.trim() === marker;
+  return { next: closes ? null : fence, matched: true };
+}
+
+export function cleanSerializedMarkdown(markdown: string): string {
+  const cleaned: string[] = [];
+  let fence: { char: string; len: number } | null = null;
+
+  for (const line of markdown.split(/\r?\n/u)) {
+    const state = nextFenceState(line, fence);
+    fence = state.next;
+    cleaned.push(!state.matched && !fence && NBSP_ONLY_LINE_PATTERN.test(line) ? "" : line);
+  }
+
+  return cleaned
+    .join("\n")
+    .replace(/\n{3,}/gu, "\n\n")
+    .replace(/^\n+/u, "");
+}
 
 export function extractImportedMarkdownDocument(name: string, rawText: string) {
   const fallbackTitle = markdownTitle(name);
@@ -28,7 +58,8 @@ export function formatExportMarkdown(
   markdown: string,
   options?: FormatExportMarkdownOptions,
 ): string {
-  const body = options?.stripCitations ? stripCitationMarkers(markdown) : markdown;
+  const rawBody = options?.stripCitations ? stripCitationMarkers(markdown) : markdown;
+  const body = cleanSerializedMarkdown(rawBody);
   const trimmedTitle = title.trim();
   const trimmedMarkdown = body.trim();
   if (!trimmedTitle) return body;

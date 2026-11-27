@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import importlib
 import json
 from contextlib import AsyncExitStack
 from pathlib import Path
@@ -13,6 +14,7 @@ from knovum_agent_runtime.contracts.generated.control import (
     AgentControl,
     AgentControlOperation,
     AgentExecute,
+    AgentExecutionState,
     AgentInitialize,
     AgentPruneThreads,
     AgentReady,
@@ -53,7 +55,10 @@ class Server:
                 from knovum_agent_runtime.execution import Execution
 
                 self.execution = Execution(request, self.saver, self.peer)
-                return await self.execution.run()
+                observation = await self.execution.run()
+                if observation.state == AgentExecutionState.completed:
+                    self.execution = None
+                return observation
             case "agentRuntime.control":
                 control = parameters(AgentControl, value)
                 if self.execution is None or control.identity != self.execution.request.identity:
@@ -96,7 +101,14 @@ class Server:
         path.parent.mkdir(parents=True, exist_ok=True)
         self.saver = await self.lifetime.enter_async_context(AsyncSqliteSaver.from_conn_string(str(path)))
         await self.saver.setup()
+        # Pre-import the execution graph stack in the background so a warmed idle process is
+        # immediately ready for Turn 1 without blocking the initialize handshake.
+        asyncio.get_running_loop().call_soon(self._schedule_warm_imports)
         return AgentReady(protocol_version=PROTOCOL_VERSION, graph_version=GRAPH_VERSION)
+
+    def _schedule_warm_imports(self) -> None:
+        task = asyncio.create_task(asyncio.to_thread(importlib.import_module, "knovum_agent_runtime.execution"))
+        task.add_done_callback(lambda completed: completed.exception() if not completed.cancelled() else None)
 
 
 async def serve() -> None:

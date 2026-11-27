@@ -101,6 +101,10 @@ function sanitizeChildren(rawContent: readonly JSONContent[]): JSONContent[] {
 
 function sanitizeNode(node: JSONContent): JSONContent | null {
   if (node.type === "image") return sanitizeImageNode(node);
+  if (node.type === "imageGroup") {
+    const content = sanitizeChildren(node.content ?? []);
+    return content.length ? { ...node, content } : null;
+  }
   const { marks: rawMarks, content: rawContent, ...rest } = node;
   const marks = rawMarks ? sanitizeMarks(rawMarks) : [];
   return {

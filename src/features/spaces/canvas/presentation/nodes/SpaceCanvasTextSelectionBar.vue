@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Check, List } from "@lucide/vue";
+import type { Editor as CoreEditor } from "@tiptap/core";
 import type { Editor } from "@tiptap/vue-3";
 import { BubbleMenu } from "@tiptap/vue-3/menus";
 import { computed, onBeforeUnmount, onMounted, shallowRef } from "vue";
@@ -75,8 +76,10 @@ function setEffectiveFontSize(size: number) {
     .run();
 }
 
-function shouldShow({ from, to }: { from: number; to: number }) {
-  return from !== to;
+let active = true;
+
+function shouldShow({ editor, from, to }: { editor: CoreEditor; from: number; to: number }) {
+  return active && !editor.isDestroyed && from !== to;
 }
 
 function appendToCanvasOverlay() {
@@ -88,6 +91,7 @@ onMounted(() => {
   props.editor.on("transaction", refresh);
 });
 onBeforeUnmount(() => {
+  active = false;
   props.editor.off("selectionUpdate", refresh);
   props.editor.off("transaction", refresh);
 });

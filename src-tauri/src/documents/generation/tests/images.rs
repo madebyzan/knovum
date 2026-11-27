@@ -36,6 +36,7 @@ impl ImageFixture {
                     path,
                 },
             }],
+            rendered_images: vec![],
         })
     }
 }
@@ -74,8 +75,18 @@ fn markdown_images_are_embedded_in_every_rich_output() {
     let html = String::from_utf8(DocumentFormat::Html.render(&fixture.0).unwrap()).unwrap();
     assert!(html.contains("data:image/png;base64,") && html.contains("示意图"));
     assert!(!html.contains(fixture.0.images[0].file.path.to_str().unwrap()));
+    let pdf_source = super::super::pdf::tests::render_source(&fixture.0).unwrap();
+    assert!(
+        pdf_source.contains("#align(center)[#image(\"image-0.png\""),
+        "PDF source must emit standalone centered image blocks"
+    );
     let pdf = DocumentFormat::Pdf.render(&fixture.0).unwrap();
     assert!(pdf.starts_with(b"%PDF-"));
+    assert!(
+        pdf.windows(b"/Image".len())
+            .any(|window| window == b"/Image"),
+        "PDF output must embed image XObjects"
+    );
 }
 
 #[test]

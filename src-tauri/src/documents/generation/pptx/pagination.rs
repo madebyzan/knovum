@@ -116,18 +116,28 @@ impl Paginator {
                     } else {
                         self.current.elements.clear();
                     }
-                    let data = super::super::images::decode(
-                        value
-                            .data
-                            .as_deref()
-                            .ok_or("Presentation image bytes are missing")?,
-                    )?;
+                    let raw = value
+                        .data
+                        .as_deref()
+                        .ok_or("Presentation image bytes are missing")?;
+                    let (bytes, width, height) =
+                        match (&value.format, value.pixel_width, value.pixel_height) {
+                            (
+                                Some(office_oxide::ir::ImageFormat::Png),
+                                Some(width),
+                                Some(height),
+                            ) if width > 0 && height > 0 => (raw.to_vec(), width, height),
+                            _ => {
+                                let decoded = super::super::images::decode(raw)?;
+                                (decoded.bytes, decoded.width, decoded.height)
+                            }
+                        };
                     let mut image = value.clone();
-                    let scale = (10_000_000.0 / f64::from(data.width))
-                        .min(4_500_000.0 / f64::from(data.height));
-                    image.display_width_emu = Some((f64::from(data.width) * scale) as u64);
-                    image.display_height_emu = Some((f64::from(data.height) * scale) as u64);
-                    image.data = Some(data.bytes);
+                    let scale =
+                        (10_000_000.0 / f64::from(width)).min(4_500_000.0 / f64::from(height));
+                    image.display_width_emu = Some((f64::from(width) * scale) as u64);
+                    image.display_height_emu = Some((f64::from(height) * scale) as u64);
+                    image.data = Some(bytes);
                     image.format = Some(office_oxide::ir::ImageFormat::Png);
                     self.current.elements.push(Element::Image(image));
                     self.flush(false)?;

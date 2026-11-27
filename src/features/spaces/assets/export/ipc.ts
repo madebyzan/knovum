@@ -14,13 +14,22 @@ export function listExportFormats(spaceId: string, nodeId: string) {
   });
 }
 
+export interface ExportResourceRequest {
+  readonly spaceId: string;
+  readonly nodeId: string;
+  readonly destinationPath: string;
+  readonly jobId: string;
+  readonly renderedDiagrams?: Record<string, string> | undefined;
+}
+
 /** Writes the resource into the destination, in the format the destination names. */
-export function exportResource(spaceId: string, nodeId: string, destinationPath: string, jobId: string) {
+export function exportResource(request: ExportResourceRequest) {
   return invokeCommand<void>("plugin:spaces|export_resource", {
-    spaceId,
-    nodeId,
-    destinationPath,
-    jobId,
+    spaceId: request.spaceId,
+    nodeId: request.nodeId,
+    destinationPath: request.destinationPath,
+    jobId: request.jobId,
+    ...(request.renderedDiagrams ? { renderedDiagrams: request.renderedDiagrams } : {}),
   });
 }
 

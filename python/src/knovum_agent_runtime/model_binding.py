@@ -3,13 +3,7 @@ from __future__ import annotations
 import os
 from typing import Any
 
-from langchain_anthropic import ChatAnthropic
 from langchain_core.language_models import BaseChatModel
-from langchain_deepseek import ChatDeepSeek
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_groq import ChatGroq
-from langchain_ollama import ChatOllama
-from langchain_openai import ChatOpenAI
 from pydantic import SecretStr
 
 from knovum_agent_runtime.budget import ModelBudget
@@ -59,6 +53,7 @@ def model_profile(binding: AgentModelBinding) -> dict[str, int] | None:
 
 
 def create_model(binding: AgentModelBinding, purpose: AgentModelPurpose) -> BaseChatModel:
+    """Creates a chat model client, lazily importing only the requested provider SDK."""
     callbacks = [ModelBudget(purpose)]
     parameters: dict[str, Any] = {
         "model": binding.model,
@@ -74,6 +69,8 @@ def create_model(binding: AgentModelBinding, purpose: AgentModelPurpose) -> Base
     timeout = request_timeout_seconds(binding.protocol)
     match binding.protocol:
         case ChatModelProtocol.open_ai_chat | ChatModelProtocol.open_ai_responses:
+            from langchain_openai import ChatOpenAI
+
             return ChatOpenAI(
                 **parameters,
                 base_url=binding.base_url,
@@ -88,8 +85,12 @@ def create_model(binding: AgentModelBinding, purpose: AgentModelPurpose) -> Base
                 else None,
             )
         case ChatModelProtocol.anthropic:
+            from langchain_anthropic import ChatAnthropic
+
             return ChatAnthropic(**parameters, base_url=binding.base_url, timeout=timeout, max_retries=0)
         case ChatModelProtocol.gemini:
+            from langchain_google_genai import ChatGoogleGenerativeAI
+
             return ChatGoogleGenerativeAI(
                 **parameters,
                 base_url=binding.base_url,
@@ -100,6 +101,8 @@ def create_model(binding: AgentModelBinding, purpose: AgentModelPurpose) -> Base
                 vertexai=False,
             )
         case ChatModelProtocol.ollama:
+            from langchain_ollama import ChatOllama
+
             return ChatOllama(
                 **parameters,
                 base_url=binding.base_url,
@@ -109,7 +112,11 @@ def create_model(binding: AgentModelBinding, purpose: AgentModelPurpose) -> Base
                 },
             )
         case ChatModelProtocol.deep_seek:
+            from langchain_deepseek import ChatDeepSeek
+
             return ChatDeepSeek(**parameters, base_url=binding.base_url, timeout=timeout, max_retries=0)
         case ChatModelProtocol.groq:
+            from langchain_groq import ChatGroq
+
             return ChatGroq(**parameters, base_url=binding.base_url, timeout=timeout, max_retries=0)
     raise ValueError("agent-runtime-model-protocol-unsupported")

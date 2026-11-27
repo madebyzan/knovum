@@ -26,7 +26,9 @@ function tool(id: string) {
 
 /** What the screen shows, without the elements that render it: the content of each block. */
 function contents(blocks: ReturnType<typeof conversationTimeline>) {
-  return shape(blocks).map((block) => ("tools" in block ? block.tools : block.text));
+  return shape(blocks).map((block) =>
+    "tools" in block ? block.tools : "thought" in block ? `thought:${block.thought}` : block.text,
+  );
 }
 
 /** Each block's content, and the key that keeps its element across updates. */
@@ -34,11 +36,15 @@ function shape(blocks: ReturnType<typeof conversationTimeline>) {
   return blocks.map((block) =>
     block.kind === "tools"
       ? { tools: block.items.map((item) => item.id), key: block.key }
-      : block.kind === "answer"
-        ? {
-            text: block.message.content.parts.map((part) => (part.type === "text" ? part.text : "")).join(""),
-          }
-        : { text: block.text, key: block.key },
+      : block.kind === "thinking"
+        ? { thought: block.text, key: block.key }
+        : block.kind === "answer"
+          ? {
+              text: block.message.content.parts
+                .map((part) => (part.type === "text" ? part.text : ""))
+                .join(""),
+            }
+          : { text: block.text, key: block.key },
   );
 }
 

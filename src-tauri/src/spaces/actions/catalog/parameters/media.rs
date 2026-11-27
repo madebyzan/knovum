@@ -36,6 +36,9 @@ impl ImageAspectRatio {
 struct ImageParameters {
     #[schemars(length(min = 1, max = 512))]
     title: String,
+    #[serde(default)]
+    #[schemars(length(min = 1, max = 4_000))]
+    prompt: Option<String>,
     aspect_ratio: ImageAspectRatio,
 }
 

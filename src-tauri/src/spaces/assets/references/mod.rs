@@ -1,6 +1,8 @@
 mod asset_url;
 mod markdown;
 
+pub(crate) use asset_url::to_webview_url;
+
 use std::collections::BTreeSet;
 
 use serde_json::Value;

@@ -45,7 +45,7 @@ pub fn plugin() -> tauri::plugin::TauriPlugin<tauri::Wry> {
                 tauri::async_runtime::block_on(async {
                     futures::future::join(
                         external_conversations::shutdown(),
-                        conversations::shutdown(),
+                        crate::agent_runtime::process::pool::shutdown(),
                     )
                     .await;
                 });

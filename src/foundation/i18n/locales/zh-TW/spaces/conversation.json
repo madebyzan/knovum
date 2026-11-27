@@ -161,6 +161,9 @@
     "viewCreated": "定位產物"
   },
   "activity": {
+    "thinking": "正在思考…",
+    "thought": "已思考",
+    "thoughtFor": "已思考 {seconds} 秒",
     "generating": "正在生成回應…",
     "running": "正在執行 · {count} 項操作",
     "finished": "已執行 · {count} 項操作",

@@ -52,12 +52,17 @@ function renderTokenLine(tokens: readonly ThemedToken[]): string {
     .join("");
 }
 
-/** Tokenizes code into escaped per-line HTML spans using Shiki's JS RegExp engine. */
-export async function tokenizeCodeLines(
+export interface CodeTokenSpan {
+  readonly start: number;
+  readonly end: number;
+  readonly style: string;
+}
+
+async function codeTokens(
   code: string,
   normalizedLanguage: string,
   dark: boolean,
-): Promise<readonly string[] | undefined> {
+): Promise<readonly (readonly ThemedToken[])[] | undefined> {
   const { highlighter, languages } = await getHighlighter();
   if (!languages.has(normalizedLanguage)) return undefined;
   if (!loadedLanguages.has(normalizedLanguage)) {
@@ -68,5 +73,35 @@ export async function tokenizeCodeLines(
     lang: normalizedLanguage as BundledLanguage,
     theme: dark ? DARK_THEME : LIGHT_THEME,
   });
-  return result.tokens.map(renderTokenLine);
+  return result.tokens;
+}
+
+/** Tokenizes code into escaped per-line HTML spans using Shiki's JS RegExp engine. */
+export async function tokenizeCodeLines(
+  code: string,
+  normalizedLanguage: string,
+  dark: boolean,
+): Promise<readonly string[] | undefined> {
+  const tokens = await codeTokens(code, normalizedLanguage, dark);
+  return tokens?.map(renderTokenLine);
+}
+
+/** Tokenizes code into UTF-16 offset style spans for ProseMirror inline decorations. */
+export async function tokenizeCodeSpans(
+  code: string,
+  normalizedLanguage: string,
+  dark: boolean,
+): Promise<readonly CodeTokenSpan[] | undefined> {
+  const lines = await codeTokens(code, normalizedLanguage, dark);
+  if (!lines) return undefined;
+  const spans: CodeTokenSpan[] = [];
+  for (const line of lines) {
+    for (const token of line) {
+      if (!token.content.length) continue;
+      const style = tokenStyle(token);
+      if (!style) continue;
+      spans.push({ start: token.offset, end: token.offset + token.content.length, style });
+    }
+  }
+  return spans;
 }

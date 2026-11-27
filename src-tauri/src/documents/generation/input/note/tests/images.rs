@@ -99,6 +99,25 @@ fn note_docx_images_fit_the_page_and_keep_positive_dimensions() {
     }
 }
 
+#[test]
+fn image_group_flattens_child_images_and_rejects_invalid_layout() {
+    let source_ok = source(
+        json!({"type":"doc","content":[{"type":"imageGroup","attrs":{"layout":"compare"},"content":[
+            {"type":"image","attrs":{"src":"asset://1","assetPath":"/a.png","alt":"Before","title":null,"width":null,"height":null}},
+            {"type":"image","attrs":{"src":"asset://2","assetPath":"/b.png","alt":"After","title":null,"width":null,"height":null}}
+        ]}]}),
+    );
+    let ir = parse(&source_ok, DocumentFormat::Text).unwrap();
+    assert_eq!(ir.sections[0].elements.len(), 2);
+    assert!(ir.plain_text().contains("[Image: Before]"));
+    assert!(ir.plain_text().contains("[Image: After]"));
+
+    let source_bad = source(
+        json!({"type":"doc","content":[{"type":"imageGroup","attrs":{"layout":"invalid"},"content":[]}]}),
+    );
+    assert!(parse(&source_bad, DocumentFormat::Text).is_err());
+}
+
 struct ImageFixture {
     source: DocumentFileSource,
 }

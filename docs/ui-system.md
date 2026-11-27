@@ -405,12 +405,16 @@ mode selector. A conversation can move from discussion to execution through user
 Task lists are shown only when the Agent uses SDK Todo; simple answers need no plan or approval
 step. Extension choices follow configured tool policies, not an inferred conversation intent.
 
-The right sidebar toggle opens Conversation. On narrow windows where keeping both sidebars open would
-squeeze the primary work area below 480px, the leading sidebar collapses ephemerally without overwriting
-the user's persisted pinned preference. Source Reading Mode and node Details (`info`) live in the
-canvas-side Source Reader pane, while the document editor owns its heading Outline locally. Selection
-alone never changes the active view unless follow-selection is enabled in Source Reader. Closing the
-right pane releases workspace width and suspends its content until reopened; it has no hover preview.
+The right sidebar toggle opens Conversation as the default view. On narrow windows where keeping both sidebars
+open would squeeze the primary work area below 480px, the leading sidebar collapses ephemerally without
+overwriting the user's persisted pinned preference. Source Reading Mode and node Details (`info`) live in the
+canvas-side Source Reader pane; the document editor owns its heading Outline, collapsible Focus mode, Markdown
+source toggle, `/` slash commands, left-gutter block handle (`Alt+Up/Down`), contextual table and link bubble
+bars, off-main-thread Shiki code blocks, GFM callouts, and inline streaming AI co-writing panel (`⌘J`, with
+non-destructive Replace / Insert below / follow-up refinement and `@` Space source grounding) locally.
+Selection alone never changes the active view unless follow-selection is enabled in Source Reader. The right
+pane does not change the leading sidebar width; closing it releases workspace width and suspends its content
+until reopened, with no hover preview.
 An empty Conversation uses the same borderless inspector-section rhythm as the workbench sidebars:
 a Space content summary, compact starter prompt rows that fill and focus the composer without sending,
 quick-attach rows for live Space sources, and recent Space conversations for one-click resumption. Composer

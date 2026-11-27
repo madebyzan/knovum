@@ -25,7 +25,10 @@ pub(super) fn parse(source: &NoteSource, format: DocumentFormat) -> Result<Docum
     let loaded_images = if matches!(format, DocumentFormat::Text) {
         None
     } else {
-        Some(Images::from_sources(&source.images)?)
+        Some(Images::from_sources_and_rendered(
+            &source.images,
+            &source.rendered_images,
+        )?)
     };
     let context = Context {
         images: loaded_images.as_ref(),

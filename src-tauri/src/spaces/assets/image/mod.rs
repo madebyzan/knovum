@@ -3,6 +3,8 @@ pub(crate) mod commands;
 mod editor;
 mod validation;
 
+pub(crate) use editor::{import_trusted_file, persist_detected_bytes};
+
 pub(super) mod document;
 pub(super) mod preview;
 #[cfg(test)]

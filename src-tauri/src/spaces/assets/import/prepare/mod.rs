@@ -56,6 +56,16 @@ pub(crate) fn prepare_owned_asset(
     source: PathBuf,
     cancellation: CancellationToken,
 ) -> Result<PreparedSpaceImport, String> {
+    prepare_owned_asset_in_root(app, source, None, cancellation, &mut |_| Ok(()))
+}
+
+pub(crate) fn prepare_owned_asset_in_root(
+    app: &tauri::AppHandle,
+    source: PathBuf,
+    boundary_root: Option<&Path>,
+    cancellation: CancellationToken,
+    claim_embedded: &mut dyn FnMut(&Path) -> Result<(), String>,
+) -> Result<PreparedSpaceImport, String> {
     let name = display_name(&source)?;
     let metadata = fs::symlink_metadata(&source).map_err(|error| error.to_string())?;
     if !metadata.is_file() {
@@ -64,7 +74,7 @@ pub(crate) fn prepare_owned_asset(
     if is_markdown(&source) {
         return Ok(PreparedSpaceImport {
             job_id: None,
-            asset: import_markdown(&source, name)?,
+            asset: import_markdown(app, &source, name, boundary_root, claim_embedded)?,
         });
     }
     let classification = classify_file(&source);

@@ -100,10 +100,16 @@ are appended as literal structured paragraphs.
 
 ## Markdown and Notes
 
-Markdown supports CommonMark paragraphs, H1–H6 headings, quotes, rules, line breaks, links, inline
-and block code, nested ordered/unordered lists, tables, strikethrough and task lists. Parser upgrades
-must not expand the contract implicitly through `Options::all()`. Math and footnote extensions remain
-outside the Markdown authoring contract; custom templates are not an export parameter.
+Markdown supports CommonMark paragraphs, H1–H6 headings, quotes, GFM callouts, rules, line breaks,
+links, inline and block code, inline and block LaTeX math, nested ordered/unordered lists, tables,
+strikethrough and task lists. Mermaid diagram blocks are preserved verbatim when exporting Markdown
+and rendered to high-DPI diagram images when exporting to HTML, DOCX, PDF, and PPTX. Parser upgrades
+must not expand the contract implicitly through `Options::all()`. Footnote extensions remain outside
+the Markdown authoring contract; custom templates are not an export parameter.
+
+Exported Markdown files rewrite authorized Space-managed image references (`asset://localhost/...`
+or managed Space asset paths) to portable relative paths inside a sibling `<stem>.assets/` directory
+next to the saved `.md` file, copying each referenced asset cleanly when present.
 
 Markdown carries HTML, so a document is the content that markup wraps rather than the markup: text
 belongs to the document, `<br>` is a line break, an `<img>` reads as what it shows, and a tag that

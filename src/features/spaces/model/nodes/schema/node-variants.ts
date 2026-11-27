@@ -20,6 +20,7 @@ const spaceNodePayloadDiscriminatedSchema = z.discriminatedUnion("kind", [
   z
     .object({
       ...baseSpaceNodeFields,
+      title: z.string().max(512),
       kind: z.literal("note"),
       tiptapContent: tiptapContentSchema,
       plainText: z.string().max(4 * 1024 * 1024),
@@ -28,6 +29,7 @@ const spaceNodePayloadDiscriminatedSchema = z.discriminatedUnion("kind", [
   z
     .object({
       ...baseSpaceNodeFields,
+      title: z.string().max(512),
       kind: z.literal("text"),
       tiptapContent: tiptapContentSchema,
       plainText: z.string().max(4 * 1024 * 1024),
@@ -36,6 +38,7 @@ const spaceNodePayloadDiscriminatedSchema = z.discriminatedUnion("kind", [
   z
     .object({
       ...baseSpaceNodeFields,
+      title: z.string().max(512),
       kind: z.literal("markdown"),
       text: z.string().max(4 * 1024 * 1024),
       tiptapContent: tiptapContentSchema.optional(),

@@ -6,7 +6,7 @@ fn docx_contains_real_tables_numbering_styles_and_hyperlinks() {
     let document = markdown::parse(&fixture()).unwrap();
     let package = docx::build_document(
         &document,
-        &super::super::images::Images::from_sources(&[]).unwrap(),
+        &super::super::images::Images::from_sources_and_rendered(&[], &[]).unwrap(),
     )
     .unwrap()
     .build();
@@ -37,7 +37,7 @@ fn code_and_citation_control_syntax_stays_escaped_in_xml() {
         markdown::parse(&source("`<>&`\n\n[Link](https://example.com/?a=1&b=2)")).unwrap();
     let package = docx::build_document(
         &document,
-        &super::super::images::Images::from_sources(&[]).unwrap(),
+        &super::super::images::Images::from_sources_and_rendered(&[], &[]).unwrap(),
     )
     .unwrap()
     .build();

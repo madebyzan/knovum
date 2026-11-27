@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { extractImportedMarkdownDocument, formatExportMarkdown } from "../markdown-document";
+import {
+  cleanSerializedMarkdown,
+  extractImportedMarkdownDocument,
+  formatExportMarkdown,
+} from "../markdown-document";
 
 describe("markdown-document codec", () => {
   describe("extractImportedMarkdownDocument", () => {
@@ -70,6 +74,12 @@ describe("markdown-document codec", () => {
       expect(formatExportMarkdown("Report", "Body [C1].", { stripCitations: false })).toBe(
         "# Report\n\nBody [C1].",
       );
+    });
+
+    it("strips Tiptap &nbsp; empty-paragraph artifacts outside code fences", () => {
+      const raw = "&nbsp;\n\n&nbsp;\n\nHello\n\n&nbsp;\n\n```html\n&nbsp;\n```\n\nWorld";
+      expect(cleanSerializedMarkdown(raw)).toBe("Hello\n\n```html\n&nbsp;\n```\n\nWorld");
+      expect(formatExportMarkdown("Report", "&nbsp;\n\n&nbsp;\n\nBody")).toBe("# Report\n\nBody");
     });
   });
 });

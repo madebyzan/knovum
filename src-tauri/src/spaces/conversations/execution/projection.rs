@@ -1,6 +1,7 @@
 use serde_json::{json, Value};
 use sqlx::{types::Json, SqlitePool};
 
+use super::gateway::RecordedThinking;
 use crate::{
     agent_runtime::protocol::messages::AgentProjection,
     spaces::{
@@ -13,6 +14,7 @@ pub(in crate::spaces::conversations) async fn commit(
     pool: &SqlitePool,
     task_ids: &TaskIds,
     projection: AgentProjection,
+    thinking: Option<RecordedThinking>,
 ) -> Result<Value, String> {
     let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
@@ -20,6 +22,18 @@ pub(in crate::spaces::conversations) async fn commit(
         .bind(&task_ids.task_id).fetch_one(&mut *tx).await.map_err(db::sql_error)?;
     if state.0 != projection.thread_id {
         return Err("builtin-agent-projection-thread-mismatch".into());
+    }
+    if let Some(recorded) = thinking {
+        crate::spaces::runs::append_event(
+            &mut tx,
+            &task_ids.run_id,
+            None,
+            None,
+            crate::spaces::runs::RunEventKind::AgentThinking,
+            &json!({ "text": recorded.text, "durationMs": recorded.duration_ms }),
+            now,
+        )
+        .await?;
     }
     let plan = json!({"items":projection.plan});
     let previous_plan: Option<String> = sqlx::query_scalar("SELECT payload FROM spaces_run_events WHERE run_id=$1 AND kind='builtin_agent_plan_updated' ORDER BY sequence DESC LIMIT 1")

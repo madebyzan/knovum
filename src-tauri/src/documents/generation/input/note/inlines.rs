@@ -4,22 +4,35 @@ use super::{colors, model};
 use model::{Mark, Node};
 
 pub(super) fn parse(nodes: &[Node]) -> Result<Vec<InlineContent>, String> {
-    nodes.iter().map(inline).collect()
+    let mut output = Vec::with_capacity(nodes.len());
+    for node in nodes {
+        match node.kind.as_str() {
+            "text" => output.push(text(node)?),
+            "inlineMath" => output.extend(inline_math(node)?),
+            "hardBreak" => {
+                leaf(node)?;
+                output.push(InlineContent::LineBreak);
+            }
+            kind => return Err(format!("Unsupported Tiptap inline node {kind}")),
+        }
+    }
+    Ok(output)
 }
 
 pub(super) fn plain(text: impl Into<String>) -> InlineContent {
     InlineContent::Text(TextSpan::plain(text))
 }
 
-fn inline(node: &Node) -> Result<InlineContent, String> {
-    match node.kind.as_str() {
-        "text" => text(node),
-        "hardBreak" => {
-            leaf(node)?;
-            Ok(InlineContent::LineBreak)
-        }
-        kind => Err(format!("Unsupported Tiptap inline node {kind}")),
+fn inline_math(node: &Node) -> Result<Vec<InlineContent>, String> {
+    model::allowed_attrs(&node.attrs, "inlineMath", &["latex"])?;
+    if node.text.is_some() || !node.content.is_empty() || !node.marks.is_empty() {
+        return Err("Tiptap inline math nodes must be empty leaf nodes".into());
     }
+    let latex = model::string_attr(&node.attrs, "latex")?.unwrap_or_default();
+    Ok(super::super::super::math::to_ir_spans(
+        latex,
+        &TextSpan::default(),
+    ))
 }
 
 fn text(node: &Node) -> Result<InlineContent, String> {

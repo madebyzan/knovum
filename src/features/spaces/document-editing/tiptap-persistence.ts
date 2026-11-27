@@ -1,10 +1,9 @@
 import { createKeyedSerialQueue } from "../../../foundation/async/keyed-serial-queue";
-import { i18n } from "../../../foundation/i18n/instance";
+import { cleanSerializedMarkdown } from "../assets/markdown-document";
 import { unescapeCitationMarkers } from "../knowledge/model/citation-markers";
 import type { SpaceCanvasNode } from "../model/nodes/canvas-node";
 import type { SpaceMarkdownPayload, SpaceNotePayload, SpaceNodePayload } from "../model/nodes/node-payload";
 import { tiptapContentSchema } from "../model/nodes/schema/content";
-import { truncateUtf16 } from "../model/text";
 import type { NodePayloadChangeInput } from "../nodes/node-operations";
 import type { EditingState } from "./editing-state";
 
@@ -61,9 +60,8 @@ function pendingSave(
 
 function markdownSave(node: MarkdownNode, context: SaveContext) {
   const { state, editor } = context;
-  const text = unescapeCitationMarkers(editor.getMarkdown());
-  const title =
-    state.title.value.trim() || firstLine(text) || i18n.global.t("spaces.editor.markdown.untitled");
+  const text = cleanSerializedMarkdown(unescapeCitationMarkers(editor.getMarkdown()));
+  const title = state.title.value.trim();
   const contentChanged = state.revision.value > state.persistedRevision.value;
   if (!contentChanged && node.data.title === title && node.data.text === text) return undefined;
   const tiptapContent = tiptapContentSchema.parse(editor.getJSON());
@@ -74,7 +72,7 @@ function noteSave(node: NoteNode, context: SaveContext) {
   const { state, editor } = context;
   const contentChanged = state.revision.value > state.persistedRevision.value;
   const plainText = editor.state.doc.textBetween(0, editor.state.doc.content.size, "\n", "\n");
-  const title = state.title.value.trim() || firstLine(plainText) || i18n.global.t("spaces.editor.note.new");
+  const title = state.title.value.trim();
   if (!contentChanged && node.data.title === title && node.data.plainText === plainText) return undefined;
   const tiptapContent = tiptapContentSchema.parse(editor.getJSON());
   return {
@@ -82,13 +80,4 @@ function noteSave(node: NoteNode, context: SaveContext) {
     data: { ...node.data, title, tiptapContent, plainText },
     revision: state.revision.value,
   };
-}
-
-function firstLine(value: string) {
-  const line =
-    value
-      .trim()
-      .replace(/^#{1,6}\s+/u, "")
-      .split(/\r?\n/u, 1)[0] ?? "";
-  return truncateUtf16(line, 80);
 }

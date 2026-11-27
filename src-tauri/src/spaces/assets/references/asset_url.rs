@@ -1,4 +1,34 @@
+use std::path::Path;
+
+use percent_encoding::{utf8_percent_encode, AsciiSet, NON_ALPHANUMERIC};
+
 const ASSET_URL_PREFIXES: [&str; 3] = ["asset://localhost/", "http://asset.localhost/", "asset://"];
+// Matches JavaScript `encodeURIComponent` used by Tauri's `convertFileSrc`.
+const URI_COMPONENT_ENCODE: &AsciiSet = &NON_ALPHANUMERIC
+    .remove(b'-')
+    .remove(b'_')
+    .remove(b'.')
+    .remove(b'!')
+    .remove(b'~')
+    .remove(b'*')
+    .remove(b'\'')
+    .remove(b'(')
+    .remove(b')');
+
+pub(crate) fn to_webview_url(path: &Path) -> Result<String, String> {
+    let raw = path
+        .to_str()
+        .ok_or("Managed asset path is not valid UTF-8")?;
+    let encoded = utf8_percent_encode(raw, URI_COMPONENT_ENCODE).to_string();
+    #[cfg(target_os = "windows")]
+    {
+        Ok(format!("http://asset.localhost/{encoded}"))
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        Ok(format!("asset://localhost/{encoded}"))
+    }
+}
 
 pub(super) fn managed_path(destination: &str) -> Option<String> {
     if ASSET_URL_PREFIXES

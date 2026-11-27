@@ -14,8 +14,7 @@ fn presentation_round_trips_semantic_text_and_metadata() {
     let source = DocumentSource {
         title: "Title & <证据> 🚀".into(),
         markdown: "# Section & <一>\n\nVerified 内容 & symbols".into(),
-        citations: vec![],
-        images: vec![],
+        ..DocumentSource::default()
     };
 
     let document = open_presentation(&source);

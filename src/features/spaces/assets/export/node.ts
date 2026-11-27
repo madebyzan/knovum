@@ -1,5 +1,6 @@
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { chooseExportDestination } from "./destination";
+import { renderNodeMermaidDiagrams } from "./diagrams";
 import { exportResource, exportTextFile } from "./ipc";
 import { safeExportFileName } from "./naming";
 import { serializePayloadExport } from "./payloads";
@@ -23,8 +24,15 @@ export async function exportSpaceNode(
     await exportTextFile(path, text);
     return true;
   }
+  const renderedDiagrams = await renderNodeMermaidDiagrams(node.data, format);
   const jobId = crypto.randomUUID();
   options.onStart?.(jobId);
-  await exportResource(spaceId, node.id, path, jobId);
+  await exportResource({
+    spaceId,
+    nodeId: node.id,
+    destinationPath: path,
+    jobId,
+    renderedDiagrams,
+  });
   return true;
 }

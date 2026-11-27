@@ -12,10 +12,6 @@ pub(super) fn render(ir: &DocumentIR) -> Result<Vec<u8>, String> {
         binaries: vec![],
         image_bytes: 0,
     };
-    writer.source.push_str(&format!(
-        "#set text(font: {}, size: 10.5pt)\n",
-        super::source::string(crate::desktop::system_font::SYSTEM_SANS_FAMILY)
-    ));
     for section in &ir.sections {
         writer.blocks(&section.elements)?;
     }
@@ -32,27 +28,36 @@ impl Writer {
     }
 
     pub fn image(&mut self, image: &Image) -> Result<(), String> {
-        let decoded = super::super::images::decode(
-            image
-                .data
-                .as_deref()
-                .ok_or("Document image bytes are missing")?,
-        )?;
-        self.image_bytes += decoded.bytes.len();
+        let raw = image
+            .data
+            .as_deref()
+            .ok_or("Document image bytes are missing")?;
+        let (bytes, width, height) = match (&image.format, image.pixel_width, image.pixel_height) {
+            (Some(office_oxide::ir::ImageFormat::Png), Some(width), Some(height))
+                if width > 0 && height > 0 =>
+            {
+                (raw.to_vec(), width, height)
+            }
+            _ => {
+                let decoded = super::super::images::decode(raw)?;
+                (decoded.bytes, decoded.width, decoded.height)
+            }
+        };
+        self.image_bytes += bytes.len();
         if self.image_bytes > 64 * 1024 * 1024 {
             return Err("Document images exceed 64 MiB".into());
         }
         let filename = format!("image-{}.png", self.binaries.len());
-        let scale = (468.0 / f64::from(decoded.width))
-            .min(595.0 / f64::from(decoded.height))
+        let scale = (468.0 / f64::from(width))
+            .min(595.0 / f64::from(height))
             .min(0.75);
         self.source.push_str(&format!(
             "#image({}, width: {}pt, alt: {})",
             super::source::string(&filename),
-            f64::from(decoded.width) * scale,
+            f64::from(width) * scale,
             super::source::string(image.alt_text.as_deref().unwrap_or(""))
         ));
-        self.binaries.push((filename, decoded.bytes));
+        self.binaries.push((filename, bytes));
         Ok(())
     }
 }

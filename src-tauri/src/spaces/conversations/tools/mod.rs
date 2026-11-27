@@ -124,7 +124,8 @@ fn wire_name(definition: &SpaceActionDefinition) -> String {
 
 fn description(definition: &SpaceActionDefinition) -> String {
     match definition.id {
-        "create-note" => "Create an editable note in the current Space.".into(),
+        "create-note" => "Create a plain editable note in the current Space.".into(),
+        "create-markdown" => "Create a rich Markdown document in the current Space (supports headings, lists, tables, callouts, KaTeX math, Mermaid diagrams, and embedding any generated or existing Space image or video node via ![caption](knovum-node://<mediaNodeId>)).".into(),
         "answer-question" => {
             "Answer a question using selected knowledge sources and return verified citations."
                 .into()
@@ -144,7 +145,7 @@ fn description(definition: &SpaceActionDefinition) -> String {
         "summarize-meeting" => "Create an editable summary from a meeting transcript.".into(),
         "draft-social-post" => "Create editable social copy grounded in selected knowledge.".into(),
         "generate-visualization" => "Generate an image that visualizes selected knowledge.".into(),
-        "generate-image" => "Generate an image from an editable document brief.".into(),
+        "generate-image" => "Generate an illustration, artwork, or companion image from a prompt and/or selected Space resources and publish it as an Image node (returns its nodeId, which can be embedded into create-markdown via ![caption](knovum-node://<nodeId>) or passed into generate-video).".into(),
         "generate-video" => "Generate a video from a document or ordered image sequence.".into(),
         "add-video-subtitles" => "Add subtitles to one video using existing timed cues or local speech recognition and publish a new video. Does not create an intermediate subtitle resource or require a model account.".into(),
         "split-image-layers" => "Separate one picture into its depth layers with local models: each subject that stands in it, ordered far to near, and the backdrop behind them with the covered area completed. Each layer is published as its own image. The picture decides how many layers it carries, so the number of published resources is discovered rather than requested. For a sheet of stickers laid out side by side, use slice-sticker-sheet instead.".into(),

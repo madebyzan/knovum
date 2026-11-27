@@ -15,6 +15,16 @@ export interface MarkdownFrame {
   restarted: boolean;
 }
 
+const ALLOWED_MARKDOWN_URI_REGEXP =
+  /^(?:(?:(?:f|ht)tps?|asset|mailto|tel|callto|sms|cid|xmpp):|[^a-z]|[a-z+.-]+(?:[^a-z+.:-]|$))/i;
+
+function sanitizeMarkdownHtml(html: string): string {
+  return DOMPurify.sanitize(html, {
+    ALLOWED_URI_REGEXP: ALLOWED_MARKDOWN_URI_REGEXP,
+    ADD_ATTR: ["playsinline"],
+  });
+}
+
 type References = NonNullable<Env["references"]>;
 
 interface StreamEnvironment extends Env {
@@ -55,7 +65,7 @@ export function createMarkdownStream(md: MarkdownIt, citations?: MarkdownCitatio
     const open = lastBlockStart(tokens);
     if (open === 0) return 0;
     const source = pending.slice(0, lineOffset(pending, tokens[open]!.map![0]));
-    settled.push(DOMPurify.sanitize(md.renderer.render(tokens.slice(0, open), md.options, frame)));
+    settled.push(sanitizeMarkdownHtml(md.renderer.render(tokens.slice(0, open), md.options, frame)));
     const own = environment();
     md.parse(source, own);
     settledReferences = own.references;
@@ -79,7 +89,7 @@ export function createMarkdownStream(md: MarkdownIt, citations?: MarkdownCitatio
     definitions = JSON.stringify(frame.references);
     const open = settle(tokens, pending, frame);
     const openHtml = md.renderer.render(tokens.slice(open), md.options, frame);
-    return { settled, open: DOMPurify.sanitize(openHtml), restarted };
+    return { settled, open: sanitizeMarkdownHtml(openHtml), restarted };
   };
 }
 

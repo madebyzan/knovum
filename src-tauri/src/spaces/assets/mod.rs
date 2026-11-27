@@ -10,6 +10,7 @@ pub(crate) mod files;
 pub(crate) mod image;
 pub(crate) mod import;
 pub(crate) mod kind;
+pub(crate) mod markdown_media;
 pub(crate) mod media_analysis;
 pub(crate) mod node_asset;
 pub(crate) mod node_payload;
@@ -125,7 +126,8 @@ pub(crate) use reclamation::{
     unreferenced_paths_in_transaction,
 };
 pub(crate) use references::{
-    rewrite_node_asset_paths, visit_asset_references, AssetReference, PACKAGE_ASSET_PREFIX,
+    rewrite_node_asset_paths, to_webview_url, visit_asset_references, AssetReference,
+    PACKAGE_ASSET_PREFIX,
 };
 
 pub(crate) async fn reconcile_interrupted_work(app: &tauri::AppHandle) -> Result<(), String> {

@@ -1,7 +1,5 @@
-import { convertFileSrc } from "@tauri-apps/api/core";
 import { getSchema } from "@tiptap/core";
 import { Highlight } from "@tiptap/extension-highlight";
-import { Image } from "@tiptap/extension-image";
 import { TaskItem, TaskList } from "@tiptap/extension-list";
 import { Subscript } from "@tiptap/extension-subscript";
 import { Superscript } from "@tiptap/extension-superscript";
@@ -11,25 +9,27 @@ import { Color, FontSize, TextStyle } from "@tiptap/extension-text-style";
 import { Typography } from "@tiptap/extension-typography";
 import type { Schema } from "@tiptap/pm/model";
 import { StarterKit } from "@tiptap/starter-kit";
+import type { Component } from "vue";
 
-const SpaceImage = Image.extend({
-  addAttributes() {
-    return {
-      ...this.parent?.(),
-      assetPath: { default: null, rendered: false },
-      src: {
-        default: null,
-        renderHTML: (attributes) => ({
-          src: attributes.assetPath ? convertFileSrc(attributes.assetPath) : attributes.src,
-        }),
-      },
-    };
-  },
-});
+import { createCalloutExtension } from "./tiptap-callout";
+import { createSpaceCodeBlockExtension } from "./tiptap-code-block";
+import { createImageGroupExtension } from "./tiptap-image-group";
+import { createSpaceImageExtension } from "./tiptap-images";
+import { createSpaceMathExtensions, type MathEditTarget } from "./tiptap-math";
+
+export interface SpaceTiptapNodeViews {
+  readonly codeBlock?: Component;
+  readonly callout?: Component;
+  readonly image?: Component;
+  readonly imageGroup?: Component;
+}
 
 export interface RichTextSchemaOptions {
   readonly includeColor: boolean;
   readonly interactiveSurface: boolean;
+  readonly nodeViews?: SpaceTiptapNodeViews | undefined;
+  readonly onEditMath?: ((target: MathEditTarget) => void) | undefined;
+  readonly mathPlaceholders?: { readonly block?: string; readonly inline?: string } | undefined;
 }
 
 /**
@@ -39,27 +39,22 @@ export interface RichTextSchemaOptions {
 export function createRichTextSchemaExtensions(options: RichTextSchemaOptions) {
   return [
     StarterKit.configure({
+      codeBlock: false,
+      dropcursor: { color: "var(--color-fg-accent)", width: 2 },
       heading: { levels: [1, 2, 3, 4, 5, 6] },
       link: { openOnClick: false, defaultProtocol: "https" },
     }),
+    createSpaceCodeBlockExtension(options.interactiveSurface, options.nodeViews?.codeBlock),
+    createCalloutExtension(options.interactiveSurface, options.nodeViews?.callout),
+    ...createSpaceMathExtensions(
+      options.interactiveSurface ? options.onEditMath : undefined,
+      options.mathPlaceholders,
+    ),
     TaskList,
     TaskItem.configure({ nested: true }),
     Highlight.configure({ multicolor: true }),
-    SpaceImage.configure({
-      allowBase64: false,
-      inline: false,
-      ...(options.interactiveSurface
-        ? {
-            resize: {
-              enabled: true,
-              directions: ["left", "right"],
-              minWidth: 80,
-              minHeight: 48,
-              alwaysPreserveAspectRatio: true,
-            },
-          }
-        : {}),
-    }),
+    createSpaceImageExtension(options.interactiveSurface, options.nodeViews?.image),
+    createImageGroupExtension(options.interactiveSurface, options.nodeViews?.imageGroup),
     Subscript,
     Superscript,
     TextStyle,
@@ -68,7 +63,9 @@ export function createRichTextSchemaExtensions(options: RichTextSchemaOptions) {
     TextAlign.configure({ types: ["heading", "paragraph"] }),
     Typography,
     TableKit.configure(
-      options.interactiveSurface ? { table: { resizable: true, lastColumnResizable: true } } : {},
+      options.interactiveSurface
+        ? { table: { resizable: true, lastColumnResizable: false, cellMinWidth: 72 } }
+        : {},
     ),
   ];
 }

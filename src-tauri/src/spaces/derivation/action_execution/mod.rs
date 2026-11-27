@@ -217,6 +217,11 @@ fn image_request(mut request: Value) -> Result<Value, String> {
     let values = request
         .as_object_mut()
         .ok_or("action-input-invalid: request must be an object")?;
+    if let Some(prompt) = values.remove("prompt") {
+        if !prompt.is_null() && !values.contains_key("intent") {
+            values.insert("intent".into(), prompt);
+        }
+    }
     if !values.contains_key("intent") {
         values.insert(
             "intent".into(),

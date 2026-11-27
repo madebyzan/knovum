@@ -82,6 +82,7 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         Output::Image,
     ),
     immediate_action("create-note", &[], note, Output::ResourceReceipt),
+    immediate_action("create-markdown", &[], note, Output::ResourceReceipt),
     immediate_action(
         "commit-knowledge-changes",
         &[],
@@ -178,14 +179,14 @@ pub(super) const ACTIONS: &[SpaceActionDefinition] = &[
         visualization,
         Output::Image,
     )),
-    action(
+    optionally_grounded(action(
         "generate-image",
         Some(ExecutionCapability::ImageGeneration),
         Some(RoutingPurpose::ImageGeneration),
-        &[Input::Document],
+        &[Input::Document, Input::Knowledge],
         image,
         Output::Image,
-    ),
+    )),
     optionally_grounded(collection_action(
         action(
             "generate-video",

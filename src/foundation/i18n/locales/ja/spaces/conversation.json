@@ -161,6 +161,9 @@
     "viewCreated": "結果の検索"
   },
   "activity": {
+    "thinking": "思考中…",
+    "thought": "思考済み",
+    "thoughtFor": "{seconds} 秒間思考",
     "generating": "Generating response...",
     "running": "動作中・{count}アクション",
     "finished": "完了した · {count} アクション",

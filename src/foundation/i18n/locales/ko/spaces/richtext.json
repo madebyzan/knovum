@@ -1,16 +1,15 @@
 {
   "ai": {
-    "title": "AI 쓰기",
+    "title": "Knovum에게 질문",
     "selectText": "먼저 텍스트 내용을 선택하세요.",
-    "failed": "AI 생성 실패",
-    "applyFailed": "AI 결과를 적용할 수 없습니다.",
+    "failed": "Knovum 생성에 실패했습니다",
+    "applyFailed": "결과를 적용할 수 없습니다",
     "actions": {
       "adjustTone": "톤 조정",
       "fixGrammar": "문법 및 철자 수정",
       "extend": "텍스트 확장",
       "reduce": "요약 및 요약",
       "simplify": "문법 단순화",
-      "emojify": "이모지 추가",
       "improve": "Polish & Improvement",
       "complete": "자동 완성",
       "summarize": "요약",
@@ -29,7 +28,28 @@
       "objective": "목적",
       "persuasive": "동기"
     },
-    "needContext": "기존 텍스트 뒤에 커서를 놓거나 텍스트를 컨텍스트로 선택합니다."
+    "needContext": "기존 텍스트 뒤에 커서를 놓거나 텍스트를 컨텍스트로 선택합니다.",
+    "panel": {
+      "ask": "Knovum에게 질문",
+      "placeholder": "Knovum에게 작성·수정을 요청하세요…",
+      "followUpPlaceholder": "Knovum에게 다듬기 지시를 입력하세요…",
+      "thinking": "Knovum이 생각하는 중…",
+      "thought": "생각 완료",
+      "thoughtFor": "{seconds}초 동안 생각함",
+      "generating": "Knovum이 작성 중…",
+      "stop": "중지",
+      "replace": "바꾸기",
+      "insert": "삽입",
+      "insertBelow": "아래에 삽입",
+      "retry": "다시 시도",
+      "discard": "취소",
+      "addReference": "공간 자료 참조",
+      "searchReferences": "공간 자료 검색…",
+      "noReferences": "일치하는 공간 자료가 없습니다",
+      "compare": "원문 비교",
+      "original": "원문",
+      "proposed": "제안"
+    }
   },
   "find": {
     "title": "텍스트 찾기",
@@ -93,7 +113,27 @@
     "uploadFailed": "이미지 삽입 실패",
     "dropDocumentHint": "파일을 선택하거나 이미지를 문서 편집기로 드래그하세요.",
     "dropNow": "이미지를 삽입하려면 드롭하세요.",
-    "insertFailed": "이미지를 삽입할 수 없습니다."
+    "insertFailed": "이미지를 삽입할 수 없습니다.",
+    "caption": "캡션 추가",
+    "captionPlaceholder": "캡션 입력…",
+    "preview": "전체 화면 보기",
+    "zoomIn": "확대",
+    "zoomOut": "축소",
+    "previous": "이전 이미지",
+    "next": "다음 이미지",
+    "group": {
+      "auto": "자동",
+      "gallery": "갤러리",
+      "compare": "비교",
+      "masonry": "메이슨리",
+      "cards": "카드",
+      "stack": "세로",
+      "before": "이전",
+      "after": "이후",
+      "addImage": "이미지 추가",
+      "split": "개별 이미지로 분리",
+      "cardPlaceholder": "제목 | 설명…"
+    }
   },
   "link": {
     "label": "하이퍼링크",
@@ -107,7 +147,9 @@
     "invalid": "유효한 HTTP, HTTPS 또는 mailto 링크를 입력하세요.",
     "open": "링크 열기",
     "updateFailed": "링크를 업데이트할 수 없습니다.",
-    "openFailed": "링크를 열 수 없습니다."
+    "openFailed": "링크를 열 수 없습니다.",
+    "copy": "링크 복사",
+    "edit": "링크 편집"
   },
   "bulletList": "글머리 기호 목록",
   "orderedList": "주문 목록",
@@ -118,10 +160,138 @@
     "title": "테이블",
     "addRow": "아래 행 삽입",
     "addColumn": "오른쪽에 열 삽입",
-    "delete": "테이블 삭제"
+    "delete": "테이블 삭제",
+    "addRowBefore": "위에 행 삽입",
+    "addRowAfter": "아래에 행 삽입",
+    "deleteRow": "행 삭제",
+    "addColumnBefore": "왼쪽에 열 삽입",
+    "addColumnAfter": "오른쪽에 열 삽입",
+    "deleteColumn": "열 삭제",
+    "toggleHeaderRow": "머리글 행 전환",
+    "mergeCells": "셀 병합",
+    "splitCell": "셀 분할"
   },
   "statistics": {
     "words": "{count} 단어",
-    "characters": "{count} 글자"
+    "characters": "{count} 글자",
+    "readingMinutes": "약 {count}분 소요"
+  },
+  "codeBlock": {
+    "title": "코드 블록",
+    "plainText": "일반 텍스트",
+    "copy": "복사",
+    "copied": "복사됨",
+    "toggleWrap": "자동 줄바꿈 전환",
+    "searchLanguage": "언어 검색…"
+  },
+  "callout": {
+    "title": "콜아웃",
+    "kinds": {
+      "note": "참고",
+      "tip": "팁",
+      "important": "중요",
+      "warning": "경고",
+      "caution": "주의"
+    }
+  },
+  "slash": {
+    "title": "블록 삽입",
+    "empty": "일치하는 명령이 없습니다",
+    "groups": {
+      "ai": "Knovum",
+      "blocks": "구조",
+      "lists": "목록",
+      "insert": "삽입"
+    },
+    "items": {
+      "askAi": {
+        "label": "Knovum에게 질문",
+        "description": "자유 프롬프트로 초안 작성 또는 편집"
+      },
+      "continue": {
+        "label": "이어서 쓰기",
+        "description": "문맥에 맞춰 자연스럽게 이어쓰기"
+      },
+      "summarize": {
+        "label": "요약하기",
+        "description": "문서의 핵심 내용을 간결하게 정리"
+      },
+      "h1": {
+        "description": "최상위 제목"
+      },
+      "h2": {
+        "description": "주요 섹션 제목"
+      },
+      "h3": {
+        "description": "하위 섹션 제목"
+      },
+      "callout": {
+        "description": "강조된 참고, 팁 또는 경고 블록"
+      },
+      "blockquote": {
+        "description": "인용문"
+      },
+      "bulletList": {
+        "description": "글머리 기호 목록"
+      },
+      "orderedList": {
+        "description": "번호 매기기 목록"
+      },
+      "taskList": {
+        "description": "할 일 체크리스트"
+      },
+      "codeBlock": {
+        "description": "구문 강조 코드 스니펫"
+      },
+      "table": {
+        "description": "3 × 3 표 삽입"
+      },
+      "divider": {
+        "description": "구분선"
+      },
+      "mathBlock": {
+        "description": "블록 LaTeX 수식 (KaTeX)"
+      },
+      "mathInline": {
+        "description": "본문 내 인라인 LaTeX 수식"
+      },
+      "mermaid": {
+        "description": "순서도, 시퀀스 또는 아키텍처 다이어그램"
+      }
+    }
+  },
+  "blockMenu": {
+    "trigger": "드래그하여 이동하거나 클릭하여 작업 열기",
+    "askAi": "이 블록을 Knovum에게 질문",
+    "askInChat": "공간 대화로 보내기",
+    "moveUp": "위로 이동",
+    "moveDown": "아래로 이동",
+    "duplicate": "복제",
+    "delete": "삭제",
+    "addBelow": "아래에 블록 추가",
+    "turnInto": "전환"
+  },
+  "modes": {
+    "source": "Markdown 소스",
+    "rich": "리치 편집기",
+    "pageOptions": "페이지 옵션",
+    "formattingBar": "서식 도구 모음",
+    "fullWidth": "전체 너비"
+  },
+  "math": {
+    "blockTitle": "수식 블록",
+    "inlineTitle": "인라인 수식",
+    "blockPlaceholder": "LaTeX 수식 입력 (예: \\int_0^1 x^2 \\, dx)",
+    "inlinePlaceholder": "인라인 LaTeX 입력 (예: E = mc^2)",
+    "emptyBlock": "TeX 수식 입력",
+    "convertAction": "인라인 수식으로 변환 (⌘⇧E)"
+  },
+  "mermaid": {
+    "title": "Mermaid 다이어그램",
+    "preview": "미리보기",
+    "split": "분할",
+    "code": "코드",
+    "empty": "Mermaid 구문을 입력하면 실시간으로 렌더링됩니다",
+    "syntaxError": "다이어그램 구문 오류"
   }
 }

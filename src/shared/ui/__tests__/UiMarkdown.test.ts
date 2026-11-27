@@ -123,3 +123,77 @@ describe("UiMarkdown links", () => {
     expect(wrapper.findAll("a").map((link) => link.attributes("href"))).toEqual(["https://example.com/x"]);
   });
 });
+
+describe("UiMarkdown rich blocks (KaTeX & Callout)", () => {
+  it("renders inline and block math elements while keeping currency intact", () => {
+    const wrapper = mount(UiMarkdown, {
+      props: {
+        content: "Price is $100$ and energy is $E = mc^2$.\n\n$$\n\\int_0^1 x^2 \\, dx\n$$",
+      },
+    });
+    const inline = wrapper.find('[data-type="inline-math"]');
+    const block = wrapper.find('[data-type="block-math"]');
+    expect(inline.attributes("data-latex")).toBe("E = mc^2");
+    expect(block.attributes("data-latex")).toBe("\\int_0^1 x^2 \\, dx");
+    expect(wrapper.text()).toContain("$100$");
+  });
+
+  it("transforms GitHub-style alert blockquotes into semantic callout containers", () => {
+    const wrapper = mount(UiMarkdown, {
+      props: { content: "> [!TIP]\n> Prefer live previews everywhere." },
+    });
+    const callout = wrapper.get('[data-type="callout"]');
+    expect(callout.attributes("data-callout-kind")).toBe("tip");
+    expect(callout.text()).toContain("Prefer live previews everywhere.");
+  });
+
+  it("renders GitHub task lists with semantic checkboxes and checked state", () => {
+    const wrapper = mount(UiMarkdown, {
+      props: { content: "- [ ] Pending item\n- [x] Finished item" },
+    });
+    const items = wrapper.findAll('ul[data-type="taskList"] > li');
+    expect(items).toHaveLength(2);
+    expect(items[0]?.attributes("data-checked")).toBe("false");
+    expect(items[1]?.attributes("data-checked")).toBe("true");
+    expect(wrapper.findAll('ul[data-type="taskList"] input[type="checkbox"]')).toHaveLength(2);
+    expect(wrapper.text()).not.toContain("[ ]");
+    expect(wrapper.text()).not.toContain("[x]");
+  });
+
+  it("preserves Tauri asset:// image URLs in Markdown preview and reading mode", () => {
+    const wrapper = mount(UiMarkdown, {
+      props: {
+        content: "![小狐狸](asset://localhost/%2Ftmp%2Ffox.png)",
+      },
+    });
+    const img = wrapper.get("img");
+    expect(img.attributes("src")).toBe("asset://localhost/%2Ftmp%2Ffox.png");
+    expect(img.attributes("alt")).toBe("小狐狸");
+  });
+
+  it("renders native video players for Markdown video URLs and streaming placeholders for pending generation directives", () => {
+    const wrapper = mount(UiMarkdown, {
+      props: {
+        content: [
+          "![星夜动画](asset://localhost/%2Ftmp%2Fstarlight.mp4)",
+          "![小狐狸提灯](knovum-gen://image?prompt=fox+with+lantern&aspect=16:9)",
+          "![灯笼微光](knovum-gen://video?prompt=glowing+lantern&duration=5)",
+        ].join("\n\n"),
+      },
+    });
+    const video = wrapper.get("figure.ui-md-video video");
+    expect(video.attributes("src")).toBe("asset://localhost/%2Ftmp%2Fstarlight.mp4");
+    expect(video.attributes("controls")).toBeDefined();
+    expect(video.attributes("playsinline")).toBeDefined();
+    expect(wrapper.get("figure.ui-md-video figcaption").text()).toBe("星夜动画");
+
+    const pending = wrapper.findAll("figure.ui-md-media-pending");
+    expect(pending).toHaveLength(2);
+    expect(pending[0]?.attributes("data-media-kind")).toBe("image");
+    expect(pending[0]?.text()).toContain("小狐狸提灯");
+    expect(pending[1]?.attributes("data-media-kind")).toBe("video");
+    expect(pending[1]?.text()).toContain("灯笼微光");
+    expect(wrapper.find("img").exists()).toBe(false);
+    expect(wrapper.find(".ui-image-group").exists()).toBe(false);
+  });
+});

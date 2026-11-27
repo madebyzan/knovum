@@ -125,3 +125,87 @@ fn structural_blocks_and_literal_citations_remain_typed_ir() {
     assert_eq!(title.text, "**literal**");
     assert!(title.bold);
 }
+
+#[test]
+fn callout_blocks_export_with_label_and_indented_content() {
+    let source = source(json!({"type":"doc","content":[
+        {"type":"callout","attrs":{"kind":"tip"},"content":[
+            {"type":"paragraph","content":[{"type":"text","text":"Helpful guidance"}]}
+        ]}
+    ]}));
+    let pdf = parse(&source, DocumentFormat::Pdf).unwrap();
+    let Element::TextBox(callout_box) = &pdf.sections[0].elements[0] else {
+        panic!()
+    };
+    let Element::Paragraph(label) = &callout_box.content[0] else {
+        panic!()
+    };
+    assert_eq!(office_oxide::ir::inline_to_text(&label.content), "TIP");
+    let Element::Paragraph(body) = &callout_box.content[1] else {
+        panic!()
+    };
+    assert_eq!(
+        office_oxide::ir::inline_to_text(&body.content),
+        "Helpful guidance"
+    );
+    assert_eq!(body.indent_left_twips, Some(360));
+
+    let docx = parse(&source, DocumentFormat::Docx).unwrap();
+    assert_eq!(docx.sections[0].elements.len(), 2);
+}
+
+#[test]
+fn partially_sized_table_fills_unspecified_column_widths() {
+    let source = source(json!({"type":"doc","content":[{"type":"table","content":[
+        {"type":"tableRow","content":[
+            {"type":"tableHeader","attrs":{"colspan":1,"rowspan":1,"colwidth":[200]},"content":[{"type":"paragraph","content":[{"type":"text","text":"A"}]}]},
+            {"type":"tableHeader","attrs":{"colspan":1,"rowspan":1,"colwidth":null},"content":[{"type":"paragraph","content":[{"type":"text","text":"B"}]}]},
+            {"type":"tableHeader","attrs":{"colspan":1,"rowspan":1,"colwidth":[160]},"content":[{"type":"paragraph","content":[{"type":"text","text":"C"}]}]}
+        ]},
+        {"type":"tableRow","content":[
+            {"type":"tableCell","attrs":{"colspan":1,"rowspan":1,"colwidth":[200]},"content":[{"type":"paragraph","content":[{"type":"text","text":"1"}]}]},
+            {"type":"tableCell","attrs":{"colspan":1,"rowspan":1,"colwidth":null},"content":[{"type":"paragraph","content":[{"type":"text","text":"2"}]}]},
+            {"type":"tableCell","attrs":{"colspan":1,"rowspan":1,"colwidth":[160]},"content":[{"type":"paragraph","content":[{"type":"text","text":"3"}]}]}
+        ]}
+    ]}]}));
+    let ir = parse(&source, DocumentFormat::Docx).unwrap();
+    let Element::Table(table) = &ir.sections[0].elements[0] else {
+        panic!()
+    };
+    assert_eq!(table.column_widths_twips.len(), 3);
+    assert_eq!(table.column_widths_twips[0], 3000);
+    assert_eq!(table.column_widths_twips[2], 2400);
+    assert!(table.column_widths_twips[1] >= 1080);
+}
+
+#[test]
+fn math_nodes_export_inline_and_block_latex() {
+    let source = source(json!({"type":"doc","content":[
+        {"type":"paragraph","content":[
+            {"type":"text","text":"Energy "},
+            {"type":"inlineMath","attrs":{"latex":"E = mc^2"}}
+        ]},
+        {"type":"blockMath","attrs":{"latex":"\\int_0^1 x^2 \\, dx = \\frac{1}{3}"}}
+    ]}));
+    let ir = parse(&source, DocumentFormat::Docx).unwrap();
+    let Element::Paragraph(inline_para) = &ir.sections[0].elements[0] else {
+        panic!()
+    };
+    assert_eq!(
+        office_oxide::ir::inline_to_text(&inline_para.content),
+        "Energy E = mc2"
+    );
+    assert!(inline_para.content.iter().any(|item| matches!(
+        item,
+        InlineContent::Text(span) if span.text == "2" && span.vertical_align == Some(VerticalAlign::Superscript)
+    )));
+    let Element::Paragraph(block_para) = &ir.sections[0].elements[1] else {
+        panic!()
+    };
+    let block_text = office_oxide::ir::inline_to_text(&block_para.content);
+    assert!(block_text.contains('∫') && block_text.contains("1 / 3"));
+    assert_eq!(
+        block_para.alignment,
+        Some(office_oxide::ir::ParagraphAlignment::Center)
+    );
+}

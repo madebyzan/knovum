@@ -59,11 +59,25 @@ pub(super) async fn stage(
         let workspace_path = artifact.clone();
         let prepared = crate::foundation::blocking::run({
             let app = app.clone();
+            let pool = pool.clone();
+            let run_id = run_id.to_owned();
             let workspace = workspace.clone();
+            let runtime = tokio::runtime::Handle::current();
             move || {
                 let source = agent_artifacts::resolve_collected(&workspace, &artifact)
                     .map_err(|error| error.to_string())?;
-                assets::import::prepare::prepare_owned_asset(&app, source, CancellationToken::new())
+                let mut claim_embedded = |path: &Path| {
+                    runtime
+                        .block_on(record_path(&pool, &run_id, path, PathRole::Embedded))
+                        .map(|_| ())
+                };
+                assets::import::prepare::prepare_owned_asset_in_root(
+                    &app,
+                    source,
+                    Some(&workspace),
+                    CancellationToken::new(),
+                    &mut claim_embedded,
+                )
             }
         })
         .await;

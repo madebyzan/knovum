@@ -5,10 +5,14 @@ pub mod document_resource;
 mod files;
 mod image;
 mod jobs;
+pub(super) mod markdown_file;
 mod media;
 mod targets;
 
-use std::path::{Path, PathBuf};
+use std::{
+    collections::BTreeMap,
+    path::{Path, PathBuf},
+};
 
 use serde_json::Value;
 use tauri::AppHandle;
@@ -52,6 +56,7 @@ pub async fn export_resource(
     node_id: String,
     destination_path: String,
     job_id: String,
+    rendered_diagrams: Option<BTreeMap<String, String>>,
 ) -> Result<(), AppError> {
     let (cancellation, _lease) = jobs::begin(&job_id)?;
     let payload = load(&app, &space_id, &node_id).await?;
@@ -61,6 +66,7 @@ pub async fn export_resource(
         payload,
         PathBuf::from(destination_path),
         &cancellation,
+        rendered_diagrams.unwrap_or_default(),
     )
     .await;
     if cancellation.is_cancelled() {
@@ -75,10 +81,20 @@ async fn write(
     payload: Value,
     destination: PathBuf,
     cancellation: &CancellationToken,
+    rendered_diagrams: BTreeMap<String, String>,
 ) -> Result<(), AppError> {
     match targets::requested(&payload, &destination)? {
         Export::Document(format) => {
-            document::write(&app, node_id, &payload, format, &destination, cancellation).await
+            document::write(
+                &app,
+                node_id,
+                &payload,
+                format,
+                &destination,
+                cancellation,
+                rendered_diagrams,
+            )
+            .await
         }
         Export::Summary => {
             let summary = capture::summary(&payload)?;
@@ -148,7 +164,7 @@ pub async fn export_asset(
 }
 
 /// Saves text the Renderer serialized from content it already holds, such as a
-/// note, a website summary or a section outline.
+/// Markdown document, a website summary or a section outline.
 #[tauri::command]
 pub async fn export_text(
     app: AppHandle,
@@ -156,7 +172,12 @@ pub async fn export_text(
     text: String,
 ) -> Result<(), AppError> {
     Ok(crate::foundation::blocking::run(move || {
-        files::write(&app, Path::new(&destination_path), text.as_bytes())
+        let destination = Path::new(&destination_path);
+        if markdown_file::is_markdown_destination(destination) {
+            markdown_file::write_markdown(&app, destination, &text)
+        } else {
+            files::write(&app, destination, text.as_bytes())
+        }
     })
     .await?)
 }

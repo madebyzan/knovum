@@ -29,7 +29,7 @@ pub(crate) async fn execute_immediate(
     request: ImmediateActionRequest<'_>,
 ) -> Result<Value, AppError> {
     match request.action_id {
-        "create-note" | "commit-knowledge-changes" | "edit-space-structure" => {
+        "create-note" | "create-markdown" | "commit-knowledge-changes" | "edit-space-structure" => {
             execute_write_action(tx, request).await
         }
         "list-space-contents"
@@ -58,6 +58,12 @@ async fn execute_write_action(
     match action_id {
         "create-note" => {
             crate::spaces::nodes::create_note_action::execute(
+                tx, principal, space_id, parameters, now,
+            )
+            .await
+        }
+        "create-markdown" => {
+            crate::spaces::nodes::create_markdown_action::execute(
                 tx, principal, space_id, parameters, now,
             )
             .await

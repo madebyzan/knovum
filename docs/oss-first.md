@@ -101,7 +101,18 @@ The resulting lifecycle, permissions and interaction contracts are owned by
   stage, where the transformer owns layer and overlay manipulation. Adding another scene graph or
   graph editor would create a second spatial source of truth. Vue owns workbench composition and
   Knovum persists neutral canvas facts.
-- Tiptap and its first-party extensions own rich-text editing, tables, file handling and find/replace.
+- Tiptap and its exact-pinned first-party MIT extensions (`3.31.4`) own rich-text editing, tables,
+  file handling, find/replace, `/` slash command suggestions (`@tiptap/suggestion`), LaTeX math
+  (`@tiptap/extension-mathematics` backed by exact-pinned MIT `katex`), and code blocks
+  (`@tiptap/extension-code-block`). Top-level block drag reordering uses Pointer Events rather than
+  `@tiptap/extension-drag-handle-vue-3` (HTML5 `draggable="true"`), because Tauri 2's native WebView
+  file-drop integration intercepts HTML5 drags on macOS/Windows and emits spurious file-drop hover
+  events. Live editor code-block syntax highlighting reuses the already pinned off-main-thread
+  `shiki` Web Worker rather than adding `lowlight` or `highlight.js`. Fenced `mermaid` code blocks
+  lazy-load exact-pinned MIT `mermaid` (`securityLevel: "strict"`) together with its official
+  `@mermaid-js/layout-elk` layout engine on demand (mounted inside an open Shadow Root so host prose
+  stylesheets cannot distort diagram text or geometry, and using ELK for obstacle-avoiding compound
+  subgraph edge routing), avoiding upfront bundle cost when documents contain no diagrams.
   Markdown text remains canonical only for Markdown items; Notes keep their validated structured
   document. Vendor JSON is not a compatibility model.
 - Browser-native module Worker/OffscreenCanvas own canvas image-preview execution. VueUse owns shared

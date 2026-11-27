@@ -16,6 +16,7 @@ use crate::foundation::subprocess::process_tree::ProcessTree;
 mod diagnostics;
 mod framing;
 mod peer;
+pub(crate) mod pool;
 pub(crate) use peer::{Host, Peer};
 
 pub(crate) struct Process {
@@ -132,10 +133,14 @@ impl Process {
         }
     }
 
-    pub(crate) fn kill_handle(
+    pub(super) fn kill_handle(
         &self,
     ) -> Option<crate::foundation::subprocess::process_tree::KillHandle> {
         self.tree.try_handle()
+    }
+
+    pub(super) fn is_alive(&mut self) -> bool {
+        !self.listener.is_finished() && matches!(self.child.try_wait(), Ok(None))
     }
 
     pub(crate) async fn terminate(&mut self) {
