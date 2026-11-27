@@ -139,7 +139,7 @@ pub(crate) async fn materialize_generated_media(
                 &events_channel,
                 TaskStreamEvent::ThinkingDelta {
                     text: format!(
-                        "Generating {} ({}/{total})...",
+                        "\nGenerating {} ({}/{total})...",
                         directive.kind.progress_label(),
                         index + 1
                     ),

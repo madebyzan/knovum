@@ -34,6 +34,8 @@
       "placeholder": "Knovumに執筆・編集を依頼…",
       "followUpPlaceholder": "Knovumに修正指示を続ける…",
       "thinking": "Knovumが思考中…",
+      "thought": "思考済み",
+      "thoughtFor": "{seconds} 秒間思考",
       "generating": "Knovumが生成中…",
       "stop": "停止",
       "replace": "置換",

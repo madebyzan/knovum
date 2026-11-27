@@ -38,10 +38,20 @@ export function createWritingSessionState() {
   const promptText = shallowRef("");
   const draftText = shallowRef("");
   const thinking = shallowRef(false);
+  const thinkingText = shallowRef("");
+  const thinkingDurationMs = shallowRef<number | undefined>(undefined);
   const errorMessage = shallowRef<string>();
   const activeSource = shallowRef<TransformSource>();
   const attachedReferences = shallowRef<readonly EditorContextReference[]>([]);
   let activeJob: EditorWritingJob | undefined;
+  let thinkingStartedAt: number | undefined;
+
+  function clearThinking() {
+    thinking.value = false;
+    thinkingText.value = "";
+    thinkingDurationMs.value = undefined;
+    thinkingStartedAt = undefined;
+  }
 
   function beginJob(instance: Editor, actionLabel: RunningAction, source: TransformSource): EditorWritingJob {
     const job: EditorWritingJob = {
@@ -54,7 +64,7 @@ export function createWritingSessionState() {
     runningAction.value = actionLabel;
     draftText.value = "";
     errorMessage.value = undefined;
-    thinking.value = false;
+    clearThinking();
     phase.value = "streaming";
     return job;
   }
@@ -63,6 +73,8 @@ export function createWritingSessionState() {
     const job = activeJob;
     activeJob = undefined;
     runningAction.value = undefined;
+    if (thinkingStartedAt !== undefined && thinkingDurationMs.value === undefined)
+      thinkingDurationMs.value = Math.max(0, Date.now() - thinkingStartedAt);
     thinking.value = false;
     if (clearTrace && job && !job.editor.isDestroyed) clearReasoningTrace(job.editor.view);
     return job;
@@ -75,6 +87,7 @@ export function createWritingSessionState() {
     draftText.value = "";
     errorMessage.value = undefined;
     promptText.value = "";
+    clearThinking();
     phase.value = "prompt";
   }
 
@@ -85,12 +98,25 @@ export function createWritingSessionState() {
     draftText.value = "";
     errorMessage.value = undefined;
     activeSource.value = undefined;
+    clearThinking();
+  }
+
+  function freezeThinkingDuration() {
+    if (thinkingStartedAt !== undefined && thinkingDurationMs.value === undefined)
+      thinkingDurationMs.value = Math.max(0, Date.now() - thinkingStartedAt);
+  }
+
+  function appendThinking(text: string) {
+    thinking.value = true;
+    thinkingStartedAt ??= Date.now();
+    if (text) thinkingText.value += text;
   }
 
   function onStreamEvent(job: EditorWritingJob, event: TaskStreamEvent) {
     if (activeJob !== job) return;
-    if (event.event === "thinking_delta") thinking.value = true;
+    if (event.event === "thinking_delta") appendThinking(event.text);
     else if (event.event === "delta") {
+      freezeThinkingDuration();
       thinking.value = false;
       draftText.value += event.text;
     }
@@ -127,6 +153,8 @@ export function createWritingSessionState() {
     promptText,
     draftText,
     thinking,
+    thinkingText,
+    thinkingDurationMs,
     errorMessage,
     activeSource,
     attachedReferences,

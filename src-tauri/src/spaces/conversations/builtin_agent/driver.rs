@@ -4,13 +4,12 @@ use std::{
 };
 
 use serde_json::{json, Value};
-use tauri::Manager;
 use tokio::sync::Semaphore;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
     agent_runtime::{
-        process::Process,
+        process::pool::{self, LeasedProcess},
         protocol::{
             control::{
                 AgentControl, AgentControlOperation, AgentExecute, AgentExecutionObservation,
@@ -51,12 +50,7 @@ pub(super) async fn drive(
     if cancellation.is_cancelled() {
         return Err("builtin-agent-cancelled".into());
     }
-    let checkpoint_path = host
-        .app
-        .path()
-        .app_data_dir()
-        .map_err(|error| error.to_string())?
-        .join("agent-runtime/checkpoints.sqlite");
+    let checkpoint_path = pool::checkpoint_path(&host.app)?;
     let model = binding::resolve(&host.target, &host.profile).await?;
     let space_snapshot: String = sqlx::query_scalar(
         "SELECT json_extract(input_snapshot,'$.spaceContext') FROM spaces_runs WHERE id=$1",
@@ -99,55 +93,56 @@ pub(super) async fn drive(
             .to_owned(),
     };
     let host = Arc::new(host);
-    let mut process = tokio::select! {
+    let leased = tokio::select! {
         biased;
         _ = cancellation.cancelled() => return Err("builtin-agent-cancelled".into()),
         started = tokio::time::timeout_at(
             deadline,
-            Process::start(&host.app, &checkpoint_path, host.clone()),
+            pool::acquire(&host.app, &checkpoint_path, host.clone()),
         ) => started.map_err(|_| "builtin-agent-duration-budget-exhausted")??,
     };
     let outcome = tokio::time::timeout_at(
         deadline,
-        async {
-            tokio::select! {
-                biased;
-                _ = cancellation.cancelled() => {
-                    if is_pause(&host).await? {
-                        paused(&host).await?;
-                        return Ok(DriveOutcome::Paused);
-                    }
-                    return Err("builtin-agent-cancelled".into());
-                }
-                retention = crate::spaces::conversations::execution::retention::prune(&host.pool, &process.peer) => retention?,
-            }
-            execute_loop(&process, &host, execute, cancellation.clone()).await
-        },
+        execute_loop(&leased, &host, execute, cancellation.clone()),
     )
     .await
     .map_err(|_| "builtin-agent-duration-budget-exhausted".to_owned())
     .and_then(std::convert::identity);
-    process.terminate().await;
+    let reusable = matches!(outcome, Ok(DriveOutcome::Completed | DriveOutcome::Waiting))
+        && !cancellation.is_cancelled();
+    if reusable {
+        if let Err(error) = crate::spaces::conversations::execution::retention::prune_if_due(
+            &host.pool,
+            leased.peer(),
+        )
+        .await
+        {
+            log::warn!("Built-in Agent checkpoint retention skipped: {error}");
+        }
+        leased.release_healthy().await;
+    } else {
+        leased.discard().await;
+    }
     outcome
 }
 
 async fn execute_loop(
-    process: &Process,
+    leased: &LeasedProcess,
     host: &Gateway,
     mut execute: AgentExecute,
     cancellation: CancellationToken,
 ) -> Result<DriveOutcome, String> {
     loop {
         let outcome = {
-            let execution = process
-                .peer
+            let execution = leased
+                .peer()
                 .request::<AgentExecutionObservation>("agentRuntime.execute", &execute);
             tokio::pin!(execution);
             tokio::select! {
                 outcome = &mut execution => outcome,
                 _ = cancellation.cancelled() => {
                     let pause = is_pause(host).await?;
-                    process.peer.notify("agentRuntime.control", &AgentControl { identity: execute.identity.clone(), operation: if pause { AgentControlOperation::Pause } else { AgentControlOperation::Cancel } }).await?;
+                    leased.peer().notify("agentRuntime.control", &AgentControl { identity: execute.identity.clone(), operation: if pause { AgentControlOperation::Pause } else { AgentControlOperation::Cancel } }).await?;
                     let settling = tokio::time::timeout(Duration::from_secs(if pause { 65 } else { 5 }), &mut execution).await;
                     if !pause { return Err("builtin-agent-cancelled".into()); }
                     settling.map_err(|_| "builtin-agent-pause-not-settled".to_owned())?
@@ -157,7 +152,7 @@ async fn execute_loop(
         let outcome = match outcome {
             Ok(outcome) => outcome,
             Err(_) if cancellation.is_cancelled() && is_pause(host).await? => {
-                synchronize_projection(process, host).await?;
+                synchronize_projection(leased, host).await?;
                 ledger::require_reconciled(&host.pool, &host.ids.task_id).await?;
                 paused(host).await?;
                 return Ok(DriveOutcome::Paused);
@@ -226,9 +221,9 @@ async fn execute_loop(
     }
 }
 
-async fn synchronize_projection(process: &Process, host: &Gateway) -> Result<(), String> {
-    let projection: AgentProjection = process
-        .peer
+async fn synchronize_projection(leased: &LeasedProcess, host: &Gateway) -> Result<(), String> {
+    let projection: AgentProjection = leased
+        .peer()
         .request(
             "agentRuntime.projection",
             &AgentProjectionRequest {
@@ -237,7 +232,13 @@ async fn synchronize_projection(process: &Process, host: &Gateway) -> Result<(),
             },
         )
         .await?;
-    projection::commit(&host.pool, &host.ids, projection).await?;
+    projection::commit(
+        &host.pool,
+        &host.ids,
+        projection,
+        host.take_recorded_thinking()?,
+    )
+    .await?;
     Ok(())
 }
 

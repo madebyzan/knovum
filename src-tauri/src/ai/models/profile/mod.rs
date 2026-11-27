@@ -22,6 +22,12 @@ pub(crate) struct ModelProfile {
     pub max_output_tokens: Option<u32>,
 }
 
+pub(crate) fn prepare<R: Runtime>(app: AppHandle<R>) {
+    tauri::async_runtime::spawn(async move {
+        let _ = catalog::current(&app).await;
+    });
+}
+
 pub(crate) async fn resolve<R: Runtime>(
     app: &AppHandle<R>,
     provider: ProviderKind,

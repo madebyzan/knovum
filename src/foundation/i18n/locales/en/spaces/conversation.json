@@ -161,6 +161,9 @@
     "viewCreated": "Locate result"
   },
   "activity": {
+    "thinking": "Thinking…",
+    "thought": "Thought",
+    "thoughtFor": "Thought for {seconds}s",
     "generating": "Generating response…",
     "running": "Working · {count} action | Working · {count} actions",
     "finished": "Completed · {count} action | Completed · {count} actions",

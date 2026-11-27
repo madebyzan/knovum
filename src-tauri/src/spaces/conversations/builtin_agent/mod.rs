@@ -128,6 +128,7 @@ pub async fn start(
                 session,
                 updates: Some(updates),
                 last_message: std::sync::Mutex::new(None),
+                thinking: std::sync::Mutex::new(None),
             },
             messages,
             None,

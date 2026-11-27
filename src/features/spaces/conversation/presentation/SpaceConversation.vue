@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { CornerUpLeft } from "@lucide/vue";
-import { computed, nextTick, useTemplateRef } from "vue";
+import { computed, nextTick, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiSpinner from "../../../../shared/ui/UiSpinner.vue";
 import { quotedFollowUp } from "../answer-capture";
+import { prepareBuiltinAgentRuntime } from "../conversation-ipc";
 import { useConversationSessionStore } from "../conversation-session-store";
 import AgentExtensionPicker from "./AgentExtensionPicker.vue";
 import ConversationToolInterventions from "./ConversationToolInterventions.vue";
@@ -18,6 +19,13 @@ import SpaceConversationRunStatus from "./SpaceConversationRunStatus.vue";
 const session = useConversationSessionStore();
 const composer = useTemplateRef<InstanceType<typeof SpaceConversationComposer>>("composer");
 const { t } = useI18n();
+watch(
+  () => session.target,
+  (target) => {
+    if (target?.type === "model") void prepareBuiltinAgentRuntime().catch(() => {});
+  },
+  { immediate: true },
+);
 // Three different things were one "busy" flag: a conversation that cannot take a question yet, an
 // answer being produced, and a run that exists and can therefore be stopped.
 const composerDisabled = computed(

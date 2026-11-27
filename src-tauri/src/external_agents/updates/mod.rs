@@ -23,6 +23,7 @@ const MAX_EMBEDDED_AUDIO_BYTES: usize = 128 * 1024 * 1024;
 
 #[derive(Clone)]
 pub enum AgentSessionUpdate {
+    Thinking(String),
     Message(String),
     ToolCall {
         id: String,
@@ -62,8 +63,12 @@ pub async fn receive(
     workspace: &Path,
 ) -> Result<Option<AgentSessionUpdate>, Error> {
     match update {
-        // An Agent's reasoning is its own: it is neither shown nor recorded, so it stops here.
-        SessionUpdate::AgentThoughtChunk(_) => Ok(None),
+        SessionUpdate::AgentThoughtChunk(chunk) => match chunk.content {
+            ContentBlock::Text(text) if !text.text.is_empty() => {
+                Ok(Some(AgentSessionUpdate::Thinking(text.text)))
+            }
+            _ => Ok(None),
+        },
         SessionUpdate::AgentMessageChunk(chunk) => match chunk.content {
             ContentBlock::Text(text) => Ok(Some(AgentSessionUpdate::Message(text.text))),
             content => {

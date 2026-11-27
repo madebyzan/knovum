@@ -34,6 +34,8 @@
       "placeholder": "Knovum bitten zu schreiben, umzuschreiben oder zu entwerfen…",
       "followUpPlaceholder": "Knovum sagen, wie der Entwurf angepasst werden soll…",
       "thinking": "Knovum denkt nach…",
+      "thought": "Nachgedacht",
+      "thoughtFor": "{seconds} s nachgedacht",
       "generating": "Knovum schreibt…",
       "stop": "Stoppen",
       "replace": "Ersetzen",

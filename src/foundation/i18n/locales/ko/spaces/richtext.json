@@ -34,6 +34,8 @@
       "placeholder": "Knovum에게 작성·수정을 요청하세요…",
       "followUpPlaceholder": "Knovum에게 다듬기 지시를 입력하세요…",
       "thinking": "Knovum이 생각하는 중…",
+      "thought": "생각 완료",
+      "thoughtFor": "{seconds}초 동안 생각함",
       "generating": "Knovum이 작성 중…",
       "stop": "중지",
       "replace": "바꾸기",

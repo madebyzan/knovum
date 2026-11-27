@@ -34,6 +34,8 @@
       "placeholder": "让 Knovum 写作、改写或起草…",
       "followUpPlaceholder": "继续告诉 Knovum 如何调整…",
       "thinking": "Knovum 正在思考…",
+      "thought": "已思考",
+      "thoughtFor": "已思考 {seconds} 秒",
       "generating": "Knovum 正在写作…",
       "stop": "停止",
       "replace": "替换选区",

@@ -34,6 +34,8 @@
       "placeholder": "Pide a Knovum escribir, editar o redactar…",
       "followUpPlaceholder": "Indica a Knovum cómo ajustar este borrador…",
       "thinking": "Knovum está pensando…",
+      "thought": "Pensó",
+      "thoughtFor": "Pensó durante {seconds} s",
       "generating": "Knovum está escribiendo…",
       "stop": "Detener",
       "replace": "Reemplazar",

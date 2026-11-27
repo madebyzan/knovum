@@ -44,17 +44,27 @@ async function readAiReadiness(requirements: readonly AiRequirement[]) {
     reads.has("models") ? loadModels() : unread<AiReadinessSources["models"]>(),
   ]);
   // Which executor a route resolves to is only known once the settings are.
-  const agents = aiSourcesOf(requirements, settings.value).has("agents")
-    ? await loadAgents()
-    : await unread<AiReadinessSources["agents"]>();
-  return resolveAiReadiness(requirements, {
-    settings: settings.value,
-    settingsFailed: settings.failed,
-    models: models.value,
-    modelsFailed: models.failed,
-    agents: agents.value,
-    agentsFailed: agents.failed,
-  });
+  const needsAgents = aiSourcesOf(requirements, settings.value).has("agents");
+  const hadCachedAgents =
+    needsAgents && queryClient.getQueryData(agentInstallationsQueryOptions.queryKey) !== undefined;
+  let agents = needsAgents ? await loadAgents(false) : await unread<AiReadinessSources["agents"]>();
+  const resolve = (currentAgents: SourceRead<AiReadinessSources["agents"]>) =>
+    resolveAiReadiness(requirements, {
+      settings: settings.value,
+      settingsFailed: settings.failed,
+      models: models.value,
+      modelsFailed: models.failed,
+      agents: currentAgents.value,
+      agentsFailed: currentAgents.failed,
+    });
+  let readiness = resolve(agents);
+  // Reuse the 30s cached desktop-agent probe when ready, but re-probe once on a cached miss so a
+  // newly installed CLI works immediately on the next click.
+  if (hadCachedAgents && !agents.failed && !canStartWith(readiness)) {
+    agents = await loadAgents(true);
+    readiness = resolve(agents);
+  }
+  return readiness;
 }
 
 interface SourceRead<T> {
@@ -72,11 +82,15 @@ function loadModels(): Promise<SourceRead<AiReadinessSources["models"]>> {
   return fresh(() => queryClient.fetchQuery({ ...localModelsQueryOptions, staleTime: 0, retry: false }));
 }
 
-function loadAgents(): Promise<SourceRead<AiReadinessSources["agents"]>> {
+function loadAgents(forceFresh: boolean): Promise<SourceRead<AiReadinessSources["agents"]>> {
   return fresh(async () => {
     const [descriptors, installations] = await Promise.all([
       queryClient.fetchQuery(agentDescriptorsQueryOptions),
-      queryClient.fetchQuery({ ...agentInstallationsQueryOptions, staleTime: 0, retry: false }),
+      queryClient.fetchQuery({
+        ...agentInstallationsQueryOptions,
+        ...(forceFresh ? { staleTime: 0 } : {}),
+        retry: false,
+      }),
     ]);
     return desktopAgentPresence(descriptors, installations);
   });

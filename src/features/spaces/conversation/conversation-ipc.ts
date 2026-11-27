@@ -116,6 +116,10 @@ export function pauseConversationTask(runId: string): Promise<void> {
   return requestRunControl("pause", runId);
 }
 
+export function prepareBuiltinAgentRuntime(): Promise<void> {
+  return invokeCommand("plugin:spaces|prepare_builtin_agent_runtime");
+}
+
 export function renameConversation(conversationId: string, title: string): Promise<void> {
   return invokeCommand("plugin:spaces|rename_conversation", { conversationId, title });
 }

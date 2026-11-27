@@ -6,6 +6,7 @@ import { useI18n } from "vue-i18n";
 import type { EditorContextReference } from "../../../../shared/contracts/generated/EditorContextReference";
 import UiKnovumAiIcon from "../../../../shared/ui/UiKnovumAiIcon.vue";
 import UiMarkdown from "../../../../shared/ui/UiMarkdown.vue";
+import SpaceTiptapAiThinking from "./SpaceTiptapAiThinking.vue";
 
 const props = defineProps<{
   showBody: boolean;
@@ -15,6 +16,8 @@ const props = defineProps<{
   originalText?: string | undefined;
   showCompare?: boolean | undefined;
   thinking: boolean;
+  thinkingText?: string | undefined;
+  thinkingDurationMs?: number | undefined;
   attachedReferences: readonly EditorContextReference[];
 }>();
 
@@ -53,6 +56,12 @@ watch(
       {{ errorMessage }}
     </div>
     <div v-else-if="draftText" class="px-3.5 py-3">
+      <SpaceTiptapAiThinking
+        v-if="thinkingText?.trim()"
+        :text="thinkingText"
+        :active="false"
+        :duration-ms="thinkingDurationMs"
+      />
       <div
         ref="scrollBoxRef"
         class="max-h-[42vh] overflow-y-auto overscroll-contain outline-none"
@@ -83,17 +92,25 @@ watch(
       </div>
     </div>
     <div v-else class="space-y-2.5 px-3.5 py-3">
-      <div class="flex items-center gap-2 text-caption text-fg-secondary">
-        <UiKnovumAiIcon class="size-3.5 animate-pulse text-fg-accent" />
-        <span>{{
-          thinking ? t("spaces.richtext.ai.panel.thinking") : t("spaces.richtext.ai.panel.generating")
-        }}</span>
-      </div>
-      <div class="space-y-1.5" aria-hidden="true">
-        <div class="h-2 w-4/5 animate-pulse rounded-full bg-surface-control-hover/85" />
-        <div class="h-2 w-full animate-pulse rounded-full bg-surface-control-hover/65" />
-        <div class="h-2 w-2/5 animate-pulse rounded-full bg-surface-control-hover/50" />
-      </div>
+      <SpaceTiptapAiThinking
+        v-if="thinkingText?.trim()"
+        :text="thinkingText"
+        :active="true"
+        :duration-ms="thinkingDurationMs"
+      />
+      <template v-else>
+        <div class="flex items-center gap-2 text-caption text-fg-secondary">
+          <UiKnovumAiIcon class="size-3.5 animate-pulse text-fg-secondary" />
+          <span>{{
+            thinking ? t("spaces.richtext.ai.panel.thinking") : t("spaces.richtext.ai.panel.generating")
+          }}</span>
+        </div>
+        <div class="space-y-1.5" aria-hidden="true">
+          <div class="h-2 w-4/5 animate-pulse rounded-full bg-surface-control-hover/85" />
+          <div class="h-2 w-full animate-pulse rounded-full bg-surface-control-hover/65" />
+          <div class="h-2 w-2/5 animate-pulse rounded-full bg-surface-control-hover/50" />
+        </div>
+      </template>
     </div>
   </div>
 

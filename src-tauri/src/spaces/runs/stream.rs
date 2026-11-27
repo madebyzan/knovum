@@ -32,6 +32,10 @@ impl Streamed {
     /// The durable record of a session update.
     fn of(update: AgentSessionUpdate) -> Self {
         let (kind, payload) = match update {
+            AgentSessionUpdate::Thinking(text) => (
+                RunEventKind::AgentThinking,
+                serde_json::json!({"text": text}),
+            ),
             AgentSessionUpdate::Message(text) => (
                 RunEventKind::ExternalAgentMessage,
                 serde_json::json!({"text": text}),
@@ -186,6 +190,28 @@ async fn record_pending<S: Sink>(
     }
 }
 
+async fn flush_thinking_event(
+    tx: &mut Transaction<'_, Sqlite>,
+    run_id: &str,
+    pending: &mut String,
+    now: i64,
+) -> Result<(), String> {
+    if pending.is_empty() {
+        return Ok(());
+    }
+    append_event(
+        tx,
+        run_id,
+        None,
+        None,
+        RunEventKind::AgentThinking,
+        &serde_json::json!({"text": std::mem::take(pending)}),
+        now,
+    )
+    .await?;
+    Ok(())
+}
+
 async fn record_batch<S: Sink>(
     pool: &SqlitePool,
     run_id: &str,
@@ -195,7 +221,18 @@ async fn record_batch<S: Sink>(
     let now = crate::foundation::clock::unix_time_millis()?;
     let mut tx = db::begin_write(pool).await?;
     sink.settle(&mut tx, batch).await?;
+    let mut pending_thinking = String::new();
     for streamed in batch {
+        if matches!(streamed.kind, RunEventKind::AgentThinking) {
+            if let Some(chunk) = streamed.text() {
+                if pending_thinking.len() + chunk.len() > MAX_UPDATE_TEXT_BYTES {
+                    flush_thinking_event(&mut tx, run_id, &mut pending_thinking, now).await?;
+                }
+                pending_thinking.push_str(chunk);
+            }
+            continue;
+        }
+        flush_thinking_event(&mut tx, run_id, &mut pending_thinking, now).await?;
         append_event(
             &mut tx,
             run_id,
@@ -207,6 +244,7 @@ async fn record_batch<S: Sink>(
         )
         .await?;
     }
+    flush_thinking_event(&mut tx, run_id, &mut pending_thinking, now).await?;
     tx.commit().await.map_err(db::sql_error)
 }
 

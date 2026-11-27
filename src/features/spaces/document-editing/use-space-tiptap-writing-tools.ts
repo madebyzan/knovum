@@ -140,6 +140,8 @@ export function useSpaceTiptapWritingTools(
     promptText: state.promptText,
     draftText: readonly(state.draftText),
     thinking: readonly(state.thinking),
+    thinkingText: readonly(state.thinkingText),
+    thinkingDurationMs: readonly(state.thinkingDurationMs),
     errorMessage: readonly(state.errorMessage),
     activeSource: readonly(state.activeSource),
     attachedReferences: readonly(state.attachedReferences),

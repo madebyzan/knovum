@@ -81,12 +81,16 @@ describe("editor streaming AI co-writing session", () => {
 
     expect(writing.phase.value).toBe("review");
     expect(writing.draftText.value).toBe("improved");
+    expect(writing.thinkingText.value).toBe("planning");
+    expect(writing.thinkingDurationMs.value).toBeGreaterThanOrEqual(0);
     expect(editor.getText()).toBe("hello world");
     expect(ai.admit).toHaveBeenCalledWith([{ kind: "routed", purpose: "writing" }]);
 
     writing.acceptReplace();
     expect(editor.getText()).toBe("improved world");
     expect(writing.phase.value).toBe("closed");
+    expect(writing.thinkingText.value).toBe("");
+    expect(writing.thinkingDurationMs.value).toBeUndefined();
   });
 
   it("inserts generated draft below the block when accepting non-destructively", async () => {

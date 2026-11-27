@@ -24,8 +24,42 @@ def visible_text(message: BaseMessage) -> str:
     if isinstance(message.content, str):
         return message.content
     return "".join(
-        block["text"] for block in message.content if isinstance(block, dict) and block.get("type") == "text"
+        block["text"]
+        for block in message.content
+        if isinstance(block, dict)
+        and block.get("type") == "text"
+        and not block.get("thought")
+        and isinstance(block.get("text"), str)
     )
+
+
+def reasoning_text(message: BaseMessage) -> str:
+    """Extracts provider reasoning/thinking text without leaking it into visible answers."""
+    parts: list[str] = []
+    extra = getattr(message, "additional_kwargs", None)
+    if isinstance(extra, dict):
+        for key in ("reasoning_content", "reasoning"):
+            value = extra.get(key)
+            if isinstance(value, str) and value:
+                parts.append(value)
+    if isinstance(message.content, list):
+        for block in message.content:
+            if not isinstance(block, dict):
+                continue
+            block_type = block.get("type")
+            if block_type == "thinking" and isinstance(block.get("thinking"), str):
+                parts.append(block["thinking"])
+            elif block_type == "reasoning":
+                if isinstance(block.get("reasoning"), str):
+                    parts.append(block["reasoning"])
+                summary = block.get("summary")
+                if isinstance(summary, list):
+                    for item in summary:
+                        if isinstance(item, dict) and isinstance(item.get("text"), str):
+                            parts.append(item["text"])
+            elif block.get("thought") is True and isinstance(block.get("text"), str):
+                parts.append(block["text"])
+    return "".join(parts)
 
 
 async def export_projection(

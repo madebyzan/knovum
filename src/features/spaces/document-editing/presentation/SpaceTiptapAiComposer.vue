@@ -135,6 +135,8 @@ function handleInputKeydown(event: KeyboardEvent) {
         :original-text="hasSelection ? writing.activeSource.value?.text : undefined"
         :show-compare="showCompare"
         :thinking="writing.thinking.value"
+        :thinking-text="writing.thinkingText.value"
+        :thinking-duration-ms="writing.thinkingDurationMs.value"
         :attached-references="attachedReferences"
         @remove-reference="writing.removeReference"
       />

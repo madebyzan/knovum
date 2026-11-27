@@ -155,4 +155,24 @@ describe("admitAiRequirements", () => {
     expect(mocks.warning).not.toHaveBeenCalled();
     expect(mocks.info).not.toHaveBeenCalled();
   });
+
+  it("reuses a ready desktop Agent probe across sends and re-probes immediately after a missing-CLI cache", async () => {
+    mocks.settings.settings = {
+      ...DEFAULT_AI_MODEL_SETTINGS,
+      desktopAgents: [{ kind: "codex", enabled: true }],
+    };
+    const codexTarget = [
+      { kind: "routed", purpose: "knowledge", target: { type: "agent", runtimeKind: "codex" } },
+    ] as const;
+
+    mocks.installations
+      .mockResolvedValueOnce([{ kind: "codex", detected: true, executablePath: null }])
+      .mockResolvedValueOnce([{ kind: "codex", detected: true, executablePath: "/usr/local/bin/codex" }]);
+
+    await expect(admitAiRequirements(codexTarget)).resolves.toBe(false);
+    await expect(admitAiRequirements(codexTarget)).resolves.toBe(true);
+    await expect(admitAiRequirements(codexTarget)).resolves.toBe(true);
+
+    expect(mocks.installations).toHaveBeenCalledTimes(2);
+  });
 });

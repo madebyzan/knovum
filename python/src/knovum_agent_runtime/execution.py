@@ -16,7 +16,7 @@ from knovum_agent_runtime.contracts.generated.control import (
 from knovum_agent_runtime.contracts.generated.messages import AgentContentDelta
 from knovum_agent_runtime.control import ExecutionContext
 from knovum_agent_runtime.inputs import execution_input
-from knovum_agent_runtime.projection import ProjectionPublisher, visible_text
+from knovum_agent_runtime.projection import ProjectionPublisher, reasoning_text, visible_text
 from knovum_agent_runtime.transport import Peer
 
 
@@ -57,9 +57,15 @@ class Execution:
                     continue
                 if mode == "messages":
                     message, metadata = cast(tuple[BaseMessage, dict[str, Any]], payload)
-                    if "knovum:model:main" in metadata.get("tags", []):
+                    if "knovum:model:main" in metadata.get("tags", []) and message.id:
+                        thinking = reasoning_text(message)
+                        if thinking:
+                            await self.peer.notify(
+                                "agentRuntime.reasoningDelta",
+                                AgentContentDelta(identity=self.request.identity, message_id=message.id, text=thinking),
+                            )
                         text = visible_text(message)
-                        if text and message.id:
+                        if text:
                             await self.peer.notify(
                                 "agentRuntime.contentDelta",
                                 AgentContentDelta(identity=self.request.identity, message_id=message.id, text=text),

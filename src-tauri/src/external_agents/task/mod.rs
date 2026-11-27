@@ -160,6 +160,7 @@ pub(crate) async fn complete_stream(
             budget: COMPLETION_BUDGET,
             cancellation,
             on_update: Arc::new(move |update| match update {
+                AgentSessionUpdate::Thinking(chunk) if !chunk.is_empty() => on_thinking(chunk),
                 AgentSessionUpdate::Message(chunk) if !chunk.is_empty() => {
                     collected_sink
                         .lock()

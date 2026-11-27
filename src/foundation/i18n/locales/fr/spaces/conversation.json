@@ -161,6 +161,9 @@
     "viewCreated": "Localiser le résultat"
   },
   "activity": {
+    "thinking": "Réflexion…",
+    "thought": "A réfléchi",
+    "thoughtFor": "A réfléchi pendant {seconds} s",
     "generating": "Générer une réponse…",
     "running": "Travail · Action {count} | Travailler · Actions {count}",
     "finished": "Terminé · Action {count} | Terminé · Actions {count}",

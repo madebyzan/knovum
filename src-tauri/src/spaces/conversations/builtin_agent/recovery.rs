@@ -106,6 +106,7 @@ async fn recover_task(
             session,
             updates: None,
             last_message: std::sync::Mutex::new(None),
+            thinking: std::sync::Mutex::new(None),
         },
         messages,
         resume,
