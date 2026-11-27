@@ -116,17 +116,17 @@ the feature-area organization and colocation principles in the
 file names. UI directories describe a local responsibility, not a second feature hierarchy.
 There is no feature-wide component warehouse or parallel Spaces presentation tree.
 
-| Owner                    | Source organization                                                                                                                                                                                 |
-| ------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Spaces capability        | `<capability>/` holds operations and state; `<capability>/presentation/` holds its view components and UI projections.                                                                              |
-| Spaces workspace         | `workspace/` composes the workbench tab list, work surfaces and sidebar intent; `workspace/presentation/` composes their views, the tab strip, library and creation UI.                             |
-| Spaces canvas            | `canvas/host/` assembles the neutral surface, `canvas/konva/` implements the adapter, and `canvas/presentation/` owns product chrome, selection controls and node views.                            |
-| Settings AI              | `settings/ai/` composes AI settings; `connections/` owns providers, credentials and logos, `models/` owns definitions and routing, and `local-models/` owns installation controls.                  |
-| Other settings           | `desktop-agents/`, `backup/`, `archives/`, `appearance/`, `notifications/`, `usage/` and `about/` own their panes. `navigation/` owns pane registration and leave coordination.                     |
-| Shared settings controls | `settings/components/` holds only controls reused by settings capabilities.                                                                                                                         |
-| Extensions               | Existing `plugins/`, `skills/`, `connectors/`, `connections/` and `apps/` retain their UI and operations; `navigation/` owns destination and leave behavior.                                        |
-| Shell                    | `layout/` owns workbench geometry and containers; `commands/` owns the palette and shortcut UI; `tasks/` owns Task Center UI. Root files compose them or define application error/startup surfaces. |
-| I18n                     | `foundation/i18n/locales/` holds the registry, dynamic-key declarations and translation resources. Locale namespaces continue to identify their semantic capability.                                |
+| Owner                    | Source organization                                                                                                                                                                                               |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Spaces capability        | `<capability>/` holds operations and state; `<capability>/presentation/` holds its view components and UI projections.                                                                                            |
+| Spaces workspace         | `workspace/` composes the workbench tab list, work surfaces and sidebar intent; `workspace/presentation/` composes their views, the tab strip, library and creation UI.                                           |
+| Spaces canvas            | `canvas/host/` assembles the neutral surface, `canvas/konva/` and `video-editing/stage/` are the only approved Konva adapters, and `canvas/presentation/` owns product chrome, selection controls and node views. |
+| Settings AI              | `settings/ai/` composes AI settings; `connections/` owns providers, credentials and logos, `models/` owns definitions and routing, and `local-models/` owns installation controls.                                |
+| Other settings           | `desktop-agents/`, `backup/`, `archives/`, `appearance/`, `notifications/`, `usage/` and `about/` own their panes. `navigation/` owns pane registration and leave coordination.                                   |
+| Shared settings controls | `settings/components/` holds only controls reused by settings capabilities.                                                                                                                                       |
+| Extensions               | Existing `plugins/`, `skills/`, `connectors/`, `connections/` and `apps/` retain their UI and operations; `navigation/` owns destination and leave behavior.                                                      |
+| Shell                    | `layout/` owns workbench geometry and containers; `commands/` owns the palette and shortcut UI; `tasks/` owns Task Center UI. Root files compose them or define application error/startup surfaces.               |
+| I18n                     | `foundation/i18n/locales/` holds the registry, dynamic-key declarations and translation resources. Locale namespaces continue to identify their semantic capability.                                              |
 
 Focused tests live in the owning capability's `__tests__/`; tests exercising several capabilities
 stay at their nearest common owner. Shared fixtures remain in that owner's `__tests__/support/`.

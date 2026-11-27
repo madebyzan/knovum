@@ -15,14 +15,14 @@ const ICONS = { space: LayoutDashboard, document: FileText, video: Film };
   <div
     :data-tab-id="props.view.id"
     :data-active="props.view.active"
-    class="group flex h-(--knovum-control-height-sm) w-55 min-w-32 shrink items-center rounded-md bg-(--knovum-tab-bg-inactive) text-label text-fg-secondary hover:bg-surface-raised hover:text-fg-primary hover:shadow-control data-[active=true]:bg-surface-raised data-[active=true]:font-medium data-[active=true]:text-fg-primary data-[active=true]:shadow-control"
+    class="group flex h-(--knovum-control-height-sm) w-55 min-w-32 shrink items-center rounded-md bg-(--knovum-tab-bg-inactive) text-label text-fg-secondary hover:bg-surface-control-hover hover:text-fg-primary data-[active=true]:bg-surface-raised data-[active=true]:font-medium data-[active=true]:text-fg-primary data-[active=true]:shadow-control data-[active=true]:hover:bg-surface-raised"
     @auxclick.middle.prevent="props.view.canClose && emit('close')"
     @contextmenu.prevent="emit('contextMenu')"
     @keydown.shift.f10.prevent="emit('contextMenu')"
   >
     <TabsTrigger
       :value="props.view.id"
-      class="flex h-full min-w-0 flex-1 items-center gap-1.5 px-3 text-left outline-none"
+      class="flex h-full min-w-0 flex-1 items-center gap-1.5 rounded-md px-3 text-left outline-none focus-visible:outline-1 focus-visible:-outline-offset-2 focus-visible:outline-stroke-focus"
     >
       <component :is="ICONS[props.view.kind]" class="size-3.5 shrink-0" :stroke-width="1.6" />
       <span class="truncate">{{ props.view.title }}</span>

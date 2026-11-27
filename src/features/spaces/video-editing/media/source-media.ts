@@ -3,7 +3,7 @@ import { ALL_FORMATS, Input, UrlSource, type InputVideoTrack } from "mediabunny"
 import { versionedMediaSource } from "../../media/media-element-source";
 import type { VideoMaterialNode } from "../material";
 import type { VideoAsset } from "../project";
-import { createAssetCache } from "./asset-cache";
+import { assetIdentity, createAssetCache } from "./asset-cache";
 
 interface SourceMedia {
   /** The source's own video track, present only when this WebView can decode it. */
@@ -17,13 +17,22 @@ interface SourceMedia {
  * its length — no transcode, no full read.
  */
 export function createSourceMediaLibrary(materials: () => ReadonlyMap<string, VideoMaterialNode>) {
-  const inputs = new Set<Input>();
+  const inputsByKey = new Map<string, Input>();
+
+  function disposeKey(key: string) {
+    const existing = inputsByKey.get(key);
+    if (!existing) return;
+    inputsByKey.delete(key);
+    existing.dispose();
+  }
 
   async function open(asset: VideoAsset): Promise<SourceMedia> {
     const url = versionedMediaSource(materials().get(asset.nodeId)?.data.assetPath, asset.sourceRevision);
     if (!url) throw new Error("Media material is unavailable");
+    const key = assetIdentity(asset);
+    disposeKey(key);
     const input = new Input({ formats: ALL_FORMATS, source: new UrlSource(url) });
-    inputs.add(input);
+    inputsByKey.set(key, input);
     const [video, audio] = await Promise.all([input.getPrimaryVideoTrack(), input.getPrimaryAudioTrack()]);
     return { video: video && (await video.canDecode()) ? video : undefined, audible: !!audio };
   }
@@ -36,11 +45,14 @@ export function createSourceMediaLibrary(materials: () => ReadonlyMap<string, Vi
       if (asset.kind === "image") return false;
       return asset.kind === "audio" || (await cache.load(asset)).audible;
     },
-    forget: cache.forget,
+    forget(asset: VideoAsset) {
+      disposeKey(assetIdentity(asset));
+      return cache.forget(asset);
+    },
     dispose() {
       cache.clear();
-      for (const input of inputs) input.dispose();
-      inputs.clear();
+      for (const input of inputsByKey.values()) input.dispose();
+      inputsByKey.clear();
     },
   };
 }

@@ -7,6 +7,7 @@ import type { WorkspaceDefinition } from "../shared/contracts/workspace-definiti
 import CommandPalette from "./commands/CommandPalette.vue";
 import KeyboardShortcutsModal from "./commands/KeyboardShortcutsModal.vue";
 import FeatureErrorBoundary from "./FeatureErrorBoundary.vue";
+import { useResponsiveSidebarGuard } from "./layout/use-responsive-sidebar-guard";
 import { useWorkspaceEdges } from "./layout/use-workspace-edges";
 import WorkspaceLayout from "./layout/WorkspaceLayout.vue";
 import WorkspaceToolbar from "./layout/WorkspaceToolbar.vue";
@@ -28,6 +29,7 @@ const {
   commands,
   toggleSidebarFromControl,
   toggleRightSidebar,
+  closeRightSidebar,
   setSidebarWidth,
   setRightSidebarWidth,
   persistLayout,
@@ -36,10 +38,26 @@ const {
   scheduleSidebarPreviewClose,
   closeSidebarPreview,
 } = useShellController(props.workspace, workspaceActive, (pane) => emit("openSettings", pane));
+const { effectiveSidebarPinned, evaluateBudget, reclaimLeftSidebar } = useResponsiveSidebarGuard({
+  sidebarPinned,
+  sidebarWidth,
+  rightSidebarOpen,
+  rightSidebarWidth,
+  closeSidebarPreview,
+  closeRightSidebar,
+});
+function handleToggleSidebarFromControl() {
+  if (reclaimLeftSidebar()) return;
+  toggleSidebarFromControl();
+}
+function handleCommitLayout() {
+  persistLayout();
+  evaluateBudget();
+}
 provide(overlayScopeVisibleKey, workspaceActive);
 const edges = useWorkspaceEdges({
-  sidebarPinned,
-  sidebarVisible: computed(() => sidebarPinned.value || sidebarPreview.value),
+  sidebarPinned: effectiveSidebarPinned,
+  sidebarVisible: computed(() => effectiveSidebarPinned.value || sidebarPreview.value),
   sidebarWidth,
   rightSidebarOpen,
   rightSidebarWidth,
@@ -67,18 +85,18 @@ const edges = useWorkspaceEdges({
   >
     <WorkspaceToolbar
       :workspace="workspace"
-      :sidebar-pinned="sidebarPinned"
+      :sidebar-pinned="effectiveSidebarPinned"
       :right-sidebar-open="rightSidebarOpen"
       :edges="edges"
       @toggle-right-sidebar="toggleRightSidebar"
-      @toggle-sidebar="toggleSidebarFromControl"
+      @toggle-sidebar="handleToggleSidebarFromControl"
       @preview-sidebar="openSidebarPreview"
       @cancel-sidebar-preview="armSidebarPreview"
       @open-settings="(pane) => emit('openSettings', pane)"
     />
     <WorkspaceLayout
       :workspace="workspace"
-      :sidebar-pinned="sidebarPinned"
+      :sidebar-pinned="effectiveSidebarPinned"
       :sidebar-width="sidebarWidth"
       :sidebar-preview="sidebarPreview"
       :right-sidebar-open="rightSidebarOpen"
@@ -87,7 +105,7 @@ const edges = useWorkspaceEdges({
       :edges="edges"
       @set-sidebar-width="setSidebarWidth"
       @set-right-sidebar-width="setRightSidebarWidth"
-      @commit-layout="persistLayout"
+      @commit-layout="handleCommitLayout"
       @open-sidebar-preview="openSidebarPreview"
       @schedule-sidebar-close="scheduleSidebarPreviewClose"
       @close-sidebar-preview="closeSidebarPreview"

@@ -6,7 +6,7 @@
   },
   "nodeActions": {
     "label": "Acciones de nodo",
-    "openOriginal": "Abrir original",
+    "openOriginal": "Abrir enlace",
     "goToTarget": "Ir al objetivo",
     "export": "Exportar"
   },

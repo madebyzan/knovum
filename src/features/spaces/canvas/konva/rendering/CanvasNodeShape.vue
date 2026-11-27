@@ -12,7 +12,6 @@ const props = defineProps<{
   interactive: boolean;
   sceneNode: CanvasSceneNode;
   palette: CanvasPalette;
-  zoom: number;
 }>();
 const emit = defineEmits<{
   activate: [nodeId: string];

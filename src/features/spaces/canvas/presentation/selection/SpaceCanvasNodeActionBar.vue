@@ -9,6 +9,7 @@ import type {
   CreationIntentDecisions,
   CreationIntentId,
 } from "../../../knowledge-derivations/catalog/creation-intent-definitions";
+import { hasVisibleCreationActions } from "../../../knowledge-derivations/presentation/visible-derivation-actions";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import { useNodeReaderAction } from "../../../reading/use-node-reader-action";
 import {
@@ -47,10 +48,11 @@ function beginSeparation(model?: LocalModelId) {
   if (!separation.activeRunId.value) void startSeparation(model);
 }
 const speechOperations = computed(() => (props.node ? nodeSpeechOperationIds(props.node) : []));
+const hasCreationActions = computed(() => hasVisibleCreationActions(props.derivations));
 const bar = useTemplateRef<HTMLElement>("bar");
 const densityIdentity = computed(
   () =>
-    `${locale.value}:${props.node?.id}:${props.node?.data.kind}:${speechOperations.value.join(",")}:${props.actions.state.value.canAsk}:${props.actions.state.value.canOpen}:${Boolean(props.actions.selectedVideoNode.value)}:${Boolean(props.actions.state.value.section)}`,
+    `${locale.value}:${props.node?.id}:${props.node?.data.kind}:${props.node?.data.kind === "credential" ? props.node.data.credentialKind : ""}:${speechOperations.value.join(",")}:${props.actions.state.value.canAsk}:${hasCreationActions.value}:${props.actions.state.value.canOpen}:${Boolean(props.actions.selectedVideoNode.value)}:${Boolean(props.actions.state.value.section)}`,
 );
 const { compact, minimal, ready } = useNodeActionBarDensity(
   bar,
@@ -121,17 +123,16 @@ const textKind = computed(() => {
       <UiActionHelp v-if="separation.error.value" :label="separation.error.value" />
       <SpaceCanvasSelectionMenu
         :actions="actions"
-        :derivations="derivations"
-        node-bar
         :node-tools-visible="
-          minimal &&
-          (actions.state.value.canAsk ||
-            Boolean(primary) ||
-            Boolean(speechOperations.length) ||
-            isMedia ||
-            Boolean(actions.selectedVideoNode.value))
+          Boolean(speechOperations.length) ||
+          isMedia ||
+          (minimal &&
+            (actions.state.value.canAsk ||
+              hasCreationActions ||
+              node?.data.kind === 'credential' ||
+              Boolean(primary) ||
+              Boolean(actions.selectedVideoNode.value)))
         "
-        @invoke-derivation="emit('invokeDerivation', $event)"
       >
         <template #node-tools>
           <SpaceCanvasNodeTools
@@ -139,6 +140,7 @@ const textKind = computed(() => {
             :derivations="derivations"
             :node="node"
             menu-item
+            :include-primary="minimal"
             :separating="Boolean(separation.activeRunId.value)"
             :separation-busy="separation.isBusy.value"
             :separation-unavailable-reason="unavailableReason"

@@ -14,5 +14,7 @@
   },
   "credentials": {
     "saveFailed": "连接已保存，但密钥保存失败。请重试"
-  }
+  },
+  "connectOllama": "连接本地 Ollama（{count}）",
+  "ollamaConnected": "已连接本地 Ollama（{count} 个模型）"
 }

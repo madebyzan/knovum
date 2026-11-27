@@ -9,6 +9,16 @@ import type { SpaceSessionContext } from "../../workspace/space-session-context"
 import { openSpace } from "../../workspace/workbench-navigation-actions";
 import type { SpaceState } from "../session-state";
 
+export async function importSampleCanvas(
+  state: SpaceState,
+  importJsonCanvas: (request: CanvasJsonImportRequest) => Promise<CanvasImportReceipt>,
+) {
+  const sourcePath = await invokeCommand<string>("plugin:spaces|sample_space_source", {
+    locale: i18n.global.locale.value,
+  });
+  await importJsonCanvas({ sourcePath, baseRevision: state.editSnapshot.value.editRevision });
+}
+
 /**
  * Gives a new library a worked example to explore instead of an empty canvas. It is an ordinary
  * Space built by the ordinary import, so it behaves like any other and is deleted like any other.
@@ -20,8 +30,5 @@ export async function seedSampleSpace(
 ) {
   const space = await createAndTrackSpace(context, i18n.global.t("spaces.space.sampleTitle"), "space");
   await openSpace(context, space.id);
-  const sourcePath = await invokeCommand<string>("plugin:spaces|sample_space_source", {
-    locale: i18n.global.locale.value,
-  });
-  await importJsonCanvas({ sourcePath, baseRevision: state.editSnapshot.value.editRevision });
+  await importSampleCanvas(state, importJsonCanvas);
 }

@@ -6,7 +6,7 @@
   },
   "nodeActions": {
     "label": "노드 작업",
-    "openOriginal": "원본 열기",
+    "openOriginal": "링크 열기",
     "goToTarget": "대상으로 이동",
     "export": "내보내기"
   },

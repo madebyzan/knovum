@@ -67,9 +67,49 @@ pub(crate) async fn install<R: Runtime>(
         return Err(RESOURCE_PREPARATION_CANCELLED.into());
     }
     progress(update(snapshot, ResourcePreparationStage::Installing));
-    filesystem::remove_owned_directory(&target, parent)?;
-    fs::rename(&staging, &target).map_err(|error| error.to_string())?;
+    let install_staging = staging.clone();
+    let install_target = target.clone();
+    let install_parent = parent.to_path_buf();
+    let backup_name = format!(".{}.previous", snapshot.digest());
+    crate::foundation::blocking::run(move || {
+        swap_directory(
+            &install_staging,
+            &install_target,
+            &install_parent,
+            &backup_name,
+        )
+    })
+    .await?;
     progress(update(snapshot, ResourcePreparationStage::Ready));
+    Ok(())
+}
+
+/// Three-step directory swap: move any existing installation aside, move the verified staging
+/// directory into place, then remove the superseded copy. If installing the new directory fails,
+/// restore the previous installation so a locked file on Windows never leaves both missing.
+fn swap_directory(
+    staging: &Path,
+    target: &Path,
+    parent: &Path,
+    backup_name: &str,
+) -> Result<(), String> {
+    let backup = parent.join(backup_name);
+    filesystem::remove_owned_directory(&backup, parent)?;
+    let moved_previous = if fs::symlink_metadata(target).is_ok() {
+        fs::rename(target, &backup).map_err(|error| error.to_string())?;
+        true
+    } else {
+        false
+    };
+    if let Err(error) = fs::rename(staging, target) {
+        if moved_previous {
+            let _ = fs::rename(&backup, target);
+        }
+        return Err(error.to_string());
+    }
+    if moved_previous {
+        let _ = filesystem::remove_owned_directory(&backup, parent);
+    }
     Ok(())
 }
 

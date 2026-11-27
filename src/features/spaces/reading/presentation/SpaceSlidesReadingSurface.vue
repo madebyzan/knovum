@@ -38,13 +38,10 @@ const activeIndex = computed(() => {
   return idx >= 0 ? idx : 0;
 });
 const currentSlide = computed(() => slides.value[activeIndex.value]);
-const currentHasNotes = computed(() => {
-  const slide = currentSlide.value;
-  return Boolean(slide?.images.length && (slide.textBlocks.length || slide.ocrPassages.length));
-});
-const deckHasNotes = computed(() =>
-  slides.value.some((slide) => slide.images.length && (slide.textBlocks.length || slide.ocrPassages.length)),
-);
+const hasNotes = (slide?: (typeof slides.value)[number]) =>
+  Boolean(slide?.images.length && (slide.textBlocks.length || slide.ocrPassages.length));
+const currentHasNotes = computed(() => hasNotes(currentSlide.value));
+const deckHasNotes = computed(() => slides.value.some(hasNotes));
 const layoutOptions = computed(() => [
   { value: "single" as const, title: t("spaces.inspector.reader.singleSlide"), icon: GalleryHorizontalEnd },
   { value: "continuous" as const, title: t("spaces.inspector.reader.continuousSlides"), icon: Rows2 },
@@ -103,7 +100,13 @@ watch(
       class="flex h-8.5 shrink-0 items-center justify-between gap-2 border-b border-stroke-divider/70 bg-surface-canvas px-3 select-none"
     >
       <div class="flex items-center gap-2">
-        <UiSegmentedControl v-if="totalSlides > 1" v-model="layoutMode" :options="layoutOptions" icon-only />
+        <UiSegmentedControl
+          v-if="totalSlides > 1"
+          v-model="layoutMode"
+          :options="layoutOptions"
+          :aria-label="node.data.title"
+          icon-only
+        />
         <span class="truncate text-caption font-medium text-fg-secondary tabular-nums">
           {{ t("spaces.inspector.pdfReader.position", { page: activeIndex + 1, total: totalSlides }) }}
         </span>
@@ -116,9 +119,8 @@ watch(
           tooltip
           :class="showNotes && 'bg-surface-control text-fg-primary'"
           @click="showNotes = !showNotes"
-        >
-          <FileText class="size-3.5" />
-        </UiIconButton>
+          ><FileText class="size-3.5"
+        /></UiIconButton>
         <UiIconButton
           v-if="layoutMode === 'single' && totalSlides > 1"
           :label="t('spaces.inspector.reader.thumbnails')"
@@ -126,27 +128,24 @@ watch(
           tooltip
           :class="showFilmstrip && 'bg-surface-control text-fg-primary'"
           @click="showFilmstrip = !showFilmstrip"
-        >
-          <PanelBottom class="size-3.5" />
-        </UiIconButton>
+          ><PanelBottom class="size-3.5"
+        /></UiIconButton>
         <UiIconButton
           :label="t('spaces.inspector.pdfReader.previousPage')"
           size="sm"
           tooltip
           :disabled="activeIndex <= 0"
           @click="selectIndex(activeIndex - 1)"
-        >
-          <ChevronLeft class="size-3.5" />
-        </UiIconButton>
+          ><ChevronLeft class="size-3.5"
+        /></UiIconButton>
         <UiIconButton
           :label="t('spaces.inspector.pdfReader.nextPage')"
           size="sm"
           tooltip
           :disabled="activeIndex >= totalSlides - 1"
           @click="selectIndex(activeIndex + 1)"
-        >
-          <ChevronRight class="size-3.5" />
-        </UiIconButton>
+          ><ChevronRight class="size-3.5"
+        /></UiIconButton>
       </div>
     </div>
 

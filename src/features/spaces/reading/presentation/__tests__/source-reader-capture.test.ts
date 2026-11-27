@@ -69,8 +69,7 @@ function findTextNode(root: Element, containing: string) {
 }
 
 async function selectPassage(root: Element, needle: string) {
-  await flushPromises();
-  const node = findTextNode(root, needle);
+  const node = await vi.waitFor(() => findTextNode(root, needle));
   const start = node.textContent!.indexOf(needle);
   const range = document.createRange();
   range.setStart(node, start);

@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { computed, inject, provide } from "vue";
+import { computed, defineAsyncComponent, inject, provide } from "vue";
 
 import { overlayScopeVisibleKey } from "../../../../shared/contracts/overlay-scope-visibility";
 import { pdfDocumentPath } from "../../assets/file-presentation";
-import SpacePdfReader from "../../assets/pdf-reader/SpacePdfReader.vue";
 import type { KnowledgeLocator } from "../../knowledge/model/schema/chunk";
 import type { KnowledgeChunk } from "../../knowledge/model/schema/persisted-chunk";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
@@ -19,16 +18,22 @@ import type {
 } from "../../model/nodes/node-payload";
 import type { SourceReaderKind } from "../source-reader-target";
 import { isSpreadsheetPayload } from "../spreadsheet-sheet-projection";
-import SpaceCodeReadingSurface from "./SpaceCodeReadingSurface.vue";
-import SpaceDocumentReadingSurface from "./SpaceDocumentReadingSurface.vue";
-import SpaceImageReadingSurface from "./SpaceImageReadingSurface.vue";
-import SpaceMarkdownReadingSurface from "./SpaceMarkdownReadingSurface.vue";
-import SpaceSlidesReadingSurface from "./SpaceSlidesReadingSurface.vue";
-import SpaceSpreadsheetReadingSurface from "./SpaceSpreadsheetReadingSurface.vue";
-import SpaceTranscriptReadingSurface from "./SpaceTranscriptReadingSurface.vue";
-import SpaceWebsiteReadingSurface from "./SpaceWebsiteReadingSurface.vue";
-import SpaceWordReadingSurface from "./SpaceWordReadingSurface.vue";
 import type { SurfaceSelectionState } from "./use-reader-selection";
+
+const SpacePdfReader = defineAsyncComponent(() => import("../../assets/pdf-reader/SpacePdfReader.vue"));
+const SpaceCodeReadingSurface = defineAsyncComponent(() => import("./SpaceCodeReadingSurface.vue"));
+const SpaceDocumentReadingSurface = defineAsyncComponent(() => import("./SpaceDocumentReadingSurface.vue"));
+const SpaceImageReadingSurface = defineAsyncComponent(() => import("./SpaceImageReadingSurface.vue"));
+const SpaceMarkdownReadingSurface = defineAsyncComponent(() => import("./SpaceMarkdownReadingSurface.vue"));
+const SpaceSlidesReadingSurface = defineAsyncComponent(() => import("./SpaceSlidesReadingSurface.vue"));
+const SpaceSpreadsheetReadingSurface = defineAsyncComponent(
+  () => import("./SpaceSpreadsheetReadingSurface.vue"),
+);
+const SpaceTranscriptReadingSurface = defineAsyncComponent(
+  () => import("./SpaceTranscriptReadingSurface.vue"),
+);
+const SpaceWebsiteReadingSurface = defineAsyncComponent(() => import("./SpaceWebsiteReadingSurface.vue"));
+const SpaceWordReadingSurface = defineAsyncComponent(() => import("./SpaceWordReadingSurface.vue"));
 
 const props = withDefaults(
   defineProps<{

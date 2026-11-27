@@ -11,7 +11,7 @@
     "refreshFailed": "Web コンテンツの取得に失敗しました"
   },
   "preview": {
-    "quickLook": "クイックルック",
+    "quickLook": "プレビュー",
     "system": "開く",
     "show": "プレビュー ビュー",
     "instantUnavailable": {

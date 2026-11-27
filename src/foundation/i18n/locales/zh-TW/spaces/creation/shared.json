@@ -8,6 +8,7 @@
     "changed": "創建此內容後，部分來源已變更。"
   },
   "citations": "引用 · {count}",
+  "createAction": "創作",
   "createFromSelection": "用選取項目建立",
   "finishNodeOperation": "請先完成或取消目前節點操作。",
   "tooManySources": "用於建立的資源最多 32 個。",

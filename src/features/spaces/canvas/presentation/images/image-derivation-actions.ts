@@ -1,4 +1,4 @@
-/** Image derivations the node bar offers as a single click, and the action each one names. */
+/** Image derivations the node bar and overflow menu invoke directly, and the action each one names. */
 export const DIRECT_DERIVATIONS = [
   "remove-image-background",
   "split-image-layers",

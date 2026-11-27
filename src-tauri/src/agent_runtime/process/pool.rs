@@ -7,6 +7,7 @@
 //! are reclaimed automatically after [`IDLE_TIMEOUT`] or on application exit.
 
 use std::{
+    collections::HashMap,
     path::{Path, PathBuf},
     sync::{Arc, Mutex, MutexGuard, OnceLock, PoisonError, RwLock},
     time::Duration,
@@ -18,6 +19,7 @@ use tauri::Manager;
 use tokio::sync::Notify;
 
 use super::{Host, Peer, Process};
+use crate::foundation::subprocess::process_tree::KillHandle;
 
 const IDLE_TIMEOUT: Duration = Duration::from_secs(15 * 60);
 
@@ -82,6 +84,8 @@ struct ResidentProcess {
 struct PoolState {
     idle: Option<ResidentProcess>,
     generation: u64,
+    next_lease_id: u64,
+    active_leases: HashMap<u64, KillHandle>,
     preparing: Option<Arc<Notify>>,
     shutting_down: bool,
 }
@@ -128,10 +132,36 @@ fn park_idle(resident: ResidentProcess) -> Option<ResidentProcess> {
 /// Dropping a lease without calling [`Self::release_healthy`] unbinds its host and terminates the
 /// underlying process tree, guaranteeing unhealthy processes are never recycled.
 pub(crate) struct LeasedProcess {
+    lease_id: Option<u64>,
     resident: Option<ResidentProcess>,
 }
 
 impl LeasedProcess {
+    fn new(resident: ResidentProcess) -> Self {
+        let handle = resident.process.kill_handle();
+        let lease_id = handle.map(|handle| {
+            let mut state = pool_state();
+            if state.shutting_down {
+                handle.terminate();
+                return 0;
+            }
+            state.next_lease_id = state.next_lease_id.wrapping_add(1).max(1);
+            let id = state.next_lease_id;
+            state.active_leases.insert(id, handle);
+            id
+        });
+        Self {
+            lease_id: lease_id.filter(|id| *id != 0),
+            resident: Some(resident),
+        }
+    }
+
+    fn unregister_lease(&mut self) {
+        if let Some(id) = self.lease_id.take() {
+            pool_state().active_leases.remove(&id);
+        }
+    }
+
     pub(crate) fn peer(&self) -> &Peer {
         &self
             .resident
@@ -143,6 +173,7 @@ impl LeasedProcess {
 
     /// Returns a healthy, cleanly completed process to the idle pool for reuse on the next turn.
     pub(crate) async fn release_healthy(mut self) {
+        self.unregister_lease();
         let Some(mut resident) = self.resident.take() else {
             return;
         };
@@ -158,6 +189,7 @@ impl LeasedProcess {
 
     /// Unbinds the host and terminates the process tree immediately.
     pub(crate) async fn discard(mut self) {
+        self.unregister_lease();
         if let Some(mut resident) = self.resident.take() {
             resident.slot.unbind();
             resident.process.terminate().await;
@@ -167,6 +199,7 @@ impl LeasedProcess {
 
 impl Drop for LeasedProcess {
     fn drop(&mut self) {
+        self.unregister_lease();
         if let Some(resident) = self.resident.take() {
             resident.slot.unbind();
             drop(resident.process);
@@ -208,9 +241,7 @@ pub(crate) async fn acquire(
     if let Some(mut resident) = cached {
         if resident.checkpoint_path == checkpoint_path && resident.process.is_alive() {
             resident.slot.bind(host);
-            return Ok(LeasedProcess {
-                resident: Some(resident),
-            });
+            return Ok(LeasedProcess::new(resident));
         }
         resident.slot.unbind();
         resident.process.terminate().await;
@@ -219,13 +250,11 @@ pub(crate) async fn acquire(
     let slot = Arc::new(HostSlot::new());
     slot.bind(host);
     let process = Process::start(app, checkpoint_path, slot.clone()).await?;
-    Ok(LeasedProcess {
-        resident: Some(ResidentProcess {
-            checkpoint_path: checkpoint_path.to_path_buf(),
-            slot,
-            process,
-        }),
-    })
+    Ok(LeasedProcess::new(ResidentProcess {
+        checkpoint_path: checkpoint_path.to_path_buf(),
+        slot,
+        process,
+    }))
 }
 
 /// Lazily prepares one idle built-in Agent process in the background when none is cached.
@@ -288,17 +317,25 @@ pub(crate) fn prepare(app: tauri::AppHandle) {
     });
 }
 
-/// Marks the pool as shutting down and terminates any idle built-in Agent runtime process when
-/// the application exits.
+/// Marks the pool as shutting down and terminates any idle or actively leased built-in Agent
+/// runtime processes when the application exits.
 pub(crate) async fn shutdown() {
-    let (resident, notify) = {
+    let (resident, notify, active_handles) = {
         let mut state = pool_state();
         state.shutting_down = true;
         state.generation = state.generation.wrapping_add(1);
-        (state.idle.take(), state.preparing.take())
+        let handles: Vec<KillHandle> = state
+            .active_leases
+            .drain()
+            .map(|(_, handle)| handle)
+            .collect();
+        (state.idle.take(), state.preparing.take(), handles)
     };
     if let Some(notify) = notify {
         notify.notify_waiters();
+    }
+    for handle in active_handles {
+        handle.terminate();
     }
     if let Some(mut resident) = resident {
         resident.slot.unbind();

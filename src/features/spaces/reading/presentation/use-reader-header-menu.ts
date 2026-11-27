@@ -1,16 +1,14 @@
-import { ArrowUpRight, Eye, LocateFixed, MousePointerClick, Pencil } from "@lucide/vue";
-import { openUrl } from "@tauri-apps/plugin-opener";
+import { ArrowUpRight, LocateFixed, MousePointerClick, Pencil } from "@lucide/vue";
 import { computed, toValue, type MaybeRefOrGetter } from "vue";
 import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { openSpaceAsset, openSpaceAssetAtLocation } from "../../assets/asset-operations";
-import { hasSystemQuickLook, previewSpaceAsset } from "../../assets/asset-preview";
 import { selectAndRevealSpaceNode } from "../../canvas/selection-actions";
 import type { KnowledgeLocator } from "../../knowledge/model/schema/chunk";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
-import { isSpaceManagedAssetPayload, isSpaceWebsitePayload } from "../../model/nodes/capabilities";
+import { isSpaceManagedAssetPayload } from "../../model/nodes/capabilities";
 import { useSpaceStore } from "../../session/space-store";
 
 interface ReaderHeaderMenuOptions {
@@ -20,35 +18,21 @@ interface ReaderHeaderMenuOptions {
   onToggleFollow: () => void;
 }
 
-/** Builds the Source Reader overflow menu items and handles external open, Quick Look, and edit routing. */
+/** Builds the Source Reader overflow menu items and handles external app open and edit routing. */
 export function useReaderHeaderMenu(options: ReaderHeaderMenuOptions) {
   const { t } = useI18n();
   const store = useSpaceStore();
 
   async function openExternally() {
     const payload = toValue(options.node).data;
+    if (!isSpaceManagedAssetPayload(payload)) return;
     try {
-      if (isSpaceWebsitePayload(payload) && payload.url) {
-        await openUrl(payload.url);
-        return;
-      }
-      if (!isSpaceManagedAssetPayload(payload)) return;
       const loc = toValue(options.locator);
       const supportsJump =
         loc &&
         (loc.location.kind === "word" || loc.location.kind === "slides" || loc.location.kind === "sheet");
       if (supportsJump) await openSpaceAssetAtLocation(payload.assetPath, loc);
       else await openSpaceAsset(payload.assetPath);
-    } catch (error) {
-      toast.error(getErrorMessage(error));
-    }
-  }
-
-  async function openQuickLook() {
-    const payload = toValue(options.node).data;
-    if (!isSpaceManagedAssetPayload(payload)) return;
-    try {
-      await previewSpaceAsset(payload.assetPath);
     } catch (error) {
       toast.error(getErrorMessage(error));
     }
@@ -69,7 +53,6 @@ export function useReaderHeaderMenu(options: ReaderHeaderMenuOptions) {
     const payload = node.data;
     const isAsset = isSpaceManagedAssetPayload(payload);
     const isEditableDoc = payload.kind === "note" || payload.kind === "markdown";
-    const canOpenExternal = isAsset || (isSpaceWebsitePayload(payload) && Boolean(payload.url));
     return [
       {
         id: "follow-selection",
@@ -86,23 +69,11 @@ export function useReaderHeaderMenu(options: ReaderHeaderMenuOptions) {
         onSelect: () => selectAndRevealSpaceNode(node.id),
       },
       ...(isEditableDoc ? [{ id: "edit", label: t("common.edit"), icon: Pencil, onSelect: openEditor }] : []),
-      ...(isAsset && hasSystemQuickLook()
-        ? [
-            {
-              id: "quick-look",
-              label: t("spaces.importExport.preview.quickLook"),
-              icon: Eye,
-              onSelect: () => void openQuickLook(),
-            },
-          ]
-        : []),
-      ...(canOpenExternal
+      ...(isAsset
         ? [
             {
               id: "open-external",
-              label: isSpaceWebsitePayload(payload)
-                ? t("spaces.canvas.nodeActions.openOriginal")
-                : t("spaces.importExport.openExternally"),
+              label: t("spaces.importExport.openExternally"),
               icon: ArrowUpRight,
               onSelect: () => void openExternally(),
             },

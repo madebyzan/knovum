@@ -81,6 +81,7 @@ pub(crate) async fn start(
     let turns = AgentTurns::new(extensions);
     let router = super::transport::router(
         app,
+        port,
         token.clone(),
         Some(space_id.clone()),
         turns.clone(),

@@ -1,13 +1,21 @@
+use std::{collections::BTreeMap, sync::OnceLock};
+
 use lancedb::Connection;
-use std::collections::BTreeMap;
+use sqlx::{FromRow, Sqlite, Transaction};
+use tauri::{AppHandle, Runtime};
+use tokio::sync::{Mutex, MutexGuard};
 
 mod settlement;
 const INVALIDATION_BATCH_SIZE: usize = 128;
-use sqlx::{FromRow, Sqlite, Transaction};
-use tauri::{AppHandle, Runtime};
 
 use super::lancedb_store::{connect_retrieval_db, open_knowledge_table_if_exists};
 use crate::spaces::db;
+
+static LANCE_WRITE_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
+
+pub(super) async fn acquire_lance_write_lock() -> MutexGuard<'static, ()> {
+    LANCE_WRITE_LOCK.get_or_init(|| Mutex::new(())).lock().await
+}
 
 #[derive(FromRow)]
 struct PendingInvalidation {
@@ -75,44 +83,53 @@ pub(super) async fn drain_with_connection(
     index: &Connection,
     pool: &sqlx::SqlitePool,
 ) -> Result<(), String> {
+    drain_scoped(index, pool, None).await
+}
+
+pub(super) async fn drain_space_with_connection(
+    index: &Connection,
+    pool: &sqlx::SqlitePool,
+    space_id: &str,
+) -> Result<(), String> {
+    drain_scoped(index, pool, Some(space_id)).await
+}
+
+async fn drain_scoped(
+    index: &Connection,
+    pool: &sqlx::SqlitePool,
+    space_id: Option<&str>,
+) -> Result<(), String> {
     loop {
-        let mut tx = db::begin_write(pool).await?;
-        let outcome = drain_batch(index, &mut tx, None).await;
-        tx.commit().await.map_err(db::sql_error)?;
-        if outcome? < INVALIDATION_BATCH_SIZE {
+        let count = drain_batch(index, pool, space_id).await?;
+        if count < INVALIDATION_BATCH_SIZE {
             return Ok(());
         }
     }
 }
 
-pub(super) async fn drain_pending(
-    index: &Connection,
-    tx: &mut Transaction<'_, Sqlite>,
-    space_id: Option<&str>,
-) -> Result<(), String> {
-    while drain_batch(index, tx, space_id).await? == INVALIDATION_BATCH_SIZE {}
-    Ok(())
-}
-
+/// Drains one invalidation batch without holding the SQLite write lock across LanceDB I/O:
+/// Holds `LANCE_WRITE_LOCK` across the whole select -> LanceDB delete -> SQLite acknowledge cycle
+/// so concurrent drains or embedding publishes cannot interleave, while keeping every SQLite
+/// transaction short and never holding SQLite during LanceDB I/O.
 async fn drain_batch(
     index: &Connection,
-    tx: &mut Transaction<'_, Sqlite>,
+    pool: &sqlx::SqlitePool,
     space_id: Option<&str>,
 ) -> Result<usize, String> {
+    let _lance_guard = acquire_lance_write_lock().await;
     let pending = sqlx::query_as::<_, PendingInvalidation>(
         "SELECT id,space_id,node_id FROM spaces_retrieval_invalidations \
          WHERE $1 IS NULL OR space_id=$1 ORDER BY node_id IS NOT NULL,id LIMIT $2",
     )
     .bind(space_id)
     .bind(INVALIDATION_BATCH_SIZE as i64)
-    .fetch_all(&mut **tx)
+    .fetch_all(pool)
     .await
     .map_err(db::sql_error)?;
     let count = pending.len();
     if pending.is_empty() {
         return Ok(0);
     }
-    let table = open_knowledge_table_if_exists(index).await;
     let mut invalidations_by_space_id: BTreeMap<String, Vec<PendingInvalidation>> = BTreeMap::new();
     for invalidation in pending {
         invalidations_by_space_id
@@ -120,22 +137,31 @@ async fn drain_batch(
             .or_default()
             .push(invalidation);
     }
-    let mut failures = Vec::new();
+    let mut settled = Vec::new();
+    let mut failed = Vec::new();
+    let table = open_knowledge_table_if_exists(index).await;
     for (space, invalidations) in invalidations_by_space_id {
         let outcome = match &table {
             Ok(table) => settlement::apply(table.as_ref(), &space, &invalidations).await,
             Err(error) => Err(error.clone()),
         };
         match outcome {
-            Ok(()) => settlement::acknowledge(tx, &space, &invalidations).await?,
-            Err(error) => {
-                for invalidation in invalidations {
-                    record_failure(tx, invalidation.id, &error).await?;
-                }
-                failures.push(format!("{space}: {error}"));
-            }
+            Ok(()) => settled.push((space, invalidations)),
+            Err(error) => failed.push((space, invalidations, error)),
         }
     }
+    let mut tx = db::begin_write(pool).await?;
+    for (space, invalidations) in &settled {
+        settlement::acknowledge(&mut tx, space, invalidations).await?;
+    }
+    let mut failures = Vec::new();
+    for (space, invalidations, error) in failed {
+        for invalidation in invalidations {
+            record_failure(&mut tx, invalidation.id, &error).await?;
+        }
+        failures.push(format!("{space}: {error}"));
+    }
+    tx.commit().await.map_err(db::sql_error)?;
     if failures.is_empty() {
         Ok(count)
     } else {

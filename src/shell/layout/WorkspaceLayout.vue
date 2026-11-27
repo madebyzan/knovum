@@ -121,7 +121,7 @@ function schedulePreviewClose() {
 
     <div
       v-if="!sidebarVisible"
-      class="absolute inset-y-0 left-0 z-50 w-3"
+      class="absolute top-0 bottom-14 left-0 z-40 w-1.5"
       @pointerenter="openPreview"
       @pointermove="openPreview"
       @pointerleave="schedulePreviewClose"

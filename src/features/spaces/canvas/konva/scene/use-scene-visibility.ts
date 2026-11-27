@@ -32,6 +32,14 @@ interface SceneVisibilityOptions {
   size: { width: number; height: number };
 }
 
+function sameSet(left: ReadonlySet<string>, right: ReadonlySet<string>): boolean {
+  if (left.size !== right.size) return false;
+  for (const value of left) {
+    if (!right.has(value)) return false;
+  }
+  return true;
+}
+
 export function useSceneVisibility(options: SceneVisibilityOptions) {
   const culledSectionIds = shallowRef<ReadonlySet<string>>(new Set());
   const culledNodeIds = shallowRef<ReadonlySet<string>>(new Set());
@@ -84,17 +92,19 @@ export function useSceneVisibility(options: SceneVisibilityOptions) {
   );
 
   let sampled = options.camera.get();
+  let disposed = false;
 
   function updateVisibility() {
+    if (disposed) return;
     const camera = options.camera.get();
     const travel = { x: camera.x - sampled.x, y: camera.y - sampled.y };
     sampled = camera;
     const visible = visibleSceneIds(visibilityIndex.value, camera, options.size, sceneOverscan(travel));
-    culledNodeIds.value = visible.nodes;
+    if (!sameSet(culledNodeIds.value, visible.nodes)) culledNodeIds.value = visible.nodes;
     const legible = showsNodeContent(camera.zoom) ? visible.nodes : new Set<string>();
-    if (legible.size || legibleNodeIds.value.size) legibleNodeIds.value = legible;
-    culledSectionIds.value = visible.sections;
-    culledRelationIds.value = visible.relations;
+    if (!sameSet(legibleNodeIds.value, legible)) legibleNodeIds.value = legible;
+    if (!sameSet(culledSectionIds.value, visible.sections)) culledSectionIds.value = visible.sections;
+    if (!sameSet(culledRelationIds.value, visible.relations)) culledRelationIds.value = visible.relations;
   }
 
   updateVisibility();
@@ -104,7 +114,11 @@ export function useSceneVisibility(options: SceneVisibilityOptions) {
     [options.scene, options.sections, () => options.size.width, () => options.size.height],
     scheduleVisibilityUpdate,
   );
-  onScopeDispose(options.camera.observeFrames(scheduleVisibilityUpdate));
+  const stopObserving = options.camera.observeFrames(scheduleVisibilityUpdate);
+  onScopeDispose(() => {
+    disposed = true;
+    stopObserving();
+  });
   const visibleSections = computed(() =>
     options.sections.value.filter(
       ({ section, temporarilyExpanded }) =>

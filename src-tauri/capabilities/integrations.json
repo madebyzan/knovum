@@ -2,6 +2,6 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "integrations",
   "description": "Clipboard permissions shared across feature integrations; AI networking stays behind Rust commands.",
-  "windows": ["main"],
+  "webviews": ["main"],
   "permissions": ["clipboard:allow-write-text", "clipboard:allow-read-text"]
 }

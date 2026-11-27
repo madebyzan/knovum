@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LoaderCircle, Square, WandSparkles } from "@lucide/vue";
+import { LoaderCircle, Square } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -59,8 +59,7 @@ const generationLabelKey = computed(() => {
         <LoaderCircle
           v-if="isSaving || isSubmitting"
           class="size-3.5 animate-spin motion-reduce:animate-none"
-        />
-        <WandSparkles v-else class="size-3.5" />{{
+        />{{
           t(
             isSaving
               ? "spaces.speech.project.saving"

@@ -11,6 +11,7 @@ import type { SpaceImagePayload } from "../../model/nodes/node-payload";
 export function selectedImageIntents() {
   return decideCreationIntents({
     selectionCount: 1,
+    semanticCount: 1,
     sourceCount: 1,
     imageCount: 1,
     canRemoveBackground: false,

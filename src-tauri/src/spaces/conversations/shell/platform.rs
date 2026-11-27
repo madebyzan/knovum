@@ -5,7 +5,10 @@ use std::{ffi::OsString, path::Path, process::Stdio, time::Duration};
 
 use tokio::process::Command;
 
-use super::output::{self, Exit, Finished};
+use super::{
+    output::{self, Exit, Finished},
+    SandboxBoundaries,
+};
 use crate::foundation::subprocess::process_tree::ProcessTree;
 
 #[cfg(target_os = "macos")]
@@ -63,11 +66,14 @@ pub(super) const INHERITED: &[&str] = &[
 /// ends with it — a background process too, which would otherwise hold the output open.
 pub(super) async fn run(
     workspace: &Path,
+    boundaries: &SandboxBoundaries,
     command_line: &str,
     timeout: Duration,
 ) -> Result<Finished, String> {
-    std::fs::create_dir_all(workspace).map_err(|error| error.to_string())?;
-    let mut command = shell(workspace, command_line)?;
+    tokio::fs::create_dir_all(workspace)
+        .await
+        .map_err(|error| error.to_string())?;
+    let mut command = shell(workspace, boundaries, command_line)?;
     command
         .current_dir(workspace)
         .stdin(Stdio::null())
@@ -121,13 +127,75 @@ async fn environment() -> Result<Vec<(OsString, OsString)>, String> {
         .collect())
 }
 
-/// Reads and runs anything, writes only the working directory, the temporary directories and the
-/// terminal devices, and reaches no network. Of the rules that match, the last one decides.
+/// Sensitive user paths denied to sandboxed commands on macOS so indirect prompt injection
+/// cannot read SSH/cloud/keychain credentials or Knovum's own databases and other Spaces.
 #[cfg(target_os = "macos")]
-const SEATBELT_PROFILE: &str = r##"(version 1)
+const SENSITIVE_HOME_SUBPATHS: &[&str] = &[
+    ".ssh",
+    ".aws",
+    ".gnupg",
+    ".kube",
+    ".docker",
+    "Library/Keychains",
+    "Library/Cookies",
+];
+
+#[cfg(target_os = "macos")]
+const SENSITIVE_HOME_LITERALS: &[&str] = &[".npmrc", ".netrc", ".git-credentials", ".pypirc"];
+
+/// Reads system binaries/libraries and the working directory, denies Knovum's internal
+/// config/data directories (outside the working directory) and sensitive credential paths,
+/// writes only the working directory, temporary directories and terminal devices, and reaches no
+/// network. Of the rules that match, the last one decides.
+#[cfg(target_os = "macos")]
+fn build_seatbelt_profile(boundaries: &SandboxBoundaries) -> Result<String, String> {
+    let mut full_deny_rules = Vec::new();
+    let mut data_deny_rules = Vec::new();
+    if let Some(dir) = &boundaries.app_config_dir {
+        for resolved in resolve_rule_paths(dir) {
+            full_deny_rules.push(format!("    (subpath \"{}\")", sbpl_escape(&resolved)?));
+        }
+    }
+    if let Some(dir) = &boundaries.app_data_dir {
+        // Conversation workspaces live beneath `app_data_dir`: deny reading data and xattrs
+        // (blocking `secrets.db`, `spaces.db`, and directory listings) while keeping parent
+        // `file-read-metadata` traversable so `getcwd`/`realpath` inside `WORKSPACE` succeed.
+        for resolved in resolve_rule_paths(dir) {
+            data_deny_rules.push(format!("    (subpath \"{}\")", sbpl_escape(&resolved)?));
+        }
+    }
+    if let Some(home) = std::env::var_os("HOME").map(std::path::PathBuf::from) {
+        for rel in SENSITIVE_HOME_SUBPATHS {
+            for resolved in resolve_rule_paths(&home.join(rel)) {
+                full_deny_rules.push(format!("    (subpath \"{}\")", sbpl_escape(&resolved)?));
+            }
+        }
+        for rel in SENSITIVE_HOME_LITERALS {
+            for resolved in resolve_rule_paths(&home.join(rel)) {
+                full_deny_rules.push(format!("    (literal \"{}\")", sbpl_escape(&resolved)?));
+            }
+        }
+    }
+    let mut deny_block = String::new();
+    if !full_deny_rules.is_empty() {
+        deny_block.push_str(&format!(
+            "(deny file-read*\n{}\n)\n",
+            full_deny_rules.join("\n")
+        ));
+    }
+    if !data_deny_rules.is_empty() {
+        deny_block.push_str(&format!(
+            "(deny file-read-data file-read-xattr\n{}\n)\n",
+            data_deny_rules.join("\n")
+        ));
+    }
+    Ok(format!(
+        r##"(version 1)
 (allow default)
 (deny network*)
 (deny file-write*)
+{deny_block}(allow file-read* file-read-data file-read-xattr
+    (subpath (param "WORKSPACE")))
 (allow file-write*
     (subpath (param "WORKSPACE"))
     (subpath (param "TEMPORARY"))
@@ -137,14 +205,54 @@ const SEATBELT_PROFILE: &str = r##"(version 1)
     (literal "/dev/tty")
     (literal "/dev/dtracehelper")
     (regex #"^/dev/fd/[0-9]+$"))
-"##;
+"##
+    ))
+}
 
 #[cfg(target_os = "macos")]
-fn shell(workspace: &Path, command_line: &str) -> Result<Command, String> {
+fn resolve_rule_paths(path: &Path) -> Vec<String> {
+    let mut paths = Vec::new();
+    if let Some(raw) = path.to_str() {
+        paths.push(raw.to_owned());
+    }
+    if let Ok(canonical) = std::fs::canonicalize(path) {
+        if let Some(text) = canonical.to_str() {
+            if !paths.iter().any(|existing| existing == text) {
+                paths.push(text.to_owned());
+            }
+        }
+    } else if let (Some(parent), Some(name)) = (path.parent(), path.file_name()) {
+        if let Ok(canonical_parent) = std::fs::canonicalize(parent) {
+            let joined = canonical_parent.join(name);
+            if let Some(text) = joined.to_str() {
+                if !paths.iter().any(|existing| existing == text) {
+                    paths.push(text.to_owned());
+                }
+            }
+        }
+    }
+    paths
+}
+
+#[cfg(target_os = "macos")]
+fn sbpl_escape(value: &str) -> Result<String, String> {
+    if value.contains(['\0', '\n', '\r']) {
+        return Err("Sandbox path contains an unsupported control character".into());
+    }
+    Ok(value.replace('\\', "\\\\").replace('"', "\\\""))
+}
+
+#[cfg(target_os = "macos")]
+fn shell(
+    workspace: &Path,
+    boundaries: &SandboxBoundaries,
+    command_line: &str,
+) -> Result<Command, String> {
+    let profile = build_seatbelt_profile(boundaries)?;
     let mut command = Command::new("/usr/bin/sandbox-exec");
     command
         .arg("-p")
-        .arg(SEATBELT_PROFILE)
+        .arg(profile)
         .arg("-D")
         .arg(parameter("WORKSPACE", workspace)?)
         .arg("-D")
@@ -165,7 +273,11 @@ fn parameter(name: &str, directory: &Path) -> Result<String, String> {
 /// PowerShell reads the command encoded, so no quoting stands between the Agent's command line and
 /// the shell, and writes UTF-8, so non-ASCII output survives the pipe.
 #[cfg(windows)]
-fn shell(_workspace: &Path, command_line: &str) -> Result<Command, String> {
+fn shell(
+    _workspace: &Path,
+    _boundaries: &SandboxBoundaries,
+    command_line: &str,
+) -> Result<Command, String> {
     use base64::Engine;
 
     let script =
@@ -184,7 +296,11 @@ fn shell(_workspace: &Path, command_line: &str) -> Result<Command, String> {
 }
 
 #[cfg(all(unix, not(target_os = "macos")))]
-fn shell(_workspace: &Path, command_line: &str) -> Result<Command, String> {
+fn shell(
+    _workspace: &Path,
+    _boundaries: &SandboxBoundaries,
+    command_line: &str,
+) -> Result<Command, String> {
     let mut command = Command::new("/bin/sh");
     command.args(["-c", command_line]);
     Ok(command)

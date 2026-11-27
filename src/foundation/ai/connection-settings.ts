@@ -7,6 +7,15 @@ import { mutateAiSettings } from "./settings-mutations";
 
 export type AiConnectionSaveOutcome = { status: "saved" } | { status: "credential-failed"; cause: unknown };
 
+function autoAssignDefaultTarget(connectionId: string, models: readonly AiModelDefinition[]) {
+  const defaults = useAiSettingsStore().settings.defaults;
+  if (!defaults || defaults.defaultTarget !== null) return false;
+  const candidate = models.find((model) => model.capabilities.includes("text-generation"));
+  if (!candidate) return false;
+  defaults.defaultTarget = { type: "model", connectionId, modelId: candidate.id };
+  return true;
+}
+
 async function saveAiConnectionChange(
   connection: AiConnectionSettings,
   secret: string | null | undefined,
@@ -17,11 +26,13 @@ async function saveAiConnectionChange(
   const previous = connections[index];
   if (index >= 0) connections[index] = connection;
   else connections.push(connection);
+  const assignedDefault = autoAssignDefaultTarget(connection.id, connection.models);
   try {
     await store.flush();
   } catch (cause) {
     if (previous) connections[index] = previous;
     else connections.splice(connections.indexOf(connection), 1);
+    if (assignedDefault && store.settings.defaults) store.settings.defaults.defaultTarget = null;
     throw cause;
   }
   try {
@@ -71,16 +82,19 @@ function connectionModels(connectionId: string) {
 }
 
 async function saveAiConnectionModelChange(connectionId: string, model: AiModelDefinition): Promise<void> {
+  const store = useAiSettingsStore();
   const models = connectionModels(connectionId);
   const index = models.findIndex(({ id }) => id === model.id);
   const previous = models[index];
   if (index >= 0) models[index] = model;
   else models.push(model);
+  const assignedDefault = autoAssignDefaultTarget(connectionId, [model]);
   try {
-    await useAiSettingsStore().flush();
+    await store.flush();
   } catch (cause) {
     if (previous) models[index] = previous;
     else models.splice(models.indexOf(model), 1);
+    if (assignedDefault && store.settings.defaults) store.settings.defaults.defaultTarget = null;
     throw cause;
   }
 }

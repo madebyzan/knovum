@@ -33,7 +33,7 @@ const emit = defineEmits<{ update: [value: number] }>();
               : undefined
         "
       >
-        <span class="bg-border-strong absolute top-1/2 left-1/2 h-2 w-px -translate-y-1/2" />
+        <span class="absolute top-1/2 left-1/2 h-2 w-px -translate-y-1/2 bg-stroke-strong" />
       </SliderTrack>
       <SliderThumb
         class="flex size-3.5 items-center justify-center rounded-full border-2 border-stroke-on-image bg-surface-inverse shadow-control outline-none focus-visible:ring-2 focus-visible:ring-stroke-focus"

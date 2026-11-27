@@ -162,7 +162,11 @@ export const SETTINGS_REGISTRY: readonly SettingsDefinition[] = [
     group: "information",
     titleKey: "settings.general.about.title",
     descriptionKey: "settings.general.about.description",
-    searchKeys: ["settings.general.about.description"],
+    searchKeys: [
+      "settings.general.about.description",
+      "settings.general.analytics.title",
+      "settings.general.analytics.enabled",
+    ],
     icon: Info,
   },
 ] as const;

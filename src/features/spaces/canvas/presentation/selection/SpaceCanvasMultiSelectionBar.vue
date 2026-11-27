@@ -3,23 +3,24 @@ import { Group, LayoutGrid, Link2, SquareDashed } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
-import UiKnovumAiIcon from "../../../../../shared/ui/UiKnovumAiIcon.vue";
 import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
 import type {
   CreationIntentDecisions,
   CreationIntentId,
 } from "../../../knowledge-derivations/catalog/creation-intent-definitions";
+import { hasVisibleCreationActions } from "../../../knowledge-derivations/presentation/visible-derivation-actions";
 import SpaceCanvasActionTrigger from "../SpaceCanvasActionTrigger.vue";
 import SpaceCanvasActionToolbar from "./SpaceCanvasActionToolbar.vue";
 import SpaceCanvasAlignmentPalette from "./SpaceCanvasAlignmentPalette.vue";
 import SpaceCanvasNodeAccessActions from "./SpaceCanvasNodeAccessActions.vue";
+import SpaceCanvasSelectionAiActions from "./SpaceCanvasSelectionAiActions.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import SpaceSelectionMoveMenu from "./SpaceSelectionMoveMenu.vue";
 import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 
 /**
- * Several roots at once. Arranging leads, as it is what a multi-selection is mostly for; then the
- * containers the roots can become; knowledge and transfer actions stay as icons.
+ * Several roots at once. Ask & Create lead alongside spatial arrangement and containers; transfer
+ * and overflow actions stay compact at the end.
  */
 const props = defineProps<{
   actions: ReturnType<typeof useCanvasSelectionActions>;
@@ -29,6 +30,15 @@ const props = defineProps<{
 const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
 const state = computed(() => props.actions.state.value);
+const hasCreationActions = computed(() => hasVisibleCreationActions(props.derivations));
+const hasSpatialTools = computed(
+  () =>
+    state.value.arrangement.autoLayout ||
+    state.value.arrangement.align ||
+    state.value.canCreateGroup ||
+    state.value.canCreateSection ||
+    state.value.canConnect,
+);
 const identity = computed(() =>
   [
     state.value.structureNodeIds.length,
@@ -38,6 +48,7 @@ const identity = computed(() =>
     state.value.canCreateSection,
     state.value.canConnect,
     state.value.canAsk,
+    hasCreationActions.value,
   ].join(":"),
 );
 </script>
@@ -49,18 +60,13 @@ const identity = computed(() =>
     :available-width="availableWidth"
     :identity="identity"
   >
-    <SpaceCanvasActionTrigger
-      v-if="state.canAsk"
-      :label="t('spaces.conversation.askSelection')"
-      :icon="UiKnovumAiIcon"
+    <SpaceCanvasSelectionAiActions
+      :can-ask="state.canAsk"
+      :derivations="derivations"
       :compact="compact"
-      class="font-medium text-fg-primary"
-      @invoke="actions.ask"
-    />
-    <UiSeparator
-      v-if="state.canAsk && (state.arrangement.autoLayout || state.arrangement.align)"
-      orientation="vertical"
-      class="mx-0.5 h-4"
+      :separator="hasSpatialTools"
+      @ask="actions.ask"
+      @invoke-derivation="emit('invokeDerivation', $event)"
     />
     <SpaceCanvasActionTrigger
       v-if="state.arrangement.autoLayout"
@@ -106,12 +112,7 @@ const identity = computed(() =>
       :disabled="!actions.editorProtection.canTransfer.value"
       @move="actions.moveToSpace"
     />
-    <SpaceCanvasSelectionMenu
-      :actions="actions"
-      :derivations="derivations"
-      node-bar
-      @invoke-derivation="emit('invokeDerivation', $event)"
-    />
+    <SpaceCanvasSelectionMenu :actions="actions" arrange-on-bar />
     <SpaceCanvasNodeAccessActions
       v-if="actions.exportTarget.value"
       :export-target="actions.exportTarget.value"

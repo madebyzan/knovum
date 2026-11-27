@@ -16,6 +16,7 @@ import { getCanvasEditorSession } from "../editor-session";
 import { useCanvasSelectionProjection } from "../use-canvas-selection-projection";
 import SpaceCanvasMinimap from "./minimap/SpaceCanvasMinimap.vue";
 import { canvasSelectionGap } from "./selection/canvas-selection-gap";
+import { selectedContentNodes } from "./selection/selection-product-state";
 import SpaceCanvasRelationBar from "./selection/SpaceCanvasRelationBar.vue";
 import SpaceCanvasSelectionAnchor from "./selection/SpaceCanvasSelectionAnchor.vue";
 import SpaceCanvasSelectionBar from "./selection/SpaceCanvasSelectionBar.vue";
@@ -47,8 +48,16 @@ const {
   showActions: showSelectionActions,
 } = useSelectionSurfaceState();
 const scenesCollapsed = shallowRef(false);
-const { selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
-const derivations = useSelectionDerivations(selectedNodes);
+const { selection, selectedNodes } = useCanvasSelectionProjection(() => store.nodes);
+const selectedContent = computed(() =>
+  selectedContentNodes(
+    store.nodes,
+    selection.value.nodeIds,
+    selection.value.structureNodeIds,
+    store.editSnapshot,
+  ),
+);
+const derivations = useSelectionDerivations(selectedContent);
 const generators = useCanvasGeneratorStore();
 const emit = defineEmits<{ dismissError: [] }>();
 const CANVAS_CHROME_INSETS = { top: 8, right: 16, bottom: 8, left: 16 } as const;
@@ -58,14 +67,12 @@ const singleCanvasObjectSelected = computed(
     editorSession.selection.value.nodeIds.length + editorSession.selection.value.structureNodeIds.length ===
     1,
 );
-const selectionBarGap = computed(() =>
-  canvasSelectionGap(
-    selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined,
-    store.editSnapshot.structure.some(
-      ({ id, kind }) => kind === "group" && editorSession.selection.value.structureNodeIds.includes(id),
-    ),
-  ),
-);
+const selectionBarGap = computed(() => {
+  const hasGroup = store.editSnapshot.structure.some(
+    ({ id, kind }) => kind === "group" && editorSession.selection.value.structureNodeIds.includes(id),
+  );
+  return canvasSelectionGap(selectedNodes.value.length === 1 ? selectedNodes.value[0] : undefined, hasGroup);
+});
 </script>
 <template>
   <div ref="chromeRoot" class="pointer-events-none absolute inset-0 z-30 overflow-hidden">
@@ -164,10 +171,8 @@ const selectionBarGap = computed(() =>
     <SpaceCanvasFeedback
       :empty="empty"
       :file-hover="fileHover"
-      v-bind="{
-        ...(error ? { error } : {}),
-        ...(fileHoverPosition ? { fileHoverPosition } : {}),
-      }"
+      :error="error"
+      :file-hover-position="fileHoverPosition"
       @dismiss-error="emit('dismissError')"
     />
     <SpaceFind v-model:open="store.findOpen" />

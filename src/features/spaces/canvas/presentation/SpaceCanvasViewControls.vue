@@ -57,7 +57,7 @@ function zoomToSelection() {
         <Minus class="size-3" :stroke-width="1.55" />
       </UiIconButton>
     </ToolbarButton>
-    <div class="bg-border-default h-4 w-px" />
+    <div class="h-4 w-px bg-stroke-default" />
     <UiDropdownMenu side="top" align="start" :side-offset="6">
       <template #trigger>
         <ToolbarButton as-child>
@@ -86,7 +86,7 @@ function zoomToSelection() {
         <UiKbd :shortcut="SPACE_COMMAND_SHORTCUTS.zoomToFit" class="ml-auto" />
       </UiDropdownMenuItem>
     </UiDropdownMenu>
-    <div class="bg-border-default h-4 w-px" />
+    <div class="h-4 w-px bg-stroke-default" />
     <ToolbarButton as-child>
       <UiIconButton
         :label="t('spaces.canvas.zoom.in')"

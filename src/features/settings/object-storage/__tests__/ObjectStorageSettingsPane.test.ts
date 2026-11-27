@@ -8,7 +8,7 @@ const saveObjectStorageSettings = vi.hoisted(() =>
 );
 const loadObjectStorageSettings = vi.hoisted(() => vi.fn<() => Promise<ObjectStorageSettings | null>>());
 const testObjectStorageConnection = vi.hoisted(() => vi.fn<() => Promise<void>>());
-const getSecret = vi.hoisted(() => vi.fn<(key: string) => Promise<string | null>>());
+const isSecretConfigured = vi.hoisted(() => vi.fn<(key: string) => Promise<boolean>>());
 
 vi.mock("../../../../foundation/object-storage/object-storage-settings", () => ({
   OBJECT_STORAGE_ACCESS_KEY_ID: "storage.ak",
@@ -19,7 +19,7 @@ vi.mock("../../../../foundation/object-storage/object-storage-settings", () => (
 }));
 
 vi.mock("../../../../foundation/secrets/secret-store", () => ({
-  getSecret,
+  isSecretConfigured,
   setSecret: vi.fn<(key: string, secret: string) => Promise<void>>(),
   deleteSecret: vi.fn<(key: string) => Promise<void>>(),
 }));
@@ -46,7 +46,7 @@ describe("ObjectStorageSettingsPane", () => {
     loadObjectStorageSettings.mockResolvedValue(null);
     saveObjectStorageSettings.mockResolvedValue(undefined);
     testObjectStorageConnection.mockResolvedValue(undefined);
-    getSecret.mockResolvedValue(null);
+    isSecretConfigured.mockResolvedValue(false);
   });
 
   afterEach(() => {
@@ -112,7 +112,7 @@ describe("ObjectStorageSettingsPane", () => {
       bucket: "my-bucket",
       publicBaseUrl: null,
     });
-    getSecret.mockResolvedValue(null);
+    isSecretConfigured.mockResolvedValue(false);
     mount(ObjectStorageSettingsPane);
     await flushPromises();
 
@@ -120,7 +120,7 @@ describe("ObjectStorageSettingsPane", () => {
   });
 
   it("enables Test connection from live field values without requiring a save", async () => {
-    getSecret.mockResolvedValue("stored-key");
+    isSecretConfigured.mockResolvedValue(true);
     const wrapper = mount(ObjectStorageSettingsPane);
     await flushPromises();
 

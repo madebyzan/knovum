@@ -89,6 +89,7 @@ fn main() {
                     "await_ai_runtime",
                     "cancel_job",
                     "detect_external_agent_installations",
+                    "detect_local_ollama_models",
                     "list_external_agent_descriptors",
                     "list_provider_descriptors",
                     "transform_editor_text_stream",

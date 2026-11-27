@@ -15,7 +15,7 @@
       "type": "group",
       "x": 296,
       "y": 0,
-      "width": 550,
+      "width": 590,
       "height": 388,
       "label": "자료"
     },
@@ -31,39 +31,49 @@
     {
       "id": "whiteboard",
       "type": "file",
-      "x": 546,
+      "x": 566,
       "y": 48,
-      "width": 280,
-      "height": 190,
+      "width": 300,
+      "height": 204,
       "file": "assets/mill-lane-whiteboard.png"
     },
     {
       "id": "thinking",
       "type": "group",
       "x": 296,
-      "y": 424,
-      "width": 550,
-      "height": 236,
-      "label": "나의 생각"
+      "y": 432,
+      "width": 590,
+      "height": 388,
+      "label": "나의 생각 (주장과 근거 예시)"
     },
     {
       "id": "question",
       "type": "text",
       "x": 316,
-      "y": 472,
+      "y": 480,
       "width": 245,
-      "height": 168,
+      "height": 152,
       "text": "질문\nHarbor Street Coffee는 Mill Lane 41번지에 매장을 열어야 할까?\n\n남은 문제: 여름철 수요 감소, 그리고 임대인이 무상 임대 개월 수를 서면으로 확인하는지 여부.",
       "color": "5"
     },
     {
+      "id": "evidence",
+      "type": "text",
+      "x": 316,
+      "y": 652,
+      "width": 245,
+      "height": 148,
+      "text": "핵심 근거\n• 시장 보고서 [p.1]: 하루 190건 예상, 인테리어 비용은 14개월 차에 회수.\n• 화이트보드 및 보고서 [p.3]: 무상 임대 기간은 구두 언급뿐이며 서면 확인 대기 중.",
+      "color": "2"
+    },
+    {
       "id": "draft",
       "type": "text",
-      "x": 581,
-      "y": 472,
+      "x": 621,
+      "y": 480,
       "width": 245,
-      "height": 168,
-      "text": "답변 초안\n무상 임대 기간이 확인되면 연다. 하루 190건 예상 시 인테리어 비용은 14개월 차에 회수된다.\n\n이 내용을 자신의 판단으로 바꿔 보세요.",
+      "height": 320,
+      "text": "근거 기반 답변 초안 (예시)\n조건부 출점 권장: 무상 임대 기간이 서면으로 확인되면 Mill Lane 41번지 출점을 진행한다.\n\n근거:\n1. 하루 190건 기준 인테리어 투자는 14개월 차에 손익분기점에 도달한다 (시장 보고서 p.1).\n2. 여름철 수요 감소와 무상 임대 조건은 계약 전 서면 확정 필요 (화이트보드 및 보고서 p.3).\n\n이 내용을 자신의 판단으로 바꾸거나 오른쪽 대화창에서 AI에게 질문해 보세요.",
       "color": "4"
     }
   ],
@@ -75,14 +85,23 @@
       "toNode": "question",
       "toSide": "top",
       "toEnd": "arrow",
-      "label": "근거"
+      "label": "제기"
     },
     {
-      "id": "whiteboard-question",
+      "id": "whiteboard-evidence",
       "fromNode": "whiteboard",
       "fromSide": "bottom",
-      "toNode": "question",
+      "toNode": "evidence",
       "toSide": "top",
+      "toEnd": "arrow",
+      "label": "뒷받침"
+    },
+    {
+      "id": "evidence-draft",
+      "fromNode": "evidence",
+      "fromSide": "right",
+      "toNode": "draft",
+      "toSide": "left",
       "toEnd": "arrow",
       "label": "근거"
     },

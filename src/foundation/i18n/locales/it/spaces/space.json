@@ -6,13 +6,18 @@
   "inbox": "Posta in arrivo",
   "empty": {
     "title": "Lascia crescere la conoscenza qui",
-    "description": "Raccogli ispirazioni, organizza le fonti e annota i tuoi pensieri.",
-    "newNote": "Nuova nota",
-    "importFiles": "Importa file",
-    "startRecording": "Avvia registrazione",
-    "keyboardHint": "Oppure premi sulla lavagna:",
+    "description": "Trascina file o incolla link — indicizzati in locale per chiedere e creare.",
     "titlePrefix": "Lascia crescere la ",
-    "titleHighlight": "conoscenza"
+    "titleHighlight": "conoscenza",
+    "loadSample": "Carica esempio",
+    "actions": {
+      "importTitle": "Importa fonti",
+      "importDescription": "PDF, immagini, audio e video con OCR e trascrizione locali",
+      "askTitle": "Chiedi a Knovum",
+      "askDescription": "Dialoga con lo spazio e vai subito alle fonti citate",
+      "noteTitle": "Nuova nota",
+      "noteDescription": "Collega idee o genera contenuti dalla tua selezione"
+    }
   },
   "rename": "Rinomina spazio",
   "tabs": {

@@ -8,6 +8,7 @@
     "changed": "Einige Quellen haben sich nach der Erstellung dieses Artikels geändert."
   },
   "citations": "Zitate · {count}",
+  "createAction": "Erstellen",
   "createFromSelection": "Aus Auswahl erstellen",
   "finishNodeOperation": "Beenden oder brechen Sie zuerst den aktuellen Knotenvorgang ab.",
   "tooManySources": "Wähle höchstens 32 Ressourcen zum Erstellen aus.",

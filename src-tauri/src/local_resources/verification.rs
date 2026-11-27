@@ -34,13 +34,23 @@ pub(crate) fn receipt_matches(
     sha256: &str,
     metadata: &fs::Metadata,
 ) -> Result<bool, String> {
-    let bytes = match fs::read(receipt_path(path)) {
+    let receipt_file = receipt_path(path);
+    let bytes = match fs::read(&receipt_file) {
         Ok(bytes) => bytes,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
         Err(error) => return Err(error.to_string()),
     };
-    let receipt: VerificationReceipt =
-        serde_json::from_slice(&bytes).map_err(|error| error.to_string())?;
+    let receipt: VerificationReceipt = match serde_json::from_slice(&bytes) {
+        Ok(receipt) => receipt,
+        Err(error) => {
+            log::warn!(
+                "Removing corrupt verification receipt {}: {error}",
+                receipt_file.display()
+            );
+            let _ = fs::remove_file(&receipt_file);
+            return Ok(false);
+        }
+    };
     Ok(receipt.schema_version == 1
         && receipt.sha256 == sha256
         && receipt.size == metadata.len()
@@ -86,6 +96,7 @@ pub(crate) fn record(path: &Path, sha256: &str) -> Result<(), String> {
     let target = receipt_path(path);
     let temporary = target.with_extension("json.tmp");
     fs::write(&temporary, bytes).map_err(|error| error.to_string())?;
+    #[cfg(windows)]
     if target.exists() {
         fs::remove_file(&target).map_err(|error| error.to_string())?;
     }

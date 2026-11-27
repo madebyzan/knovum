@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { toRef } from "vue";
+
+import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
 import type { ImageExecutionTarget } from "../../../contracts/generated/ImageExecutionTarget";
 import type { ImageEditTool } from "../../../image-editing/image-edit-session-store";
 import SpaceImageDepthAction from "../../../image-editing/presentation/SpaceImageDepthAction.vue";
@@ -8,13 +11,18 @@ import type {
 } from "../../../knowledge-derivations/catalog/creation-intent-definitions";
 import type { SpaceCanvasNode } from "../../../model/nodes/canvas-node";
 import type { SpaceImagePayload } from "../../../model/nodes/node-payload";
+import SpaceCanvasSelectionAiActions from "../selection/SpaceCanvasSelectionAiActions.vue";
 import SpaceCanvasSelectionMenu from "../selection/SpaceCanvasSelectionMenu.vue";
 import type { useCanvasSelectionActions } from "../selection/use-canvas-selection-actions";
+import { useNodePrimaryAction } from "../selection/use-node-primary-action";
+import SpaceCanvasActionTrigger from "../SpaceCanvasActionTrigger.vue";
 import type { ImageActionAvailability } from "./image-action-availability";
+import SpaceCanvasImageAngleTrigger from "./SpaceCanvasImageAngleTrigger.vue";
 import SpaceCanvasImageDerivationActions from "./SpaceCanvasImageDerivationActions.vue";
 import SpaceCanvasImageOverflowActions from "./SpaceCanvasImageOverflowActions.vue";
 import type { DirectImageDerivation } from "./use-image-node-bar-state";
-defineProps<{
+
+const props = defineProps<{
   node: SpaceCanvasNode<SpaceImagePayload>;
   actions: ReturnType<typeof useCanvasSelectionActions>;
   derivations: CreationIntentDecisions;
@@ -33,34 +41,41 @@ const emit = defineEmits<{
   beginComment: [];
   beginRemoval: [];
   beginSelection: [];
+  beginAngle: [];
   runDirect: [actionId: DirectImageDerivation, execution?: ImageExecutionTarget];
 }>();
-/** The decomposition family has its own controls here, so the creation submenu does not repeat it. */
-const FAMILY_DERIVATIONS: readonly CreationIntentId[] = [
-  "remove-image-background",
-  "split-image-layers",
-  "slice-sticker-sheet",
-];
+const { primary } = useNodePrimaryAction(toRef(props, "node"), props.actions);
 </script>
+
 <template>
-  <SpaceCanvasSelectionMenu
-    :actions="actions"
-    :derivations="derivations"
-    node-bar
-    node-tools-visible
-    :exclude-actions="FAMILY_DERIVATIONS"
-    @invoke-derivation="emit('invokeDerivation', $event)"
-  >
+  <SpaceCanvasSelectionMenu :actions="actions" node-tools-visible>
     <template #node-tools>
+      <SpaceCanvasSelectionAiActions
+        v-if="minimal"
+        menu-item
+        :can-ask="actions.state.value.canAsk"
+        :derivations="derivations"
+        @ask="actions.ask"
+        @invoke-derivation="emit('invokeDerivation', $event)"
+      />
+      <SpaceCanvasActionTrigger
+        v-if="minimal && primary"
+        :label="primary.label"
+        :icon="primary.icon"
+        menu-item
+        @invoke="primary.run"
+      />
       <SpaceCanvasImageOverflowActions
-        v-if="!node.data.imageDepth && minimal"
+        v-if="!node.data.imageDepth"
         :dimensions-ready="dimensionsReady"
+        :include-primary="minimal"
         @begin-tool="emit('beginTool', $event)"
         @begin-comment="emit('beginComment')"
       />
+      <UiSeparator v-if="!node.data.imageDepth" class="my-1" />
       <SpaceCanvasImageDerivationActions
-        v-if="minimal"
         menu-item
+        :include-primary="minimal"
         :availability-by-derivation="availabilityByDerivation"
         :reason-by-derivation="reasonByDerivation"
         :removal-availability="removalAvailability"
@@ -71,6 +86,7 @@ const FAMILY_DERIVATIONS: readonly CreationIntentId[] = [
         @begin-removal="emit('beginRemoval')"
         @begin-selection="emit('beginSelection')"
       />
+      <SpaceCanvasImageAngleTrigger menu-item @begin="emit('beginAngle')" />
       <SpaceImageDepthAction :node="node" />
     </template>
   </SpaceCanvasSelectionMenu>

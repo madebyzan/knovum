@@ -14,5 +14,7 @@
   },
   "credentials": {
     "saveFailed": "Connexion enregistrée, mais la clé n'a pas pu être enregistrée. Essayer à nouveau"
-  }
+  },
+  "connectOllama": "Connecter Ollama ({count})",
+  "ollamaConnected": "Ollama local connecté ({count} modèles)"
 }

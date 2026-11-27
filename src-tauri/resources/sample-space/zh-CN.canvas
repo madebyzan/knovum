@@ -7,7 +7,7 @@
       "y": 0,
       "width": 260,
       "height": 380,
-      "text": "从这里开始\n这个 Space 是一个小例子：一家咖啡店该不该开第二家分店？里面的内容都是虚构的，随时可以删除。\n\n1. 选中市场简报，点击“打开 PDF”，它会直接在 Knovum 里打开。\n\n2. 简报第 3 页和白板照片都只是图片。Knovum 会在这台电脑上读出其中的文字：选中后查看“识别出的文字”。首次运行会下载一个小模型。\n\n3. 在设置里连接模型，然后提问：“免租期有多长？这家店什么时候能回本？”每个回答都会注明出处，点击引用即可跳到对应页面。",
+      "text": "从这里开始\n这个 Space 是一个小例子：一家咖啡店该不该开第二家分店？里面的内容都是虚构的，随时可以删除。\n\n1. 选中市场简报，点击“打开 PDF”，即可在 Knovum 内分屏对照阅读。\n\n2. 简报第 3 页和白板照片都只是图片。Knovum 会在本机离线识别其中的文字：选中后查看“识别出的文字”（首次运行会自动下载小模型）。\n\n3. 直接在右侧对话栏提问（如尚未配置模型，可先在设置中连接 API 或本机桌面 Agent）：“免租期有多长？这家店什么时候能回本？”每个回答都会附带出处，点击引用即可直达原文页面。",
       "color": "3"
     },
     {
@@ -15,7 +15,7 @@
       "type": "group",
       "x": 296,
       "y": 0,
-      "width": 550,
+      "width": 590,
       "height": 388,
       "label": "资料"
     },
@@ -31,39 +31,49 @@
     {
       "id": "whiteboard",
       "type": "file",
-      "x": 546,
+      "x": 566,
       "y": 48,
-      "width": 280,
-      "height": 190,
+      "width": 300,
+      "height": 204,
       "file": "assets/mill-lane-whiteboard.png"
     },
     {
       "id": "thinking",
       "type": "group",
       "x": 296,
-      "y": 424,
-      "width": 550,
-      "height": 236,
-      "label": "你的思考"
+      "y": 432,
+      "width": 590,
+      "height": 388,
+      "label": "你的思考（论点与证据示范）"
     },
     {
       "id": "question",
       "type": "text",
       "x": 316,
-      "y": 472,
+      "y": 480,
       "width": 245,
-      "height": 168,
-      "text": "问题\nHarbor Street Coffee 该不该在 Mill Lane 41 号开店？\n\n待确认：暑期客流下滑如何应对，房东是否书面确认免租月份。",
+      "height": 152,
+      "text": "核心问题\nHarbor Street Coffee 该不该在 Mill Lane 41 号开店？\n\n待确认：暑期客流下滑如何应对，房东是否书面确认免租月份。",
       "color": "5"
+    },
+    {
+      "id": "evidence",
+      "type": "text",
+      "x": 316,
+      "y": 652,
+      "width": 245,
+      "height": 148,
+      "text": "关键证据摘录\n• 市场简报 [p.1]：日均预计 190 单，装修回本周期 14 个月。\n• 白板照片 / 简报 [p.3]：房东口头提及免租期，但尚未书面签字确认。",
+      "color": "2"
     },
     {
       "id": "draft",
       "type": "text",
-      "x": 581,
-      "y": 472,
+      "x": 621,
+      "y": 480,
       "width": 245,
-      "height": 168,
-      "text": "回答草稿\n如果免租期得到确认，就开。按预计每天 190 单，装修投入在第 14 个月收回。\n\n把这里换成你自己的判断。",
+      "height": 320,
+      "text": "带出处结论草稿（示范）\n建议有条件开店：若免租期获得书面确认，则推进 Mill Lane 41 号选址。\n\n依据：\n1. 按日均 190 单测算，装修投入预计在第 14 个月收回（见市场简报 p.1）。\n2. 暑期淡季波动与免租条款需在签约前闭环（见白板照片与简报 p.3）。\n\n你可以把这里换成自己的判断，或在右侧直接向 AI 追问。",
       "color": "4"
     }
   ],
@@ -75,16 +85,25 @@
       "toNode": "question",
       "toSide": "top",
       "toEnd": "arrow",
-      "label": "支撑"
+      "label": "提出"
     },
     {
-      "id": "whiteboard-question",
+      "id": "whiteboard-evidence",
       "fromNode": "whiteboard",
       "fromSide": "bottom",
-      "toNode": "question",
+      "toNode": "evidence",
       "toSide": "top",
       "toEnd": "arrow",
       "label": "支撑"
+    },
+    {
+      "id": "evidence-draft",
+      "fromNode": "evidence",
+      "fromSide": "right",
+      "toNode": "draft",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "佐证"
     },
     {
       "id": "question-draft",

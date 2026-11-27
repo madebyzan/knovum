@@ -8,9 +8,9 @@ import SpaceEmptyState from "../../workspace/presentation/SpaceEmptyState.vue";
 
 defineProps<{
   empty: boolean;
-  error?: string;
+  error?: string | undefined;
   fileHover: boolean;
-  fileHoverPosition?: { x: number; y: number };
+  fileHoverPosition?: { x: number; y: number } | undefined;
 }>();
 const emit = defineEmits<{ dismissError: [] }>();
 const { t } = useI18n();
@@ -32,7 +32,7 @@ const { t } = useI18n();
   </div>
   <div
     v-if="error"
-    class="pointer-events-auto absolute top-4 left-1/2 flex max-w-sm -translate-x-1/2 items-center gap-2 rounded-md border border-stroke-default bg-surface-overlay py-1 pr-0.5 pl-2.5 text-caption text-fg-secondary"
+    class="pointer-events-auto absolute top-16 left-1/2 z-40 flex max-w-sm -translate-x-1/2 items-center gap-2 rounded-md border border-stroke-default bg-surface-overlay py-1 pr-0.5 pl-2.5 text-caption text-fg-secondary shadow-popover"
     role="alert"
     aria-atomic="true"
   >

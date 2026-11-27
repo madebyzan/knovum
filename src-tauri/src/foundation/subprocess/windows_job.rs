@@ -44,6 +44,13 @@ impl WindowsJob {
             .map_err(|error| format!("worker_crashed: failed to contain worker process: {error}"))
     }
 
+    pub(super) fn assign_std(&self, child: &std::process::Child) -> Result<(), String> {
+        use std::os::windows::io::AsRawHandle;
+        let process = child.as_raw_handle();
+        unsafe { AssignProcessToJobObject(self.0, HANDLE(process)) }
+            .map_err(|error| format!("subprocess: failed to contain child process: {error}"))
+    }
+
     pub(crate) fn terminate(&self) {
         let _ = unsafe { TerminateJobObject(self.0, 1) };
     }

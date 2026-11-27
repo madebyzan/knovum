@@ -6,13 +6,18 @@
   "inbox": "受信箱",
   "empty": {
     "title": "知識を、ここで育てる",
-    "description": "ひらめきを集め、資料を整理し、思考を記録して、あなただけの知識空間を築きましょう。",
-    "newNote": "ノート作成",
-    "importFiles": "ファイルを取り込む",
-    "startRecording": "録音を開始",
-    "keyboardHint": "キャンバス上で直接キーを押すこともできます:",
+    "description": "ファイルやリンクを置くだけでローカル解析し、質問や作成へ。",
     "titlePrefix": "知識を、ここで",
-    "titleHighlight": "育てる"
+    "titleHighlight": "育てる",
+    "loadSample": "サンプルを読み込む",
+    "actions": {
+      "importTitle": "資料を読み込む",
+      "importDescription": "PDF・画像・音声動画をローカルで自動OCR・文字起こし",
+      "askTitle": "Knovumに質問",
+      "askDescription": "スペース内の資料をもとに回答し、出典へ直接移動",
+      "noteTitle": "新規メモ",
+      "noteDescription": "考えを整理して線でつなぎ、選択内容からAI作成"
+    }
   },
   "rename": "スペースの名前を変更",
   "tabs": {

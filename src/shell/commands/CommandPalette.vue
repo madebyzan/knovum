@@ -19,6 +19,7 @@ import { useI18n } from "vue-i18n";
 import { runAppCommand } from "../../foundation/commands/run-app-command";
 import { canRunAction } from "../../shared/contracts/action-availability";
 import type { AppCommand } from "../../shared/contracts/app-command";
+import { fuzzySearchThreshold } from "../../shared/contracts/fuzzy-search-threshold";
 import UiKbd from "../../shared/ui/UiKbd.vue";
 import UiTooltip from "../../shared/ui/UiTooltip.vue";
 import { COMMAND_UNAVAILABLE_LABEL_KEYS } from "./command-unavailable-labels";
@@ -43,7 +44,7 @@ const filteredCommands = computed(() => {
   if (!needle) return visible;
   return search(needle, visible, {
     keySelector: (cmd) => `${cmd.title} ${cmd.description ?? ""}`,
-    threshold: 0.6,
+    threshold: fuzzySearchThreshold(needle, 0.6),
   });
 });
 

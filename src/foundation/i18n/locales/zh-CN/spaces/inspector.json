@@ -49,7 +49,7 @@
   "reader": {
     "read": "阅读",
     "readerMode": "阅读模式",
-    "liveWeb": "内置网页",
+    "liveWeb": "原始网页",
     "decreaseFontSize": "减小字号",
     "increaseFontSize": "增大字号",
     "searchPlaceholder": "在文档中查找…",

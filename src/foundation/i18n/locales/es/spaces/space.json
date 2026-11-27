@@ -6,13 +6,18 @@
   "inbox": "Bandeja de entrada",
   "empty": {
     "title": "Donde el conocimiento florece",
-    "description": "Reúne inspiración, organiza fuentes y anota ideas para construir tu espacio de conocimiento.",
-    "newNote": "Nueva nota",
-    "importFiles": "Importar archivos",
-    "startRecording": "Iniciar grabación",
-    "keyboardHint": "O pulse en el lienzo:",
+    "description": "Suelta archivos o pega enlaces — indexados en local para consultar y crear.",
     "titlePrefix": "Donde el conocimiento ",
-    "titleHighlight": "florece"
+    "titleHighlight": "florece",
+    "loadSample": "Cargar lienzo de ejemplo",
+    "actions": {
+      "importTitle": "Importar fuentes",
+      "importDescription": "PDF, imágenes, audio y vídeo con OCR y transcripción locales",
+      "askTitle": "Preguntar a Knovum",
+      "askDescription": "Conversa con este espacio y salta a cada fuente citada",
+      "noteTitle": "Nueva nota",
+      "noteDescription": "Conecta ideas o crea documentos y medios desde tu selección"
+    }
   },
   "rename": "Cambiar nombre del espacio",
   "tabs": {

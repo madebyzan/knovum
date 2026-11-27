@@ -7,7 +7,7 @@
       "y": 0,
       "width": 260,
       "height": 380,
-      "text": "Start here\nThis Space is a small worked example: should a café open a second shop? Everything in it is invented, and you can delete it at any time.\n\n1. Select the market brief and choose “Open PDF”. It opens inside Knovum.\n\n2. Page 3 of the brief and the whiteboard photo are only pixels. Knovum reads them on this computer: select one and look for “Recognized text”. The first run downloads a small model.\n\n3. Connect a model in Settings and ask: “How long is the rent-free period, and when does the shop break even?” Each answer cites its source, and a citation leads to the page.",
+      "text": "Start here\nThis Space is a small worked example: should a café open a second shop? Everything in it is invented, and you can delete it at any time.\n\n1. Select the market brief and choose “Open PDF” to read it side-by-side inside Knovum.\n\n2. Page 3 of the brief and the whiteboard photo are only pixels. Knovum reads them locally on this computer: select one and look for “Recognized text”. The first run downloads a small model.\n\n3. Use the Conversation pane on the right (connect a model or desktop Agent in Settings if needed) and ask: “How long is the rent-free period, and when does the shop break even?” Every answer cites its source, and clicking a citation jumps straight to the page.",
       "color": "3"
     },
     {
@@ -15,7 +15,7 @@
       "type": "group",
       "x": 296,
       "y": 0,
-      "width": 550,
+      "width": 590,
       "height": 388,
       "label": "Sources"
     },
@@ -31,39 +31,49 @@
     {
       "id": "whiteboard",
       "type": "file",
-      "x": 546,
+      "x": 566,
       "y": 48,
-      "width": 280,
-      "height": 190,
+      "width": 300,
+      "height": 204,
       "file": "assets/mill-lane-whiteboard.png"
     },
     {
       "id": "thinking",
       "type": "group",
       "x": 296,
-      "y": 424,
-      "width": 550,
-      "height": 236,
-      "label": "Your thinking"
+      "y": 432,
+      "width": 590,
+      "height": 388,
+      "label": "Your thinking (Claim & Evidence example)"
     },
     {
       "id": "question",
       "type": "text",
       "x": 316,
-      "y": 472,
+      "y": 480,
       "width": 245,
-      "height": 168,
+      "height": 152,
       "text": "The question\nShould Harbor Street Coffee open at 41 Mill Lane?\n\nStill open: the summer dip, and whether the landlord confirms the rent-free months in writing.",
       "color": "5"
     },
     {
+      "id": "evidence",
+      "type": "text",
+      "x": 316,
+      "y": 652,
+      "width": 245,
+      "height": 148,
+      "text": "Key evidence\n• Market brief [p.1]: projected 190 orders/day, fit-out paid back in month 14.\n• Whiteboard & brief [p.3]: rent-free period discussed verbally, still awaiting written sign-off.",
+      "color": "2"
+    },
+    {
       "id": "draft",
       "type": "text",
-      "x": 581,
-      "y": 472,
+      "x": 621,
+      "y": 480,
       "width": 245,
-      "height": 168,
-      "text": "Draft answer\nOpen, if the rent-free period is confirmed. The fit-out is paid back in month 14 at the projected 190 orders per day.\n\nReplace this with your own view.",
+      "height": 320,
+      "text": "Grounded draft answer (example)\nProceed conditionally: open at 41 Mill Lane once the rent-free period is confirmed in writing.\n\nBasis:\n1. Fit-out reaches break-even in month 14 at 190 orders/day (Market brief, p.1).\n2. Summer dip and rent-free terms need written confirmation before signing (Whiteboard & brief, p.3).\n\nReplace this with your own view, or ask AI in the right sidebar.",
       "color": "4"
     }
   ],
@@ -75,16 +85,25 @@
       "toNode": "question",
       "toSide": "top",
       "toEnd": "arrow",
-      "label": "Informs"
+      "label": "Frames"
     },
     {
-      "id": "whiteboard-question",
+      "id": "whiteboard-evidence",
       "fromNode": "whiteboard",
       "fromSide": "bottom",
-      "toNode": "question",
+      "toNode": "evidence",
       "toSide": "top",
       "toEnd": "arrow",
-      "label": "Informs"
+      "label": "Supports"
+    },
+    {
+      "id": "evidence-draft",
+      "fromNode": "evidence",
+      "fromSide": "right",
+      "toNode": "draft",
+      "toSide": "left",
+      "toEnd": "arrow",
+      "label": "Grounds"
     },
     {
       "id": "question-draft",

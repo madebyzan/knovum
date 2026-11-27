@@ -45,7 +45,11 @@ function setRate(value: string) {
 <template>
   <UiPopover align="end" class="w-72 space-y-3 p-3">
     <template #trigger>
-      <UiIconButton size="sm" :label="t('spaces.media.videoEditor.output.title')" tooltip>
+      <UiIconButton
+        size="sm"
+        :label="t('spaces.media.videoEditor.output.title')"
+        :title="t('spaces.media.videoEditor.output.title')"
+      >
         <Settings2 class="size-3.5" />
       </UiIconButton>
     </template>

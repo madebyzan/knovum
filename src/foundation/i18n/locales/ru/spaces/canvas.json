@@ -6,7 +6,7 @@
   },
   "nodeActions": {
     "label": "Действия узла",
-    "openOriginal": "Открыть оригинал",
+    "openOriginal": "Открыть ссылку",
     "goToTarget": "Перейти к цели",
     "export": "Экспорт"
   },

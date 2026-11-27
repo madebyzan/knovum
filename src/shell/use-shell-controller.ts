@@ -59,9 +59,10 @@ export function useShellController(
     scheduleSidebarPreviewClose();
   }
   function scheduleSidebarPreviewClose() {
-    if (sidebarPinned.value) return;
-    cancelSidebarPreviewClose();
-    startSidebarPreviewClose();
+    if (!sidebarPinned.value) {
+      cancelSidebarPreviewClose();
+      startSidebarPreviewClose();
+    }
   }
   function closeSidebarPreview() {
     cancelSidebarPreviewClose();
@@ -69,12 +70,8 @@ export function useShellController(
   }
   function toggleRightSidebar() {
     if (!workspaceActive.value || !workspace.rightSidebarAvailable.value) return;
-    if (rightSidebarOpen.value) {
-      rightSidebarRequested.value = false;
-    } else {
-      workspace.openDefaultRightSidebar();
-      rightSidebarRequested.value = true;
-    }
+    if (!rightSidebarOpen.value) workspace.openDefaultRightSidebar();
+    rightSidebarRequested.value = !rightSidebarOpen.value;
     persist();
   }
   function openRightSidebar() {
@@ -82,9 +79,7 @@ export function useShellController(
     rightSidebarRequested.value = true;
     persist();
   }
-  function setRightSidebarWidth(value: number) {
-    rightSidebarWidth.value = Math.round(value);
-  }
+  const setRightSidebarWidth = (value: number) => (rightSidebarWidth.value = Math.round(value));
   function closeRightSidebar() {
     rightSidebarRequested.value = false;
     persist();
@@ -123,7 +118,6 @@ export function useShellController(
     setSidebarPinned,
     setSidebarWidth,
     setRightSidebarWidth,
-    /** A sash writes the width on every frame of the gesture; only the release reaches preferences. */
     persistLayout: persist,
     openSidebarPreview,
     armSidebarPreview,

@@ -6,7 +6,7 @@
   },
   "nodeActions": {
     "label": "Knotenaktionen",
-    "openOriginal": "Original öffnen",
+    "openOriginal": "Link öffnen",
     "goToTarget": "Zum Ziel gehen",
     "export": "Exportieren"
   },

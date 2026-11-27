@@ -9,6 +9,7 @@ import { useI18n } from "vue-i18n";
 
 import { useShortcutsStore } from "../../foundation/shortcuts/shortcut-store";
 import type { AppCommand } from "../../shared/contracts/app-command";
+import { fuzzySearchThreshold } from "../../shared/contracts/fuzzy-search-threshold";
 import UiIconButton from "../../shared/ui/UiIconButton.vue";
 import UiKbd from "../../shared/ui/UiKbd.vue";
 import UiSearchInput from "../../shared/ui/UiSearchInput.vue";
@@ -47,7 +48,7 @@ const filteredShortcuts = computed(() => {
   if (!needle) return allShortcuts.value;
   return search(needle, [...allShortcuts.value], {
     keySelector: (shortcut) => `${shortcut.title} ${shortcut.shortcut}`,
-    threshold: 0.6,
+    threshold: fuzzySearchThreshold(needle, 0.6),
   });
 });
 
@@ -90,6 +91,7 @@ const groupedSections = computed(() => {
             v-model="query"
             autofocus
             class="mt-3"
+            :label="t('shell.shortcuts.search')"
             :placeholder="t('shell.shortcuts.search')"
             @escape="open = false"
           />
@@ -114,7 +116,12 @@ const groupedSections = computed(() => {
             </div>
           </section>
 
-          <div v-if="!groupedSections.length" class="py-12 text-center text-label text-fg-tertiary">
+          <div
+            v-if="!groupedSections.length"
+            role="status"
+            aria-live="polite"
+            class="py-12 text-center text-label text-fg-tertiary"
+          >
             {{ t("shell.shortcuts.noMatches") }}
           </div>
         </div>

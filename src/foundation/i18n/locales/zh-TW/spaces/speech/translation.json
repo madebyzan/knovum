@@ -6,6 +6,7 @@
   "cancel": "取消翻譯",
   "failed": "視訊腳本翻譯失敗",
   "source": "原文",
-  "terms": "專有名詞/不翻譯詞",
-  "termsPlaceholder": "保留原樣的專有名詞或品牌名，用逗號分隔（可選）"
+  "terms": "保留原詞",
+  "termsPlaceholder": "人名、品牌等，以逗號分隔",
+  "start": "開始翻譯"
 }

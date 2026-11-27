@@ -6,6 +6,7 @@ import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../foundation/errors/error-format";
 import { formatResourceProgressMessage } from "../../foundation/runtime/resource-progress";
+import { OVERLAY_LAYER_CLASSES } from "../../shared/ui/ui-classes";
 import UiButton from "../../shared/ui/UiButton.vue";
 import UiDialog from "../../shared/ui/UiDialog.vue";
 import { useDictationSession } from "./use-dictation-session";
@@ -94,7 +95,10 @@ function reportFailure(error: unknown) {
 <template>
   <div
     v-if="busy"
-    class="fixed bottom-5 left-1/2 z-30 flex -translate-x-1/2 items-center gap-3 rounded-xl border border-stroke-default bg-surface-overlay px-3 py-2 shadow-dialog"
+    :class="[
+      OVERLAY_LAYER_CLASSES.dictation,
+      'fixed bottom-5 left-1/2 flex -translate-x-1/2 items-center gap-3 rounded-xl border border-stroke-default bg-surface-overlay px-3 py-2 shadow-dialog',
+    ]"
     role="status"
     aria-live="polite"
   >

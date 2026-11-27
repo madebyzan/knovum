@@ -11,11 +11,8 @@ import {
   watch,
   type ComponentPublicInstance,
 } from "vue";
-import { useI18n } from "vue-i18n";
 
 import { overlayScopeVisibleKey } from "../../../../shared/contracts/overlay-scope-visibility";
-import UiButton from "../../../../shared/ui/UiButton.vue";
-import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import type { VideoLineDraft } from "../video-dubbing-draft";
 import { SPEECH_EDITOR_VIEWPORT_KEY } from "./speech-editor-viewport";
 import VideoDubbingLineEditor from "./VideoDubbingLineEditor.vue";
@@ -33,10 +30,7 @@ const emit = defineEmits<{
   remove: [index: number];
   preview: [text: string, revisionId: string, deliveryInstruction?: string];
   source: [startMs: number, endMs: number];
-  applyAll: [revisionId: string];
 }>();
-const { t } = useI18n();
-const batchVoiceId = shallowRef("");
 const viewportRef = inject(SPEECH_EDITOR_VIEWPORT_KEY);
 if (!viewportRef) throw new Error("Video dubbing requires the project editor viewport");
 const linesRef = useTemplateRef<HTMLElement>("linesRef");
@@ -86,32 +80,6 @@ function measureLine(element: Element | ComponentPublicInstance | null) {
 </script>
 
 <template>
-  <div
-    v-if="lines.length > 1"
-    class="mb-2 flex items-center gap-1.5 rounded-md bg-surface-control px-2 py-1.5 text-caption"
-  >
-    <span class="shrink-0 font-medium whitespace-nowrap text-fg-secondary">
-      {{ t("spaces.speech.videoDubbing.batchVoiceLabel") }}
-    </span>
-    <UiSelect
-      v-model="batchVoiceId"
-      size="sm"
-      class="min-w-0 flex-1"
-      :options="voiceOptions"
-      :label="t('spaces.speech.voice.label')"
-      :placeholder="t('spaces.speech.library.selection.placeholder')"
-      :disabled
-    />
-    <UiButton
-      size="sm"
-      variant="secondary"
-      class="shrink-0"
-      :disabled="disabled || !batchVoiceId"
-      @click="batchVoiceId && emit('applyAll', batchVoiceId)"
-    >
-      {{ t("spaces.speech.videoDubbing.applyToAllLines") }}
-    </UiButton>
-  </div>
   <div
     ref="linesRef"
     class="relative"

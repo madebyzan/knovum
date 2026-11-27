@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Languages, Square } from "@lucide/vue";
+import { Square } from "@lucide/vue";
 import { storeToRefs } from "pinia";
 import { computed, onMounted, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -120,7 +120,7 @@ function selectLanguage(value: string) {
 </script>
 
 <template>
-  <section class="space-y-2 rounded-md border border-stroke-default bg-surface-raised p-2.5">
+  <section class="space-y-2">
     <p class="text-caption leading-relaxed text-fg-secondary">
       {{ t("spaces.speech.translation.description") }}
     </p>
@@ -165,7 +165,7 @@ function selectLanguage(value: string) {
           variant="secondary"
           :disabled="disabled || translating || !target || lineCount === 0"
           @click="translate"
-          ><Languages class="size-3.5" />{{ t("spaces.speech.translation.translate") }}</UiButton
+          >{{ t("spaces.speech.translation.start") }}</UiButton
         >
         <UiButton v-if="activeRunId" size="sm" variant="dangerSubtle" :disabled="cancelling" @click="cancel">
           <Square class="size-3.5" />{{ t("spaces.speech.translation.cancel") }}

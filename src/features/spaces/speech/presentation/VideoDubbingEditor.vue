@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { Languages, Plus } from "@lucide/vue";
+import { Plus } from "@lucide/vue";
 import { computed, shallowRef, useTemplateRef, watch, watchEffect, type DeepReadonly } from "vue";
 import { useI18n } from "vue-i18n";
 
+import {
+  LABEL_KEY_BY_TRANSLATION_TARGET,
+  TRANSLATION_TARGETS,
+  type TranslationTarget,
+} from "../../../../foundation/ai/translation";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import type { SaveSpeechProjectRevisionRequest } from "../../contracts/generated/SaveSpeechProjectRevisionRequest";
 import type { SpeechProjectSnapshot } from "../../contracts/generated/SpeechProjectSnapshot";
@@ -95,6 +100,11 @@ const voiceOptions = computed(() =>
   ),
 );
 const instructionVoiceIds = computed(() => deliveryInstructionVoiceIds(props.voices));
+const translationSummary = computed(() => {
+  const lang = draft.config.value?.translation?.targetLanguage;
+  if (!lang || !TRANSLATION_TARGETS.includes(lang as TranslationTarget)) return undefined;
+  return t(LABEL_KEY_BY_TRANSLATION_TARGET[lang as TranslationTarget]);
+});
 watchEffect(() =>
   emit(
     "draftState",
@@ -123,21 +133,26 @@ function previewLine(text: string, voiceRevisionId: string, instruction?: string
         :voice-options="voiceOptions"
         :disabled="editingDisabled"
         @bind="draft.bindSpeaker"
+        @apply-all="draft.applyVoiceToAll"
         @imported="draft.importSubtitles"
+      />
+      <SpeechSettingsDisclosure
+        v-if="draft.lines.value.length"
+        v-model:is-expanded="translationOpen"
+        :title="t('spaces.speech.translation.translate')"
+        :summary="translationSummary"
       >
-        <template v-if="draft.lines.value.length" #actions>
-          <UiButton
-            size="sm"
-            :variant="translationOpen ? 'secondary' : 'ghost'"
-            :aria-expanded="translationOpen"
-            :disabled="editingDisabled"
-            @click="translationOpen = !translationOpen"
-          >
-            <Languages class="size-3.5" />
-            {{ t("spaces.speech.translation.translate") }}
-          </UiButton>
-        </template>
-      </VideoSourceControls>
+        <VideoTranslationControls
+          :project-id="project.project.id"
+          :expected-revision="project.project.activeRevision"
+          :line-count="draft.lines.value.length"
+          :provenance="draft.config.value?.translation"
+          :save="save"
+          :disabled="editingDisabled"
+          @translated="draft.applyTranslation"
+          @busy="translationBusy = $event"
+        />
+      </SpeechSettingsDisclosure>
       <div
         v-if="!draft.lines.value.length"
         class="space-y-2.5 rounded-panel border border-dashed border-stroke-default bg-surface-panel p-4 text-center"
@@ -160,18 +175,6 @@ function previewLine(text: string, voiceRevisionId: string, instruction?: string
           >
         </div>
       </div>
-      <VideoTranslationControls
-        v-if="draft.lines.value.length"
-        v-show="translationOpen"
-        :project-id="project.project.id"
-        :expected-revision="project.project.activeRevision"
-        :line-count="draft.lines.value.length"
-        :provenance="draft.config.value?.translation"
-        :save="save"
-        :disabled="editingDisabled"
-        @translated="draft.applyTranslation"
-        @busy="translationBusy = $event"
-      />
       <VideoDubbingLines
         :lines="draft.lines.value"
         :voice-options="voiceOptions"
@@ -183,7 +186,6 @@ function previewLine(text: string, voiceRevisionId: string, instruction?: string
         @source="(start, end) => sourceControls?.audition(start, end)"
         @remove="draft.removeLine"
         @update="draft.updateLine"
-        @apply-all="draft.applyVoiceToAll"
       />
       <UiButton
         v-if="draft.lines.value.length"
@@ -214,6 +216,7 @@ function previewLine(text: string, voiceRevisionId: string, instruction?: string
           v-model="draft.lexicon.entries.value"
           :valid="draft.lexicon.isValid.value"
           :disabled="editingDisabled"
+          hide-title
         />
       </SpeechSettingsDisclosure>
     </SpeechEditorPage>

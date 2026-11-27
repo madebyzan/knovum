@@ -65,21 +65,29 @@ pub(super) async fn publish_embeddings(
     embeddings: Vec<KnowledgeEmbeddingInput>,
 ) -> Result<usize, PublishError> {
     validate_batch(&embeddings)?;
-    // Serialize current-chunk validation, pending invalidations and index publication.
-    // Model inference has already completed before this short write boundary begins.
-    let mut tx = db::begin_write(pool).await?;
     let generation = generation_from_batch(&embeddings)?;
-    generation::require_writable(&mut tx, &generation).await?;
-    let chunks =
-        load_indexed_chunks(&mut tx, embeddings.into_iter().map(into_source).collect()).await?;
-    let spaces: std::collections::BTreeSet<_> =
-        chunks.iter().map(|chunk| chunk.space_id.as_str()).collect();
-    for space_id in spaces {
-        invalidation_outbox::drain_pending(index, &mut tx, Some(space_id)).await?;
+    // Phase 1: short SQLite read to validate generation and load current chunk metadata.
+    let chunks = {
+        let mut read_tx = pool.begin().await.map_err(db::sql_error)?;
+        generation::require_writable(&mut read_tx, &generation).await?;
+        load_indexed_chunks(
+            &mut read_tx,
+            embeddings.into_iter().map(into_source).collect(),
+        )
+        .await?
+    };
+    let spaces: std::collections::BTreeSet<String> =
+        chunks.iter().map(|chunk| chunk.space_id.clone()).collect();
+    for space_id in &spaces {
+        invalidation_outbox::drain_space_with_connection(index, pool, space_id).await?;
     }
+    // Phase 2 & 3: hold `LANCE_WRITE_LOCK` across LanceDB write and the short SQLite marker
+    // commit so no outbox drain can interleave between writing vectors and committing markers.
+    // SQLite is never held across LanceDB I/O.
     let written = chunks.len();
     let dimensions = chunks[0].dimensions;
     let batch = records_to_batch(&chunks, dimensions)?;
+    let _lance_guard = invalidation_outbox::acquire_lance_write_lock().await;
     let existing = index
         .table_names()
         .execute()
@@ -108,9 +116,56 @@ pub(super) async fn publish_embeddings(
             .await
             .map_err(|error| format!("Failed to create LanceDB knowledge table: {error}"))?;
     }
+    let mut tx = db::begin_write(pool).await?;
+    generation::require_writable(&mut tx, &generation).await?;
+    if let Err(stale) = verify_chunks_still_current(&mut tx, &chunks).await {
+        let now = crate::foundation::clock::unix_time_millis()?;
+        let mut nodes_by_space: std::collections::BTreeMap<&str, Vec<String>> =
+            std::collections::BTreeMap::new();
+        for chunk in &chunks {
+            nodes_by_space
+                .entry(chunk.space_id.as_str())
+                .or_default()
+                .push(chunk.node_id.clone());
+        }
+        for (space_id, node_ids) in nodes_by_space {
+            invalidation_outbox::enqueue_nodes(&mut tx, space_id, &node_ids, now).await?;
+        }
+        tx.commit().await.map_err(db::sql_error)?;
+        return Err(stale);
+    }
     write_index_markers(&mut tx, &chunks).await?;
     tx.commit().await.map_err(db::sql_error)?;
     Ok(written)
+}
+
+async fn verify_chunks_still_current(
+    tx: &mut sqlx::Transaction<'_, sqlx::Sqlite>,
+    chunks: &[super::schema::IndexedKnowledgeChunk],
+) -> Result<(), PublishError> {
+    let chunk_ids: Vec<&str> = chunks.iter().map(|chunk| chunk.chunk_id.as_str()).collect();
+    let rows: Vec<(String, String)> = sqlx::query_as(
+        "SELECT c.id, c.source_revision \
+         FROM spaces_current_knowledge_chunks c \
+         JOIN spaces_nodes n ON n.id=c.node_id AND n.space_id=c.space_id \
+         WHERE c.id IN (SELECT value FROM json_each($1)) AND n.deleted_at IS NULL",
+    )
+    .bind(sqlx::types::Json(&chunk_ids))
+    .fetch_all(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
+    let revisions: std::collections::HashMap<String, String> = rows.into_iter().collect();
+    for chunk in chunks {
+        if revisions.get(&chunk.chunk_id).map(String::as_str)
+            != Some(chunk.source_revision.as_str())
+        {
+            return Err(PublishError::StaleRevision(format!(
+                "Knowledge chunk {} changed while publishing embeddings",
+                chunk.chunk_id
+            )));
+        }
+    }
+    Ok(())
 }
 
 fn into_source(input: KnowledgeEmbeddingInput) -> EmbeddingSource {

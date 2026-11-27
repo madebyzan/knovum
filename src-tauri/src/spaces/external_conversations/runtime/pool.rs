@@ -10,7 +10,7 @@
 //! means the Agent remembers a different conversation, so it is closed and a new one starts from
 //! the stored history. Runtimes nobody talks to close after [`IDLE_TIMEOUT`].
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     path::PathBuf,
     sync::{Arc, Mutex, MutexGuard, OnceLock, PoisonError},
     time::Duration,
@@ -71,17 +71,25 @@ struct Turn {
     ended: CancellationToken,
 }
 
+enum PoolSlot {
+    Starting {
+        id: String,
+        cancellation: CancellationToken,
+    },
+    Ready(Arc<Runtime>),
+}
+
 impl Runtime {
     fn state(&self) -> MutexGuard<'_, RuntimeState> {
         // Every write replaces fields whole, so a panic elsewhere never leaves the state torn.
         self.state.lock().unwrap_or_else(PoisonError::into_inner)
     }
 
-    fn holds(&self, wanted: &Wanted<'_>) -> bool {
+    fn holds(&self, wanted: &Wanted<'_>, head: Option<&str>) -> bool {
         self.kind == wanted.kind
             && self.branch_id == wanted.branch_id
             && self.digest == wanted.extensions.digest
-            && self.state().head.as_deref() == wanted.head
+            && head == wanted.head
             && crate::external_agents::conversation::is_active(&self.id)
     }
 }
@@ -161,65 +169,164 @@ impl Drop for Lease {
     }
 }
 
-static RUNTIMES: OnceLock<Mutex<HashMap<String, Arc<Runtime>>>> = OnceLock::new();
+static RUNTIMES: OnceLock<Mutex<HashMap<String, PoolSlot>>> = OnceLock::new();
+static RETIRING: OnceLock<Mutex<HashSet<String>>> = OnceLock::new();
 
-fn runtimes() -> MutexGuard<'static, HashMap<String, Arc<Runtime>>> {
+fn runtimes() -> MutexGuard<'static, HashMap<String, PoolSlot>> {
     RUNTIMES
         .get_or_init(Default::default)
         .lock()
         .unwrap_or_else(PoisonError::into_inner)
 }
 
+fn retiring() -> MutexGuard<'static, HashSet<String>> {
+    RETIRING
+        .get_or_init(Default::default)
+        .lock()
+        .unwrap_or_else(PoisonError::into_inner)
+}
+
+struct StartingGuard {
+    conversation_id: String,
+    runtime_id: String,
+    armed: bool,
+}
+
+impl Drop for StartingGuard {
+    fn drop(&mut self) {
+        if !self.armed {
+            return;
+        }
+        let mut map = runtimes();
+        if matches!(
+            map.get(&self.conversation_id),
+            Some(PoolSlot::Starting { id, .. }) if id == &self.runtime_id
+        ) {
+            map.remove(&self.conversation_id);
+        }
+    }
+}
+
 /// Leases the conversation's runtime for the turn `binding_id`, continuing the one that holds the
-/// conversation or replacing it with a new one.
+/// conversation or replacing it with a new one. All slot transitions happen atomically under the
+/// pool mutex so concurrent turns can never overwrite each other or leak a duplicate runtime.
 pub(super) async fn acquire(
     app: &AppHandle,
     wanted: Wanted<'_>,
     binding_id: &str,
 ) -> Result<Lease, String> {
-    let current = runtimes().get(wanted.conversation_id).cloned();
-    if let Some(runtime) = current {
-        if runtime.state().turn.is_some() {
-            return Err(
-                "conversation-branch-busy: finish or cancel the active task before sending a follow-up"
-                    .into(),
-            );
+    let runtime_id = uuid::Uuid::new_v4().to_string();
+    let start_cancel = CancellationToken::new();
+    let replaced_id = {
+        let mut map = runtimes();
+        match map.get(wanted.conversation_id) {
+            Some(PoolSlot::Starting { .. }) => {
+                return Err(
+                    "conversation-branch-busy: finish or cancel the active task before sending a follow-up"
+                        .into(),
+                );
+            }
+            Some(PoolSlot::Ready(runtime)) => {
+                let mut state = runtime.state();
+                if state.turn.is_some() {
+                    return Err(
+                        "conversation-branch-busy: finish or cancel the active task before sending a follow-up"
+                            .into(),
+                    );
+                }
+                if runtime.holds(&wanted, state.head.as_deref()) {
+                    let cancellation = CancellationToken::new();
+                    state.turn = Some(Turn {
+                        binding_id: binding_id.to_owned(),
+                        cancellation: cancellation.clone(),
+                        ended: CancellationToken::new(),
+                    });
+                    return Ok(Lease {
+                        runtime: runtime.clone(),
+                        continues: true,
+                        cancellation,
+                        head: None,
+                    });
+                }
+                let old_id = runtime.id.clone();
+                drop(state);
+                map.insert(
+                    wanted.conversation_id.to_owned(),
+                    PoolSlot::Starting {
+                        id: runtime_id.clone(),
+                        cancellation: start_cancel.clone(),
+                    },
+                );
+                Some(old_id)
+            }
+            None => {
+                map.insert(
+                    wanted.conversation_id.to_owned(),
+                    PoolSlot::Starting {
+                        id: runtime_id.clone(),
+                        cancellation: start_cancel.clone(),
+                    },
+                );
+                None
+            }
         }
-        if runtime.holds(&wanted) {
-            return Ok(lease(runtime, binding_id, true));
-        }
-        retire(&runtime.conversation_id, &runtime.id);
+    };
+    if let Some(old_id) = replaced_id {
+        spawn_retire(old_id);
     }
-    let runtime = Arc::new(start(app, &wanted).await?);
-    runtimes().insert(wanted.conversation_id.to_owned(), runtime.clone());
-    Ok(lease(runtime, binding_id, false))
-}
-
-fn lease(runtime: Arc<Runtime>, binding_id: &str, continues: bool) -> Lease {
+    let mut guard = StartingGuard {
+        conversation_id: wanted.conversation_id.to_owned(),
+        runtime_id: runtime_id.clone(),
+        armed: true,
+    };
+    let runtime = Arc::new(start(app, runtime_id.clone(), &wanted).await?);
     let cancellation = CancellationToken::new();
-    runtime.state().turn = Some(Turn {
-        binding_id: binding_id.to_owned(),
-        cancellation: cancellation.clone(),
-        ended: CancellationToken::new(),
-    });
-    Lease {
+    {
+        let mut map = runtimes();
+        let still_expected = matches!(
+            map.get(wanted.conversation_id),
+            Some(PoolSlot::Starting { id, cancellation: c }) if id == &runtime_id && !c.is_cancelled()
+        );
+        if !still_expected {
+            drop(map);
+            guard.armed = false;
+            spawn_retire(runtime.id.clone());
+            return Err("Desktop Agent runtime startup was superseded or closed".into());
+        }
+        runtime.state().turn = Some(Turn {
+            binding_id: binding_id.to_owned(),
+            cancellation: cancellation.clone(),
+            ended: CancellationToken::new(),
+        });
+        map.insert(
+            wanted.conversation_id.to_owned(),
+            PoolSlot::Ready(runtime.clone()),
+        );
+        guard.armed = false;
+    }
+    Ok(Lease {
         runtime,
-        continues,
+        continues: false,
         cancellation,
         head: None,
-    }
+    })
 }
 
 /// A new runtime starts from an empty workspace: what the Agent wrote for an earlier runtime was
 /// published by its turns, and a new session does not know those files.
-async fn start(app: &AppHandle, wanted: &Wanted<'_>) -> Result<Runtime, String> {
+async fn start(app: &AppHandle, id: String, wanted: &Wanted<'_>) -> Result<Runtime, String> {
     let workspace = crate::spaces::agent_artifacts::workspace::desktop_agent_directory(
         app,
         wanted.space_id,
         wanted.conversation_id,
     )
     .map_err(|error| error.to_string())?;
-    crate::external_agents::artifacts::prepare(&workspace).map_err(|error| error.to_string())?;
+    let prepare_workspace = workspace.clone();
+    crate::foundation::blocking::run(move || {
+        crate::external_agents::artifacts::prepare(&prepare_workspace)
+            .map_err(|error| error.to_string())
+    })
+    .await?;
     let mcp = Arc::new(
         agent_server::start(
             app.clone(),
@@ -228,7 +335,6 @@ async fn start(app: &AppHandle, wanted: &Wanted<'_>) -> Result<Runtime, String> 
         )
         .await?,
     );
-    let id = uuid::Uuid::new_v4().to_string();
     let keepalive: Arc<dyn Send + Sync> = mcp.clone();
     let session = crate::external_agents::conversation::start(
         id.clone(),
@@ -275,7 +381,10 @@ async fn start(app: &AppHandle, wanted: &Wanted<'_>) -> Result<Runtime, String> 
 /// is bounded: an Agent that does not stop a cancelled turn in time loses its runtime, which
 /// ends the turn.
 pub(in crate::spaces::external_conversations) async fn stop(binding_id: &str) {
-    let ended = runtimes().values().find_map(|runtime| {
+    let ended = runtimes().values().find_map(|slot| {
+        let PoolSlot::Ready(runtime) = slot else {
+            return None;
+        };
         let state = runtime.state();
         let turn = state.turn.as_ref()?;
         (turn.binding_id == binding_id).then(|| {
@@ -290,7 +399,10 @@ pub(in crate::spaces::external_conversations) async fn stop(binding_id: &str) {
 
 /// Whether the turn `binding_id` is running on some runtime.
 pub(in crate::spaces::external_conversations) fn is_running(binding_id: &str) -> bool {
-    runtimes().values().any(|runtime| {
+    runtimes().values().any(|slot| {
+        let PoolSlot::Ready(runtime) = slot else {
+            return false;
+        };
         runtime
             .state()
             .turn
@@ -301,30 +413,59 @@ pub(in crate::spaces::external_conversations) fn is_running(binding_id: &str) ->
 
 /// Closes the conversation's runtime, if it has one.
 pub(in crate::spaces::external_conversations) fn close(conversation_id: &str) {
-    let current = runtimes()
-        .get(conversation_id)
-        .map(|runtime| runtime.id.clone());
-    if let Some(id) = current {
+    let target = {
+        let mut map = runtimes();
+        match map.get(conversation_id) {
+            Some(PoolSlot::Ready(runtime)) => Some(runtime.id.clone()),
+            Some(PoolSlot::Starting { id, cancellation }) => {
+                cancellation.cancel();
+                let id = id.clone();
+                map.remove(conversation_id);
+                Some(id)
+            }
+            None => None,
+        }
+    };
+    if let Some(id) = target {
         retire(conversation_id, &id);
     }
 }
 
-/// Closes every runtime and waits for them. A process that exits runs no destructors, so the
-/// Agents — each its own process group — are stopped while the app can still wait for them.
+/// Closes every active, starting, and retiring runtime and waits for them. A process that exits
+/// runs no destructors, so the Agents — each its own process group — are stopped while the app
+/// can still wait for them.
 pub(in crate::spaces::external_conversations) async fn shutdown() {
-    let closing: Vec<String> = runtimes()
-        .drain()
-        .map(|(_, runtime)| runtime.id.clone())
-        .collect();
+    let mut closing: HashSet<String> = HashSet::new();
+    for (_, slot) in runtimes().drain() {
+        match slot {
+            PoolSlot::Ready(runtime) => {
+                closing.insert(runtime.id.clone());
+            }
+            PoolSlot::Starting { id, cancellation } => {
+                cancellation.cancel();
+                closing.insert(id);
+            }
+        }
+    }
+    for id in retiring().drain() {
+        closing.insert(id);
+    }
     futures::future::join_all(closing.iter().map(|id| stop_process(id))).await;
 }
 
 /// Takes a runtime out of service at once and stops its process in the background: nothing
-/// waits for an Agent that is being replaced or has gone idle.
+/// waits for an Agent that is being replaced or has gone idle, while `shutdown()` still tracks it.
 fn retire(conversation_id: &str, runtime_id: &str) {
     forget(conversation_id, runtime_id);
-    let runtime_id = runtime_id.to_owned();
-    tauri::async_runtime::spawn(async move { stop_process(&runtime_id).await });
+    spawn_retire(runtime_id.to_owned());
+}
+
+fn spawn_retire(runtime_id: String) {
+    retiring().insert(runtime_id.clone());
+    tauri::async_runtime::spawn(async move {
+        stop_process(&runtime_id).await;
+        retiring().remove(&runtime_id);
+    });
 }
 
 async fn stop_process(runtime_id: &str) {
@@ -336,11 +477,13 @@ async fn stop_process(runtime_id: &str) {
 }
 
 fn forget(conversation_id: &str, runtime_id: &str) {
-    let mut runtimes = runtimes();
-    if runtimes
-        .get(conversation_id)
-        .is_some_and(|runtime| runtime.id == runtime_id)
-    {
-        runtimes.remove(conversation_id);
+    let mut map = runtimes();
+    let matches = match map.get(conversation_id) {
+        Some(PoolSlot::Ready(runtime)) => runtime.id == runtime_id,
+        Some(PoolSlot::Starting { id, .. }) => id == runtime_id,
+        None => false,
+    };
+    if matches {
+        map.remove(conversation_id);
     }
 }

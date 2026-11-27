@@ -8,6 +8,7 @@
     "changed": "このアイテムの作成後に一部のソースが変更されました。"
   },
   "citations": "引用 · {count}",
+  "createAction": "作成",
   "createFromSelection": "選択から作成",
   "finishNodeOperation": "まず現在のノード操作を終了するかキャンセルしてください。",
   "tooManySources": "作成に使うリソースは最大 32 件です。",

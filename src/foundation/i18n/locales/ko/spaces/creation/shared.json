@@ -8,6 +8,7 @@
     "changed": "이 항목이 생성된 후 일부 소스가 변경되었습니다."
   },
   "citations": "인용 · {count}",
+  "createAction": "만들기",
   "createFromSelection": "선택 항목에서 생성",
   "finishNodeOperation": "먼저 현재 노드 작업을 완료하거나 취소하세요.",
   "tooManySources": "만들기에 사용할 리소스는 최대 32개입니다.",

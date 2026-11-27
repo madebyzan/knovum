@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  injectTooltipProviderContext,
   TooltipArrow,
   TooltipContent,
   TooltipPortal,
@@ -7,11 +8,13 @@ import {
   TooltipRoot,
   TooltipTrigger,
 } from "reka-ui";
-import { shallowRef, watch, type HTMLAttributes } from "vue";
+import { shallowRef, watch, type FunctionalComponent, type HTMLAttributes } from "vue";
 
 import { cn } from "./cn";
-import { POPUP_ANIMATE_CLASSES } from "./ui-classes";
+import { OVERLAY_LAYER_CLASSES, POPUP_ANIMATE_CLASSES } from "./ui-classes";
 import UiKbd from "./UiKbd.vue";
+
+const Passthrough: FunctionalComponent = (_, { slots }) => slots.default?.();
 
 const props = withDefaults(
   defineProps<{
@@ -28,6 +31,11 @@ const props = withDefaults(
 );
 
 const open = shallowRef(false);
+// Inherit the application-wide TooltipProvider so sibling tooltips share skip-delay-duration;
+// fall back to a local provider only in isolated component mounts (e.g. unit tests).
+const hasProvider = injectTooltipProviderContext(null) !== null;
+const ProviderHost = hasProvider ? Passthrough : TooltipProvider;
+const providerProps = hasProvider ? {} : { delayDuration: 300, skipDelayDuration: 100 };
 
 // The root keeps an open tooltip mounted when it becomes disabled, and the trigger drops its
 // listeners at the same time, so nothing else would close it.
@@ -40,7 +48,7 @@ watch(
 </script>
 
 <template>
-  <TooltipProvider :delay-duration="300" :skip-delay-duration="100">
+  <component :is="ProviderHost" v-bind="providerProps">
     <TooltipRoot v-model:open="open" :ignore-non-keyboard-focus="true" :disabled="disabled">
       <TooltipTrigger as-child><slot /></TooltipTrigger>
       <TooltipPortal>
@@ -52,7 +60,8 @@ watch(
           :class="
             cn(
               POPUP_ANIMATE_CLASSES,
-              'pointer-events-none z-70 rounded-md border border-stroke-default material-overlay px-2 py-1 text-caption text-fg-primary shadow-popover duration-100 ease-standard select-none',
+              OVERLAY_LAYER_CLASSES.tooltip,
+              'pointer-events-none rounded-md border border-stroke-default material-overlay px-2 py-1 text-caption text-fg-primary shadow-popover duration-100 ease-standard select-none',
               props.class,
             )
           "
@@ -61,9 +70,9 @@ watch(
             <span>{{ text }}</span>
             <UiKbd v-if="shortcut" :shortcut="shortcut" variant="badge" class="-mr-0.5" />
           </span>
-          <TooltipArrow class="fill-background-overlay" />
+          <TooltipArrow class="fill-surface-overlay" />
         </TooltipContent>
       </TooltipPortal>
     </TooltipRoot>
-  </TooltipProvider>
+  </component>
 </template>

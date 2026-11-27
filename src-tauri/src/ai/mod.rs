@@ -58,6 +58,7 @@ pub fn plugin() -> TauriPlugin<Wry> {
             await_ai_runtime,
             crate::ai::commands::text::cancel_job,
             crate::ai::queries::catalog::detect_external_agent_installations,
+            crate::ai::queries::catalog::detect_local_ollama_models,
             crate::ai::queries::catalog::list_external_agent_descriptors,
             crate::ai::queries::catalog::list_provider_descriptors,
             crate::ai::commands::text::transform_editor_text_stream,

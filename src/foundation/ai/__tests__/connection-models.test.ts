@@ -5,7 +5,10 @@ import type { AiModelDefinition } from "../../../shared/contracts/generated/AiMo
 import { removeAiConnectionModel, saveAiConnectionModel } from "../connection-settings";
 
 const state = vi.hoisted(() => ({
-  settings: { connections: [] as AiConnectionSettings[] },
+  settings: {
+    connections: [] as AiConnectionSettings[],
+    defaults: { defaultTarget: null as unknown },
+  },
   flush: vi.fn<() => Promise<void>>(),
 }));
 vi.mock("../ai-settings-store", () => ({ useAiSettingsStore: () => state }));
@@ -31,11 +34,17 @@ beforeEach(() => {
       models: [structuredClone(model)],
     },
   ];
+  state.settings.defaults.defaultTarget = null;
   state.flush.mockResolvedValue(undefined);
 });
 
-it("persists a model edit and restores the original when saving fails", async () => {
+it("persists a model edit, auto-assigns defaultTarget when unset, and restores on failure", async () => {
   await saveAiConnectionModel("connection", { ...model, name: "Edited" });
+  expect(state.settings.defaults.defaultTarget).toEqual({
+    type: "model",
+    connectionId: "connection",
+    modelId: "model",
+  });
   const failure = new Error("persistence failed");
   state.flush.mockRejectedValueOnce(failure);
   await expect(saveAiConnectionModel("connection", { ...model, name: "Failed" })).rejects.toBe(failure);

@@ -4,7 +4,7 @@ import type { CanvasViewport } from "../../contracts/canvas-editor-port";
 import type { CanvasPalette } from "../../use-canvas-palette";
 import type { CanvasScene } from "../scene/canvas-scene";
 import { restingRelations } from "../scene/scene-relations";
-import { loadCanvasOverviewImages } from "./assets";
+import { loadCanvasOverviewImages, releaseCanvasOverviewImage } from "./assets";
 import { canvasOverviewViewport, canvasViewportThumbnail } from "./geometry";
 import { canvasOverviewLabelled, createCanvasOverviewNode } from "./nodes";
 
@@ -115,5 +115,6 @@ async function renderCanvasThumbnail(
   } finally {
     stage.destroy();
     host.remove();
+    for (const bitmap of images.values()) releaseCanvasOverviewImage(bitmap);
   }
 }

@@ -4,11 +4,16 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import UiSeparator from "../../../../../shared/ui/UiSeparator.vue";
-import type { CreationIntentDecisions } from "../../../knowledge-derivations/catalog/creation-intent-definitions";
+import type {
+  CreationIntentDecisions,
+  CreationIntentId,
+} from "../../../knowledge-derivations/catalog/creation-intent-definitions";
+import { hasVisibleCreationActions } from "../../../knowledge-derivations/presentation/visible-derivation-actions";
 import SpaceCanvasActionTrigger from "../SpaceCanvasActionTrigger.vue";
 import SpaceCanvasActionToolbar from "./SpaceCanvasActionToolbar.vue";
 import SpaceCanvasNodeAccessActions from "./SpaceCanvasNodeAccessActions.vue";
 import SpaceCanvasSectionLayoutControls from "./SpaceCanvasSectionLayoutControls.vue";
+import SpaceCanvasSelectionAiActions from "./SpaceCanvasSelectionAiActions.vue";
 import SpaceCanvasSelectionMenu from "./SpaceCanvasSelectionMenu.vue";
 import type { useCanvasSelectionActions } from "./use-canvas-selection-actions";
 
@@ -17,12 +22,14 @@ const props = defineProps<{
   derivations: CreationIntentDecisions;
   availableWidth: number;
 }>();
+const emit = defineEmits<{ invokeDerivation: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
 const state = computed(() => props.actions.state.value);
 const section = computed(() => state.value.section);
+const hasCreationActions = computed(() => hasVisibleCreationActions(props.derivations));
 const identity = computed(
   () =>
-    `${section.value?.id}:${section.value?.collapsed}:${section.value?.autoLayout}:${state.value.content.length}`,
+    `${section.value?.id}:${section.value?.collapsed}:${section.value?.autoLayout}:${state.value.content.length}:${state.value.canAsk}:${hasCreationActions.value}`,
 );
 </script>
 
@@ -33,6 +40,15 @@ const identity = computed(
     :available-width="availableWidth"
     :identity="identity"
   >
+    <SpaceCanvasSelectionAiActions
+      v-if="!minimal"
+      :can-ask="state.canAsk"
+      :derivations="derivations"
+      :compact="compact"
+      separator
+      @ask="actions.ask"
+      @invoke-derivation="emit('invokeDerivation', $event)"
+    />
     <template v-if="section && !section.collapsed">
       <SpaceCanvasSectionLayoutControls
         :section="section"
@@ -66,7 +82,37 @@ const identity = computed(
         @invoke="actions.focus"
       />
     </template>
-    <SpaceCanvasSelectionMenu :actions="actions" :derivations="derivations" node-bar />
+    <SpaceCanvasSelectionMenu :actions="actions" section-bar :node-tools-visible="minimal">
+      <template #node-tools>
+        <SpaceCanvasSelectionAiActions
+          menu-item
+          :can-ask="state.canAsk"
+          :derivations="derivations"
+          @ask="actions.ask"
+          @invoke-derivation="emit('invokeDerivation', $event)"
+        />
+        <SpaceCanvasActionTrigger
+          :label="t('spaces.canvas.sections.fitToContents')"
+          :icon="Shrink"
+          menu-item
+          :disabled="!state.canFitSection"
+          @invoke="actions.fitSection"
+        />
+        <SpaceCanvasActionTrigger
+          :label="t(section?.collapsed ? 'spaces.canvas.sections.expand' : 'spaces.canvas.sections.collapse')"
+          :icon="section?.collapsed ? ChevronsUpDown : ChevronsDownUp"
+          menu-item
+          @invoke="actions.toggleSectionCollapsed"
+        />
+        <SpaceCanvasActionTrigger
+          v-if="state.content.length"
+          :label="t('spaces.scenes.focus.selection')"
+          :icon="Focus"
+          menu-item
+          @invoke="actions.focus"
+        />
+      </template>
+    </SpaceCanvasSelectionMenu>
     <SpaceCanvasNodeAccessActions
       v-if="actions.exportTarget.value"
       :export-target="actions.exportTarget.value"

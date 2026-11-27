@@ -49,7 +49,7 @@
   "reader": {
     "read": "閱讀",
     "readerMode": "閱讀模式",
-    "liveWeb": "內建網頁",
+    "liveWeb": "原始網頁",
     "decreaseFontSize": "縮小字體",
     "increaseFontSize": "放大字體",
     "searchPlaceholder": "在文件中尋找…",

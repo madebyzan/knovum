@@ -140,7 +140,11 @@ async function saveTitle() {
       </UiIconButton>
       <UiDropdownMenu v-if="selectedConversation" :items="actions">
         <template #trigger>
-          <UiIconButton :label="t('spaces.conversation.conversations.actions')" size="sm" tooltip>
+          <UiIconButton
+            :label="t('spaces.conversation.conversations.actions')"
+            :title="t('spaces.conversation.conversations.actions')"
+            size="sm"
+          >
             <MoreHorizontal class="size-3.5" :stroke-width="1.6" />
           </UiIconButton>
         </template>

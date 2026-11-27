@@ -59,3 +59,16 @@ fn cancellation_preserves_staging_and_prevents_verification() {
         !verification::receipt_matches(&path, FILE.sha256, &fs::metadata(&path).unwrap()).unwrap()
     );
 }
+
+#[test]
+fn corrupt_verification_receipt_heals_as_unverified_instead_of_erroring() {
+    let directory = Directory::new();
+    let path = directory.0.join(FILE.path);
+    fs::write(&path, b"model").unwrap();
+    let receipt = directory.0.join(format!("{}.verified.json", FILE.path));
+    fs::write(&receipt, b"{truncated").unwrap();
+    let matched =
+        verification::receipt_matches(&path, FILE.sha256, &fs::metadata(&path).unwrap()).unwrap();
+    assert!(!matched);
+    assert!(!receipt.exists());
+}

@@ -11,7 +11,7 @@
     "refreshFailed": "Не удалось получить веб-контент."
   },
   "preview": {
-    "quickLook": "Быстрый просмотр",
+    "quickLook": "Просмотр",
     "system": "Открыть",
     "show": "Просмотр предварительного просмотра",
     "instantUnavailable": {

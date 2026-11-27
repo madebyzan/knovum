@@ -6,6 +6,7 @@
   "cancel": "Cancelar tradução",
   "failed": "Falha ao traduzir o roteiro do vídeo",
   "source": "Fonte",
-  "terms": "Termos preservados",
-  "termsPlaceholder": "Termos ou nomes de marcas para manter inalterados, separados por vírgula (opcional)"
+  "terms": "Não traduzir",
+  "termsPlaceholder": "Nomes, marcas, etc., separados por vírgula",
+  "start": "Iniciar tradução"
 }

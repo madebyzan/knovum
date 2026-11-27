@@ -45,10 +45,19 @@ it("reads current text-node content without a file picker or Rust extraction", a
     id: "text",
     type: "markdown",
     initialPosition: { x: 0, y: 0 },
-    data: { kind: "markdown", title: "Current draft", text: "## Chapter\n\nCurrent words." },
+    data: {
+      kind: "markdown",
+      title: "Current draft",
+      text: "## Chapter [C1]\n\nCurrent words [C2] (01:10–01:11) 🔥.\n\n```ts\nconst skip = true;\n```",
+    },
   };
   const script = await readNodeAudiobookScript(node, "Narrator", "job");
-  expect(script?.chapters[0]?.paragraphs[0]?.text).toBe("Current words.");
+  expect(script?.chapters).toEqual([
+    {
+      title: "Chapter",
+      paragraphs: [{ role: "Narrator", text: "Current words." }],
+    },
+  ]);
   expect(invoke).not.toHaveBeenCalled();
 });
 

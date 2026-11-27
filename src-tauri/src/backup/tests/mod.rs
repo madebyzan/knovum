@@ -341,10 +341,15 @@ fn journal_with(
         append(&secrets, "-wal"),
         append(&secrets, "-shm"),
     ]);
+    let checkpoints = paths.data.join("agent-runtime/checkpoints.sqlite");
     live.extend([
         paths.data.join("settings.json"),
         paths.data.join("spaces/assets"),
         paths.data.join("agent-extensions"),
+        paths.data.join("knowledge-retrieval.lance"),
+        checkpoints.clone(),
+        append(&checkpoints, "-wal"),
+        append(&checkpoints, "-shm"),
     ]);
     Journal {
         phase,

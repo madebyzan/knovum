@@ -45,8 +45,17 @@ pub(super) async fn acknowledge(
         .bind(space_id).bind(whole_space).bind(sqlx::types::Json(&nodes))
         .execute(&mut **tx).await.map_err(db::sql_error)?;
     let ids = pending.iter().map(|item| item.id).collect::<Vec<_>>();
-    sqlx::query("DELETE FROM spaces_retrieval_invalidations WHERE space_id=$1 AND ($2 OR id IN (SELECT value FROM json_each($3)))")
-        .bind(space_id).bind(whole_space).bind(sqlx::types::Json(&ids))
-        .execute(&mut **tx).await.map_err(db::sql_error)?;
+    let max_id = ids.iter().copied().max().unwrap_or(0);
+    sqlx::query(
+        "DELETE FROM spaces_retrieval_invalidations \
+         WHERE space_id=$1 AND (($2 AND id <= $3) OR id IN (SELECT value FROM json_each($4)))",
+    )
+    .bind(space_id)
+    .bind(whole_space)
+    .bind(max_id)
+    .bind(sqlx::types::Json(&ids))
+    .execute(&mut **tx)
+    .await
+    .map_err(db::sql_error)?;
     Ok(())
 }

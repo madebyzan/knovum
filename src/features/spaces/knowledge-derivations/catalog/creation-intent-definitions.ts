@@ -14,7 +14,7 @@ const HIDDEN: CreationIntentDecision = { state: "hidden" };
  * Run's problem, and the Run says so while it prepares.
  */
 function decideCreation(context: CreationSelectionContext): CreationIntentDecision {
-  if (context.selectionCount === 0) return HIDDEN;
+  if (context.selectionCount === 0 || context.semanticCount === 0) return HIDDEN;
   if (context.selectionCount > MAX_CREATION_SOURCES) {
     return { state: "blocked", reason: "too-many-sources" };
   }
@@ -28,26 +28,30 @@ function decideVideoGeneration(context: CreationSelectionContext): CreationInten
 }
 
 export const CREATION_INTENT_DEFINITIONS = [
-  { id: "draft-document", icon: "file-pen", decide: decideCreation },
-  { id: "generate-visualization", icon: "image", decide: decideCreation },
-  { id: "generate-video", icon: "sparkles", decide: decideVideoGeneration },
+  { id: "draft-document", group: "create", icon: "file-pen", decide: decideCreation },
+  { id: "generate-visualization", group: "create", icon: "image", decide: decideCreation },
+  { id: "generate-video", group: "create", icon: "clapperboard", decide: decideVideoGeneration },
   {
     id: "remove-image-background",
+    group: "utility",
     icon: "scan",
     decide: ({ canRemoveBackground }) => (canRemoveBackground ? AVAILABLE : HIDDEN),
   },
   {
     id: "split-image-layers",
+    group: "utility",
     icon: "layers",
     decide: ({ canDeriveImageSet }) => (canDeriveImageSet ? AVAILABLE : HIDDEN),
   },
   {
     id: "slice-sticker-sheet",
+    group: "utility",
     icon: "sticker",
     decide: ({ canDeriveImageSet }) => (canDeriveImageSet ? AVAILABLE : HIDDEN),
   },
   {
     id: "add-video-subtitles",
+    group: "utility",
     icon: "captions",
     decide: ({ canAddVideoSubtitles }) => (canAddVideoSubtitles ? AVAILABLE : HIDDEN),
   },

@@ -11,7 +11,7 @@
     "refreshFailed": "Failed to fetch web content"
   },
   "preview": {
-    "quickLook": "Quick Look",
+    "quickLook": "Preview",
     "system": "Open",
     "show": "Preview view",
     "instantUnavailable": {

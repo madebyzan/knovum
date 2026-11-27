@@ -209,6 +209,7 @@ watchEffect(() =>
           v-model="draft.lexicon.entries.value"
           :valid="draft.lexicon.isValid.value"
           :disabled="editingDisabled"
+          hide-title
         />
       </SpeechSettingsDisclosure>
     </SpeechEditorPage>

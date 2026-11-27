@@ -40,13 +40,16 @@ pub(super) async fn drive(
     static EXECUTION: OnceLock<Semaphore> = OnceLock::new();
     let deadline = tokio::time::Instant::now()
         + super::identity::remaining_duration(&host.pool, &host.ids.run_id).await?;
-    let _permit = tokio::time::timeout_at(
-        deadline,
-        EXECUTION.get_or_init(|| Semaphore::new(1)).acquire(),
-    )
-    .await
-    .map_err(|_| "builtin-agent-duration-budget-exhausted")?
-    .map_err(|_| "builtin-agent-process-admission-closed")?;
+    let _permit = tokio::select! {
+        biased;
+        _ = cancellation.cancelled() => return Err("builtin-agent-cancelled".into()),
+        acquired = tokio::time::timeout_at(
+            deadline,
+            EXECUTION.get_or_init(|| Semaphore::new(1)).acquire(),
+        ) => acquired
+            .map_err(|_| "builtin-agent-duration-budget-exhausted")?
+            .map_err(|_| "builtin-agent-process-admission-closed")?,
+    };
     if cancellation.is_cancelled() {
         return Err("builtin-agent-cancelled".into());
     }
@@ -65,7 +68,9 @@ pub(super) async fn drive(
         &host.ids.conversation_id,
     )
     .map_err(|error| error.to_string())?;
-    std::fs::create_dir_all(&workspace).map_err(|error| error.to_string())?;
+    tokio::fs::create_dir_all(&workspace)
+        .await
+        .map_err(|error| error.to_string())?;
     let execute = AgentExecute {
         identity: host.session.identity(&host.ids.run_id),
         model,

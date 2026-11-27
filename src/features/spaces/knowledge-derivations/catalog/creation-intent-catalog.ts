@@ -1,3 +1,4 @@
+import { isSpaceSemanticNode } from "../../knowledge/model/semantic-node";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import { canRemoveImageBackground } from "../image-cutout";
 import { canDeriveImageSet } from "../image-sets";
@@ -10,6 +11,7 @@ export function creationIntentCatalog(nodes: readonly SpaceCanvasNode[]) {
   const sources = creationSources(nodes);
   const decisions: CreationIntentDecisions = decideCreationIntents({
     selectionCount: nodes.length,
+    semanticCount: nodes.filter(isSpaceSemanticNode).length,
     sourceCount: sources.length,
     imageCount: nodes.filter(({ data }) => data.kind === "image" && data.sourceRevision).length,
     canRemoveBackground: canRemoveImageBackground(single),

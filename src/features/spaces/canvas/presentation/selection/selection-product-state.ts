@@ -57,6 +57,20 @@ interface CanvasSelectionProductInput {
   snapshot: SpaceEditSnapshot;
 }
 
+export function selectedContentNodes(
+  nodes: readonly SpaceCanvasNode[],
+  selectedIds: readonly string[],
+  selectedStructureNodeIds: readonly string[],
+  snapshot: SpaceEditSnapshot,
+): SpaceCanvasNode[] {
+  const selected = new Set(selectedIds);
+  const explicitIds = nodes.filter((node) => selected.has(node.id)).map(({ id }) => id);
+  const index = createStructureIndex(snapshot.structure);
+  const rootIds = currentSelectionRoots(explicitIds, selectedStructureNodeIds, index).map(({ id }) => id);
+  const memberIds = new Set(contentNodeIdsWithin(rootIds, index));
+  return nodes.filter(({ id }) => memberIds.has(id));
+}
+
 export function canvasSelectionProductState({
   nodes,
   selectedIds,

@@ -8,6 +8,7 @@
     "changed": "Some sources changed after this item was created."
   },
   "citations": "Citations · {count}",
+  "createAction": "Create",
   "createFromSelection": "Create from selection",
   "finishNodeOperation": "Finish or cancel the current node operation first.",
   "tooManySources": "Select no more than 32 resources to create from.",

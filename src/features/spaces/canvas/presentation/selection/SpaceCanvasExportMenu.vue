@@ -16,7 +16,11 @@ const { t } = useI18n();
   <SpaceExportMenu :target="target" side="top" align="center" @save="emit('save', $event)">
     <template #trigger>
       <ToolbarButton as-child>
-        <UiIconButton :label="t('spaces.canvas.nodeActions.export')" tooltip :disabled="!target">
+        <UiIconButton
+          :label="t('spaces.canvas.nodeActions.export')"
+          :title="t('spaces.canvas.nodeActions.export')"
+          :disabled="!target"
+        >
           <Download class="size-4" :stroke-width="1.6" />
         </UiIconButton>
       </ToolbarButton>

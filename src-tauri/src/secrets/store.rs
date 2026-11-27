@@ -1,6 +1,15 @@
-use std::{fs, path::PathBuf};
+use std::{
+    ffi::OsString,
+    fs,
+    path::{Path, PathBuf},
+    time::Duration,
+};
 
-use sqlx::{migrate::Migrator, SqlitePool};
+use sqlx::{
+    migrate::Migrator,
+    sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePoolOptions, SqliteSynchronous},
+    SqlitePool,
+};
 use tauri::{AppHandle, Manager};
 
 static MIGRATOR: Migrator = sqlx::migrate!("src/secrets/migrations");
@@ -12,16 +21,35 @@ pub(super) async fn open(app: &AppHandle) -> Result<SqlitePool, String> {
         .app_config_dir()
         .map_err(|error| error.to_string())?
         .join("secrets.db");
-    prepare_file(&path)?;
-    let pool = crate::sqlite::connect_feature_database(app, "secrets.db").await?;
+    open_at(&path).await
+}
+
+pub(super) async fn open_at(path: &Path) -> Result<SqlitePool, String> {
+    prepare_file(path)?;
+    // Use DELETE journal mode rather than WAL so plaintext credentials never linger in
+    // default-umask `-wal` sidecar files on Unix.
+    let options = SqliteConnectOptions::new()
+        .filename(path)
+        .create_if_missing(true)
+        .foreign_keys(true)
+        .journal_mode(SqliteJournalMode::Delete)
+        .synchronous(SqliteSynchronous::Full)
+        .busy_timeout(Duration::from_secs(5))
+        .pragma("temp_store", "MEMORY");
+    let pool = SqlitePoolOptions::new()
+        .max_connections(1)
+        .connect_with(options)
+        .await
+        .map_err(|error| error.to_string())?;
     MIGRATOR
         .run(&pool)
         .await
         .map_err(|error| format!("Failed to initialize secrets database: {error}"))?;
+    remove_stale_wal_sidecars(path);
     Ok(pool)
 }
 
-fn prepare_file(path: &PathBuf) -> Result<(), String> {
+fn prepare_file(path: &Path) -> Result<(), String> {
     fs::create_dir_all(path.parent().ok_or("Secret database path has no parent")?)
         .map_err(|error| error.to_string())?;
     let mut options = fs::OpenOptions::new();
@@ -37,6 +65,19 @@ fn prepare_file(path: &PathBuf) -> Result<(), String> {
     #[cfg(not(unix))]
     options.open(path).map_err(|error| error.to_string())?;
     Ok(())
+}
+
+fn remove_stale_wal_sidecars(path: &Path) {
+    for suffix in ["-wal", "-shm"] {
+        let mut sidecar: OsString = path.as_os_str().into();
+        sidecar.push(suffix);
+        let sidecar = PathBuf::from(sidecar);
+        if let Err(error) = fs::remove_file(&sidecar) {
+            if error.kind() != std::io::ErrorKind::NotFound {
+                log::warn!("failed to remove stale secrets sidecar: {error}");
+            }
+        }
+    }
 }
 
 pub(super) async fn get(pool: &SqlitePool, key: &str) -> Result<Option<String>, String> {

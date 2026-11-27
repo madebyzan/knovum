@@ -1,6 +1,7 @@
 import type { Ref } from "vue";
 
 import type { RelationKind } from "../../contracts/generated/RelationKind";
+import { beginSpaceMutation } from "../../history/mutation-barrier";
 import { recordSpaceHistory, type SpaceHistoryState } from "../../history/stack";
 import {
   createRelation as persistRelation,
@@ -44,10 +45,15 @@ export async function createSpaceRelation(context: RelationContext, input: Creat
   );
   if (!decision || decision.kind === "duplicate") return decision?.relation;
   const relation = decision.relation;
-  await persistRelation(relation);
-  if (context.activeSpaceId.value === spaceId) {
-    addRelation(context, relation);
-    recordSpaceHistory(context.history, historyForInsert(context, relation));
+  const release = beginSpaceMutation(context.history);
+  try {
+    await persistRelation(relation);
+    if (context.activeSpaceId.value === spaceId) {
+      addRelation(context, relation);
+      recordSpaceHistory(context.history, historyForInsert(context, relation));
+    }
+  } finally {
+    release();
   }
   return relation;
 }
@@ -75,13 +81,18 @@ export async function updateSpaceRelation(
     return decision.relation;
   }
   const next = decision.relation;
-  await updateRelation(next);
-  if (context.activeSpaceId.value === current.spaceId) {
-    replaceRelation(context, next);
-    recordSpaceHistory(context.history, {
-      undo: () => persistState(context, current),
-      redo: () => persistState(context, next),
-    });
+  const release = beginSpaceMutation(context.history);
+  try {
+    await updateRelation(next);
+    if (context.activeSpaceId.value === current.spaceId) {
+      replaceRelation(context, next);
+      recordSpaceHistory(context.history, {
+        undo: () => persistState(context, current),
+        redo: () => persistState(context, next),
+      });
+    }
+  } finally {
+    release();
   }
   return next;
 }
@@ -91,24 +102,28 @@ export async function removeSpaceRelation(context: RelationContext, relationId: 
 }
 
 export async function removeSpaceRelations(context: RelationContext, relationIds: readonly string[]) {
-  const selection = selectRelationsForSpace(
-    context.relations.value,
-    relationIds,
-    context.activeSpaceId.value,
-  );
-  if (!selection) return;
-  await revokeRelations(selection.ids);
-  removeRelationsFromState(context, selection.ids);
-  recordSpaceHistory(context.history, {
-    undo: async () => {
-      await restoreRelations(selection.ids);
-      for (const relation of selection.relations) addRelation(context, relation);
-    },
-    redo: async () => {
-      await revokeRelations(selection.ids);
-      removeRelationsFromState(context, selection.ids);
-    },
-  });
+  const spaceId = context.activeSpaceId.value;
+  const selection = selectRelationsForSpace(context.relations.value, relationIds, spaceId);
+  if (!selection || !spaceId) return;
+  const release = beginSpaceMutation(context.history);
+  try {
+    await revokeRelations(selection.ids);
+    removeRelationsFromState(context, spaceId, selection.ids);
+    if (context.activeSpaceId.value === spaceId) {
+      recordSpaceHistory(context.history, {
+        undo: async () => {
+          await restoreRelations(selection.ids);
+          for (const relation of selection.relations) addRelation(context, relation);
+        },
+        redo: async () => {
+          await revokeRelations(selection.ids);
+          removeRelationsFromState(context, spaceId, selection.ids);
+        },
+      });
+    }
+  } finally {
+    release();
+  }
 }
 
 function historyForInsert(context: RelationContext, relation: SpaceRelation) {
@@ -143,7 +158,8 @@ function removeRelationFromState(context: RelationContext, relation: SpaceRelati
   context.relations.value = context.relations.value.filter((candidate) => candidate.id !== relation.id);
 }
 
-function removeRelationsFromState(context: RelationContext, relationIds: readonly string[]) {
+function removeRelationsFromState(context: RelationContext, spaceId: string, relationIds: readonly string[]) {
+  if (context.activeSpaceId.value !== spaceId) return;
   const removed = new Set(relationIds);
   context.relations.value = context.relations.value.filter(({ id }) => !removed.has(id));
 }

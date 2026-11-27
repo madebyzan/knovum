@@ -1,7 +1,32 @@
 const MAX_SEGMENT_CHARACTERS: usize = 400;
 
+fn is_non_speakable(character: char) -> bool {
+    if character.is_control() && !character.is_whitespace() {
+        return true;
+    }
+    matches!(
+        character,
+        '\u{00AD}'
+            | '\u{200B}'..='\u{200F}'
+            | '\u{202A}'..='\u{202E}'
+            | '\u{2060}'..='\u{206F}'
+            | '\u{20E3}'
+            | '\u{2190}'..='\u{21FF}'
+            | '\u{2500}'..='\u{25FF}'
+            | '\u{2700}'..='\u{27BF}'
+            | '\u{FE0E}'
+            | '\u{FE0F}'
+            | '\u{FEFF}'
+            | '\u{1F000}'..='\u{1FAFF}'
+    )
+}
+
 pub(crate) fn normalize(value: &str) -> String {
-    value.split_whitespace().collect::<Vec<_>>().join(" ")
+    let cleaned: String = value
+        .chars()
+        .filter(|character| !is_non_speakable(*character))
+        .collect();
+    cleaned.split_whitespace().collect::<Vec<_>>().join(" ")
 }
 
 pub(crate) fn parse_lexicon(value: &serde_json::Value) -> Result<Vec<(String, String)>, String> {
@@ -59,6 +84,9 @@ pub(super) fn segment(value: &str) -> Result<Vec<String>, String> {
     let mut soft_boundary = None;
     let mut input = value.chars().peekable();
     while let Some(character) = input.next() {
+        if is_non_speakable(character) {
+            continue;
+        }
         if character.is_whitespace() {
             if !current.ends_with(' ') && !current.is_empty() {
                 current.push(' ');
@@ -102,7 +130,7 @@ pub(super) fn segment(value: &str) -> Result<Vec<String>, String> {
 
 fn push_segment(segments: &mut Vec<String>, current: &mut String) {
     let text = current.trim();
-    if !text.is_empty() {
+    if !text.is_empty() && text.chars().any(char::is_alphanumeric) {
         segments.push(text.to_owned());
     }
     current.clear();

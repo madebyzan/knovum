@@ -6,6 +6,7 @@
   "cancel": "Annulla traduzione",
   "failed": "Traduzione dello script video non riuscita",
   "source": "Origine",
-  "terms": "Termini preservati",
-  "termsPlaceholder": "Termini o nomi di marchi da mantenere invariati, separati da virgole (facoltativo)"
+  "terms": "Non tradurre",
+  "termsPlaceholder": "Nomi, marchi, ecc., separati da virgole",
+  "start": "Avvia traduzione"
 }

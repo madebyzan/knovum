@@ -6,7 +6,7 @@
   },
   "nodeActions": {
     "label": "Actions du nœud",
-    "openOriginal": "Ouvrir l'original",
+    "openOriginal": "Ouvrir le lien",
     "goToTarget": "Aller à la cible",
     "export": "Exporter"
   },

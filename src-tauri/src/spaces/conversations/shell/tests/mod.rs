@@ -7,7 +7,7 @@ use serde_json::{json, Value};
 
 use super::{
     output::{self, Captured, Exit, Finished, MAX_OUTPUT_BYTES},
-    prepare,
+    prepare, SandboxBoundaries,
 };
 
 /// A directory under the build's target directory, not the system temporary directory, because a
@@ -41,8 +41,18 @@ fn text(response: &Value) -> &str {
 }
 
 async fn run(scratch: &Scratch, command: &str, timeout: u64) -> Value {
+    run_with_boundaries(scratch, SandboxBoundaries::default(), command, timeout).await
+}
+
+async fn run_with_boundaries(
+    scratch: &Scratch,
+    boundaries: SandboxBoundaries,
+    command: &str,
+    timeout: u64,
+) -> Value {
     prepare(
         scratch.workspace(),
+        boundaries,
         json!({"command": command, "timeout": timeout}),
     )
     .expect("valid command")
@@ -66,11 +76,21 @@ fn a_command_needs_a_command_line_and_a_bounded_timeout() {
         json!({"command": "ls", "cwd": "/"}),
     ] {
         assert!(
-            prepare(PathBuf::from("workspace"), arguments.clone()).is_err(),
+            prepare(
+                PathBuf::from("workspace"),
+                SandboxBoundaries::default(),
+                arguments.clone()
+            )
+            .is_err(),
             "{arguments} was accepted"
         );
     }
-    assert!(prepare(PathBuf::from("workspace"), json!({"command": "ls"})).is_ok());
+    assert!(prepare(
+        PathBuf::from("workspace"),
+        SandboxBoundaries::default(),
+        json!({"command": "ls"})
+    )
+    .is_ok());
 }
 
 #[test]
@@ -185,5 +205,65 @@ async fn a_confined_command_writes_only_its_working_directory() {
     assert!(
         !outside.exists(),
         "Seatbelt let a command write outside its working directory"
+    );
+}
+
+#[cfg(target_os = "macos")]
+#[tokio::test]
+async fn a_confined_command_cannot_read_app_config_or_sibling_app_data() {
+    let scratch = Scratch::new();
+    let app_config = scratch.0.join("app-config");
+    let app_data = scratch.0.join("app-data");
+    let workspace = app_data.join("workspaces/conv-1");
+    std::fs::create_dir_all(&app_config).unwrap();
+    std::fs::create_dir_all(&workspace).unwrap();
+    let secrets = app_config.join("secrets.db");
+    let sibling = app_data.join("other-space.txt");
+    let own = workspace.join("input.txt");
+    std::fs::write(&secrets, "TOP_SECRET_API_KEY").unwrap();
+    std::fs::write(&sibling, "OTHER_SPACE_DATA").unwrap();
+    std::fs::write(&own, "OWN_WORKSPACE_DATA").unwrap();
+
+    let boundaries = SandboxBoundaries {
+        app_config_dir: Some(app_config),
+        app_data_dir: Some(app_data),
+    };
+    let read_own = prepare(
+        workspace.clone(),
+        boundaries.clone(),
+        json!({"command": "cat input.txt", "timeout": 60}),
+    )
+    .unwrap()
+    .execute(Duration::from_secs(60))
+    .await
+    .unwrap();
+    assert_eq!(text(&read_own).trim(), "OWN_WORKSPACE_DATA");
+
+    let read_secrets = prepare(
+        workspace.clone(),
+        boundaries.clone(),
+        json!({"command": format!("cat '{}'", secrets.display()), "timeout": 60}),
+    )
+    .unwrap()
+    .execute(Duration::from_secs(60))
+    .await
+    .unwrap();
+    assert!(
+        !text(&read_secrets).contains("TOP_SECRET_API_KEY"),
+        "Seatbelt leaked secrets.db: {read_secrets}"
+    );
+
+    let read_sibling = prepare(
+        workspace,
+        boundaries,
+        json!({"command": format!("cat '{}'", sibling.display()), "timeout": 60}),
+    )
+    .unwrap()
+    .execute(Duration::from_secs(60))
+    .await
+    .unwrap();
+    assert!(
+        !text(&read_sibling).contains("OTHER_SPACE_DATA"),
+        "Seatbelt leaked sibling app_data file: {read_sibling}"
     );
 }

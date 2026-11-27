@@ -2,15 +2,30 @@
 import type Konva from "konva";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { Arrow as KonvaArrow, Text as KonvaText } from "vue-konva/core";
+import {
+  Arrow as KonvaArrow,
+  Group as KonvaGroup,
+  Rect as KonvaRect,
+  Text as KonvaText,
+} from "vue-konva/core";
 // oxlint-disable-next-line import/no-unassigned-import
 import "konva/lib/shapes/Arrow";
+// oxlint-disable-next-line import/no-unassigned-import
+import "konva/lib/shapes/Rect";
 // oxlint-disable-next-line import/no-unassigned-import
 import "konva/lib/shapes/Text";
 
 import type { CanvasPalette } from "../../use-canvas-palette";
 import type { CanvasSceneRelation } from "../scene/canvas-scene";
-import { canvasRelationArrowheads, connectorLabelPosition } from "./connector-presentation";
+import {
+  canvasRelationArrowheads,
+  connectorLabelPosition,
+  measureRelationLabelWidth,
+} from "./connector-presentation";
+
+const LABEL_FONT_SIZE = 11;
+const LABEL_PADDING_X = 6;
+const LABEL_HEIGHT = 18;
 
 const props = defineProps<{
   sourceRelation: CanvasSceneRelation;
@@ -30,6 +45,11 @@ const label = computed(() => {
   const count = relation.value.relations.length;
   return count > 1 ? `${kind} ×${count}` : kind;
 });
+const labelWidth = computed(
+  () =>
+    measureRelationLabelWidth(label.value, props.palette.typography.fontFamily, LABEL_FONT_SIZE) +
+    LABEL_PADDING_X * 2,
+);
 
 function select(event: Konva.KonvaEventObject<PointerEvent>) {
   event.cancelBubble = true;
@@ -56,20 +76,38 @@ function select(event: Konva.KonvaEventObject<PointerEvent>) {
       onPointerdown: select,
     }"
   />
-  <KonvaText
+  <KonvaGroup
     :config="{
       ...connectorLabelPosition(relation),
-      text: label,
-      offsetX: 80 / zoom,
-      offsetY: 6.5 / zoom,
-      width: 160 / zoom,
-      align: 'center',
-      fontSize: 11 / zoom,
-      fill: palette.relationByColor[relation.color],
-      stroke: palette.panel,
-      strokeWidth: 4 / zoom,
-      fillAfterStrokeEnabled: true,
       listening: false,
+      perfectDrawEnabled: false,
     }"
-  />
+  >
+    <KonvaRect
+      :config="{
+        x: -labelWidth / 2 / zoom,
+        y: -LABEL_HEIGHT / 2 / zoom,
+        width: labelWidth / zoom,
+        height: LABEL_HEIGHT / zoom,
+        fill: palette.panel,
+        stroke: selected ? palette.relationByColor[relation.color] : palette.border,
+        strokeWidth: (selected ? 1.25 : 0.75) / zoom,
+        cornerRadius: 4 / zoom,
+      }"
+    />
+    <KonvaText
+      :config="{
+        x: -labelWidth / 2 / zoom,
+        y: -LABEL_HEIGHT / 2 / zoom,
+        width: labelWidth / zoom,
+        height: LABEL_HEIGHT / zoom,
+        text: label,
+        align: 'center',
+        verticalAlign: 'middle',
+        fontSize: LABEL_FONT_SIZE / zoom,
+        fontFamily: palette.typography.fontFamily,
+        fill: palette.relationByColor[relation.color],
+      }"
+    />
+  </KonvaGroup>
 </template>

@@ -73,8 +73,9 @@ Whisper API, so leading silence is excluded from language detection while retain
 Detection then holds for the whole request, because Whisper decodes one language per call and was
 trained for monolingual speech. Code-switched media is therefore transcribed in the language of its
 first speech window, and passages in another language are rendered into that language rather than
-their own. Every transcription path currently requests automatic detection; the fixed-language
-policy in the speech contract has no caller, so this limit is not yet overridable by the user.
+their own. Automatic detection remains the default for background and first-pass transcription; explicit media
+transcription requests may supply a fixed ISO-639 language code (`LanguagePolicy::Fixed`) from the
+Media Knowledge panel to avoid code-switched first-window misdetection.
 Word timings combine complete Unicode token pieces. Chinese, Japanese, Thai, Lao, Burmese and
 Cantonese retain these units; other languages merge non-space subwords using the upstream
 [Whisper tokenizer language policy](https://github.com/openai/whisper/blob/main/whisper/tokenizer.py).

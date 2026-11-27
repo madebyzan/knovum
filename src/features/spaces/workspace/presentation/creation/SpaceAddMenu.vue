@@ -5,11 +5,8 @@ import { useI18n } from "vue-i18n";
 import { toast } from "vue-sonner";
 
 import { getErrorMessage } from "../../../../../foundation/errors/error-format";
-import UiButton from "../../../../../shared/ui/UiButton.vue";
-import UiDialog from "../../../../../shared/ui/UiDialog.vue";
 import UiDropdownMenu from "../../../../../shared/ui/UiDropdownMenu.vue";
 import UiIconButton from "../../../../../shared/ui/UiIconButton.vue";
-import UiInput from "../../../../../shared/ui/UiInput.vue";
 import { useCanvasToolStore } from "../../../canvas/canvas-tool-store";
 import { getCanvasEditorSession } from "../../../canvas/editor-session";
 import { useNodeOperationGate } from "../../../canvas/use-node-operation-gate";
@@ -20,6 +17,7 @@ import SpaceCustomKnowledgeObjectDialog from "../../../knowledge/presentation/Sp
 import SpaceKnowledgeTypeEditor from "../../../knowledge/presentation/SpaceKnowledgeTypeEditor.vue";
 import { useSpaceStore } from "../../../session/space-store";
 import SpaceAddMenuContent from "./SpaceAddMenuContent.vue";
+import SpaceAddWebsiteDialog from "./SpaceAddWebsiteDialog.vue";
 import { useAddMenu } from "./use-add-menu";
 
 const { t } = useI18n();
@@ -99,22 +97,12 @@ async function beginAudioRecording() {
     />
   </UiDropdownMenu>
 
-  <UiDialog
+  <SpaceAddWebsiteDialog
     v-model:open="websiteOpen"
-    :title="t('spaces.importExport.website.add')"
-    :description="t('spaces.importExport.website.description')"
-  >
-    <UiInput v-model="website" type="url" placeholder="example.com/article" @commit.prevent="addWebsite" />
-    <template #footer>
-      <UiButton variant="ghost" @click="websiteOpen = false">{{ t("common.cancel") }}</UiButton>
-      <UiButton
-        variant="primary"
-        :disabled="!normalizedWebsite || !nodeOperations.allows('create')"
-        @click="addWebsite"
-        >{{ t("common.continue") }}</UiButton
-      >
-    </template>
-  </UiDialog>
+    v-model:website="website"
+    :can-submit="Boolean(normalizedWebsite) && nodeOperations.allows('create')"
+    @submit="addWebsite"
+  />
   <SpaceCustomKnowledgeObjectDialog v-model:open="customObjectOpen" />
   <SpaceKnowledgeTypeEditor v-model:open="typeEditorOpen" />
   <SpacePortalDialog v-model:open="portalOpen" />

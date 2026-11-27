@@ -1,54 +1,31 @@
 <script setup lang="ts">
-import {
-  Captions,
-  ChevronRight,
-  FilePenLine,
-  Image,
-  Layers3,
-  ScanLine,
-  Sparkles,
-  Sticker,
-} from "@lucide/vue";
-import { DropdownMenuPortal, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from "reka-ui";
+import { Captions, Clapperboard, FilePenLine, Image, Layers3, ScanLine, Sticker } from "@lucide/vue";
 import { computed, type Component } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { canRunAction, shouldShowAction } from "../../../../shared/contracts/action-availability";
+import { canRunAction } from "../../../../shared/contracts/action-availability";
 import UiDropdownMenuItem from "../../../../shared/ui/UiDropdownMenuItem.vue";
 import UiTooltip from "../../../../shared/ui/UiTooltip.vue";
 import { spaceActionLabel } from "../catalog/action-label";
 import type { CreationIntentIcon, DerivationUnavailableReason } from "../catalog/creation-intent";
-import {
-  CREATION_INTENT_DEFINITIONS,
-  type CreationIntentId,
-  type CreationIntentDecisions,
-} from "../catalog/creation-intent-definitions";
+import type { CreationIntentDecisions, CreationIntentId } from "../catalog/creation-intent-definitions";
+import { visibleCreationActions } from "./visible-derivation-actions";
 
-const props = defineProps<{
-  derivations: CreationIntentDecisions;
-  rowClass: string;
-  submenuClass: string;
-  exclude?: readonly CreationIntentId[];
-}>();
+const props = defineProps<{ derivations: CreationIntentDecisions }>();
 const emit = defineEmits<{ invoke: [actionId: CreationIntentId] }>();
 const { t } = useI18n();
+
 const ICONS = {
   captions: Captions,
+  clapperboard: Clapperboard,
   "file-pen": FilePenLine,
   image: Image,
   layers: Layers3,
   scan: ScanLine,
-  sparkles: Sparkles,
   sticker: Sticker,
 } satisfies Record<CreationIntentIcon, Component>;
-const derivationActions = computed(() =>
-  CREATION_INTENT_DEFINITIONS.filter(({ id }) => {
-    if (props.exclude?.includes(id)) return false;
-    const decision = props.derivations[id];
-    return shouldShowAction(decision);
-  }),
-);
-const hasActions = computed(() => derivationActions.value.length > 0);
+
+const creationActions = computed(() => visibleCreationActions(props.derivations));
 
 function reasonLabel(reason: DerivationUnavailableReason | undefined) {
   if (reason === "active-node-operation") return t("spaces.creation.shared.finishNodeOperation");
@@ -73,30 +50,18 @@ function selectAction(event: Event, actionId: CreationIntentId) {
 </script>
 
 <template>
-  <DropdownMenuSub v-if="hasActions">
-    <DropdownMenuSubTrigger :class="props.rowClass">
-      <Sparkles class="size-3.5" />
-      <span class="min-w-0 flex-1">{{ t("spaces.creation.shared.createFromSelection") }}</span>
-      <ChevronRight class="size-3 text-fg-tertiary" />
-    </DropdownMenuSubTrigger>
-    <DropdownMenuPortal>
-      <DropdownMenuSubContent :side-offset="4" :align-offset="-4" :class="props.submenuClass">
-        <UiTooltip
-          v-for="action in derivationActions"
-          :key="action.id"
-          :text="actionReason(action.id)"
-          :disabled="canRunAction(props.derivations[action.id])"
-          side="right"
-        >
-          <UiDropdownMenuItem
-            :class="props.rowClass"
-            :aria-disabled="!canRunAction(props.derivations[action.id])"
-            @select="selectAction($event, action.id)"
-          >
-            <component :is="ICONS[action.icon]" class="size-3.5" />{{ spaceActionLabel(action.id) }}
-          </UiDropdownMenuItem>
-        </UiTooltip>
-      </DropdownMenuSubContent>
-    </DropdownMenuPortal>
-  </DropdownMenuSub>
+  <UiTooltip
+    v-for="action in creationActions"
+    :key="action.id"
+    :text="actionReason(action.id)"
+    :disabled="canRunAction(props.derivations[action.id])"
+    side="right"
+  >
+    <UiDropdownMenuItem
+      :aria-disabled="!canRunAction(props.derivations[action.id])"
+      @select="selectAction($event, action.id)"
+    >
+      <component :is="ICONS[action.icon]" class="size-3.5" />{{ spaceActionLabel(action.id) }}
+    </UiDropdownMenuItem>
+  </UiTooltip>
 </template>

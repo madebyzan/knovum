@@ -8,7 +8,7 @@ import { createSourceMediaLibrary } from "../media/source-media";
 import type { VideoAsset, VideoEditProject } from "../project";
 import { createStageScene, type StageScene } from "../stage/konva-scene";
 import { lastFrameMs, projectDurationMs } from "../timing";
-import { audioContext } from "./audio-context";
+import { audioContext, suspendAudioContext } from "./audio-context";
 import { createFrameSources } from "./frame-sources";
 import { createPlaybackClock } from "./playback-clock";
 import { buildScene } from "./scene-plan";
@@ -73,6 +73,7 @@ export function createPreviewPlayer(options: PlayerOptions) {
   function halt() {
     clock.pause();
     sound.stop();
+    suspendAudioContext();
     invalidate();
   }
 

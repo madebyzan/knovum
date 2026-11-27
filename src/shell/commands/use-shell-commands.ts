@@ -1,9 +1,9 @@
 import { listen } from "@tauri-apps/api/event";
 import { error as logError } from "@tauri-apps/plugin-log";
-import { computed, onMounted, onUnmounted, watchEffect, type Ref } from "vue";
+import { computed, onMounted, onUnmounted, watch, watchEffect, type Ref } from "vue";
 import { useI18n } from "vue-i18n";
 
-import { bindCommandShortcuts } from "../../foundation/commands/command-shortcuts";
+import { bindCommandShortcuts, commandShortcutSignature } from "../../foundation/commands/command-shortcuts";
 import { registerAppCommands, runAppCommandById } from "../../foundation/commands/run-app-command";
 import { formatErrorDiagnostic } from "../../foundation/errors/error-format";
 import { createAsyncDisposer } from "../../foundation/lifecycle/async-disposer";
@@ -78,10 +78,16 @@ export function useShellCommands(options: ShellCommandControllerOptions) {
   );
 
   const menuCommandListener = createAsyncDisposer();
-  watchEffect((cleanup) => {
-    cleanup(registerAppCommands(commands.value));
-    cleanup(bindCommandShortcuts(commands.value, shortcutsStore?.getEffectiveShortcut));
-  });
+  const shortcutSignature = computed(() =>
+    commandShortcutSignature(commands.value, shortcutsStore?.getEffectiveShortcut),
+  );
+  watchEffect((cleanup) => cleanup(registerAppCommands(commands.value)));
+  watch(
+    shortcutSignature,
+    (_next, _prev, cleanup) =>
+      cleanup(bindCommandShortcuts(() => commands.value, shortcutsStore?.getEffectiveShortcut)),
+    { immediate: true },
+  );
   onMounted(() => {
     void menuCommandListener
       .attach(listen<string>("knovum-run-command", ({ payload }) => runAppCommandById(payload)))

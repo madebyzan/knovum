@@ -47,9 +47,9 @@ jobs:
     needs: prepare
     strategy:
       fail-fast: false
-      # Serialized: the Tauri action reads, merges and rewrites one shared `latest.json`, so
-      # parallel platforms would publish an updater manifest missing the platforms they raced.
-      max-parallel: 1
+      # Tag releases serialize only because tauri-action updates one shared latest.json;
+      # QA workflow_dispatch builds do not touch latest.json and run across all 3 platforms in parallel.
+      max-parallel: ${{ github.event_name == 'workflow_dispatch' && 3 || 1 }}
       matrix:
         include:
           - os: macos-15
@@ -74,7 +74,7 @@ jobs:
       # point at it, so this job only produces the packages its gates already admitted.
       - uses: ./.github/actions/setup-rust-build
         with:
-          cache: "false"
+          cache: ${{ github.event_name == 'workflow_dispatch' && 'true' || 'false' }}
       - name: Add the release target
         shell: bash
         run: rustup target add '${{ matrix.target }}'

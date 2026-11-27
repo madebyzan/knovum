@@ -1,5 +1,8 @@
 use std::{
-    sync::{Arc, OnceLock},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Arc, OnceLock,
+    },
     time::Duration,
 };
 
@@ -138,31 +141,54 @@ where
     Ok(())
 }
 
+static IDLE_RECLAIM_SCHEDULED: AtomicBool = AtomicBool::new(false);
+
 fn reclaim_when_idle(slot: WorkerSlot) {
-    tokio::spawn(async move {
-        tokio::time::sleep(IDLE_TTL).await;
-        let mut guard = slot.lock().await;
-        if guard
-            .as_ref()
-            .is_some_and(|worker| worker.last_used.elapsed() >= IDLE_TTL)
-        {
-            if let Some(worker) = guard.as_mut() {
-                let _ = tokio::time::timeout(
-                    Duration::from_secs(2),
-                    worker
-                        .protocol
-                        .request::<_, crate::ai::contracts::runtime::RuntimeShutdownAcknowledgement>(
-                            &worker.session_id.clone(),
-                            "runtime.shutdown",
-                            &crate::ai::contracts::runtime::RuntimeShutdownParams {
-                                session_id: worker.session_id.clone(),
-                            },
-                        ),
-                )
-                .await;
-                worker.terminate().await;
+    if IDLE_RECLAIM_SCHEDULED
+        .compare_exchange(false, true, Ordering::AcqRel, Ordering::Acquire)
+        .is_err()
+    {
+        return;
+    }
+    let Ok(handle) = tokio::runtime::Handle::try_current() else {
+        IDLE_RECLAIM_SCHEDULED.store(false, Ordering::Release);
+        return;
+    };
+    handle.spawn(async move {
+        let mut delay = IDLE_TTL;
+        loop {
+            tokio::time::sleep(delay).await;
+            let mut guard = slot.lock().await;
+            let remaining = guard
+                .as_ref()
+                .map(|worker| IDLE_TTL.saturating_sub(worker.last_used.elapsed()));
+            match remaining {
+                Some(wait) if !wait.is_zero() => {
+                    drop(guard);
+                    delay = wait;
+                    continue;
+                }
+                Some(_) => {
+                    if let Some(worker) = guard.as_mut() {
+                        let _ = tokio::time::timeout(
+                            Duration::from_secs(2),
+                            worker.protocol.request::<_, crate::ai::contracts::runtime::RuntimeShutdownAcknowledgement>(
+                                &worker.session_id.clone(),
+                                "runtime.shutdown",
+                                &crate::ai::contracts::runtime::RuntimeShutdownParams {
+                                    session_id: worker.session_id.clone(),
+                                },
+                            ),
+                        )
+                        .await;
+                        worker.terminate().await;
+                    }
+                    *guard = None;
+                }
+                None => {}
             }
-            *guard = None;
+            IDLE_RECLAIM_SCHEDULED.store(false, Ordering::Release);
+            break;
         }
     });
 }

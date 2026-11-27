@@ -2,11 +2,12 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "ai-runtime",
   "description": "Main-window access to the Rust AI runtime and its persistent workbench state.",
-  "windows": ["main"],
+  "webviews": ["main"],
   "permissions": [
     "ai:allow-await-ai-runtime",
     "ai:allow-cancel-job",
     "ai:allow-detect-external-agent-installations",
+    "ai:allow-detect-local-ollama-models",
     "ai:allow-list-external-agent-descriptors",
     "ai:allow-list-provider-descriptors",
     "ai:allow-get-token-usage-report",

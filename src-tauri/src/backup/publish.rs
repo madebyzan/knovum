@@ -104,6 +104,17 @@ fn targets(
     targets.push(target(secrets.clone(), None, false));
     targets.push(target(append(&secrets, "-wal"), None, false));
     targets.push(target(append(&secrets, "-shm"), None, false));
+    // Clear derived/ephemeral local runtime state so restore never leaves stale LanceDB vectors
+    // or Builtin Agent checkpoints from before the restored snapshot.
+    targets.push(target(
+        paths.data.join("knowledge-retrieval.lance"),
+        None,
+        false,
+    ));
+    let checkpoints = paths.data.join("agent-runtime/checkpoints.sqlite");
+    targets.push(target(checkpoints.clone(), None, false));
+    targets.push(target(append(&checkpoints, "-wal"), None, false));
+    targets.push(target(append(&checkpoints, "-shm"), None, false));
     Ok(targets)
 }
 

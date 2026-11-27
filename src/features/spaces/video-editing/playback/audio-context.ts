@@ -8,3 +8,8 @@ export function audioContext() {
   shared ??= new AudioContext();
   return shared;
 }
+
+/** Suspends the shared context when idle so the OS audio device is released between playbacks. */
+export function suspendAudioContext(): void {
+  if (shared?.state === "running") void shared.suspend();
+}

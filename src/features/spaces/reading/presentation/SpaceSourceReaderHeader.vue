@@ -104,6 +104,7 @@ const menuItems = useReaderHeaderMenu({
           v-if="readable"
           :model-value="pane"
           :options="paneOptions"
+          :aria-label="node.data.title"
           icon-only
           @update:model-value="emit('update:pane', $event)"
         />
@@ -121,7 +122,7 @@ const menuItems = useReaderHeaderMenu({
         </UiIconButton>
         <UiDropdownMenu v-model:open="menuOpen" :items="menuItems" align="end" class="min-w-44">
           <template #trigger>
-            <UiIconButton :label="t('common.more')" size="sm" tooltip>
+            <UiIconButton :label="t('common.more')" :title="t('common.more')" size="sm">
               <MoreHorizontal class="size-3.5" :stroke-width="1.6" />
             </UiIconButton>
           </template>

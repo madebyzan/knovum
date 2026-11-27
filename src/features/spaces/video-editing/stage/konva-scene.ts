@@ -1,4 +1,7 @@
-import Konva from "konva";
+import type { Group } from "konva/lib/Group";
+import { Layer } from "konva/lib/Layer";
+import { Rect } from "konva/lib/shapes/Rect";
+import { Stage } from "konva/lib/Stage";
 
 import type { VideoOutput } from "../project";
 import type { Scene } from "./scene";
@@ -6,7 +9,7 @@ import { createLayerNode, updateLayerNode, type LayerNode } from "./scene-layer"
 import { createTextNode, updateTextNode, type TextNode } from "./scene-text-node";
 import { PLAIN_LAYER, transitionStyle, type TransitionStyle } from "./scene-transition";
 
-function prune(nodeById: Map<string, { group: Konva.Group }>, keep: Set<string>) {
+function prune(nodeById: Map<string, { group: Group }>, keep: Set<string>) {
   for (const [id, node] of nodeById) {
     if (keep.has(id)) continue;
     node.group.destroy();
@@ -25,10 +28,10 @@ function styleOf(transition: TransitionStyle | undefined, index: number) {
  * overlay so a frame update never rebuilds the graph.
  */
 export function createStageScene(container: HTMLDivElement) {
-  const stage = new Konva.Stage({ container, width: 2, height: 2 });
-  const content = new Konva.Layer();
-  const overlay = new Konva.Layer();
-  const backdrop = new Konva.Rect({ listening: false });
+  const stage = new Stage({ container, width: 2, height: 2 });
+  const content = new Layer();
+  const overlay = new Layer();
+  const backdrop = new Rect({ listening: false });
   const layerById = new Map<string, LayerNode>();
   const textById = new Map<string, TextNode>();
   let applied = "";
@@ -37,7 +40,7 @@ export function createStageScene(container: HTMLDivElement) {
   stage.add(overlay);
 
   function syncLayers(scene: Scene, transition: TransitionStyle | undefined) {
-    const order: Konva.Group[] = [];
+    const order: Group[] = [];
     for (const [index, layer] of scene.layers.entries()) {
       let node = layerById.get(layer.id);
       if (!node) {
@@ -53,7 +56,7 @@ export function createStageScene(container: HTMLDivElement) {
   }
 
   function syncTexts(scene: Scene) {
-    const order: Konva.Group[] = [];
+    const order: Group[] = [];
     for (const item of scene.texts) {
       let node = textById.get(item.id);
       if (!node) {

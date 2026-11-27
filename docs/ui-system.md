@@ -238,8 +238,8 @@ is not permission to hard-code a new application accent or neutral.
 ## Focus presentation
 
 The global base stylesheet resets WebView default `:focus` outlines. Pointer focus does
-not draw an outline; `:focus-visible` owns keyboard focus presentation using a restrained
-inset hairline. Controls with a dedicated keyboard indicator may override this base role.
+not draw an outline; `:focus-visible` owns keyboard focus presentation using a quiet
+1px inset outline (`--color-stroke-focus`). Controls with a dedicated keyboard indicator may override this base role.
 Do not blur controls, prevent pointer focus, or add input-modality event listeners to hide
 focus. Reka continues to own focus movement and restoration. Editable-field focus borders,
 menu highlighting and canvas-object selection are separate states, not button focus rings.
@@ -366,8 +366,9 @@ native traffic-light safe area.
 
 Knovum is a single-purpose knowledge-space application. The Spaces sidebar is the leading application
 navigation surface and sits directly against the native window edge; there is no application-module rail.
-Settings is an application preference destination available through the command palette and a system shortcut;
-it is not a persistent row in the Spaces sidebar.
+The sidebar exposes Inbox, Space Library scopes (All, Recent, Favorites, plus quick-access Favorite
+Spaces), the current Space Outline (with an ambient Knowledge Health indicator), and a footer link to
+Settings; Settings is also available through the command palette and a system shortcut.
 
 The window toolbar owns native window chrome and tab navigation. Its compact
 tab strip exposes the Spaces opened in the current desktop session, with back/forward history, an explicitly
@@ -404,14 +405,16 @@ mode selector. A conversation can move from discussion to execution through user
 Task lists are shown only when the Agent uses SDK Todo; simple answers need no plan or approval
 step. Extension choices follow configured tool policies, not an inferred conversation intent.
 
-That toggle opens Conversation as the default view. Explicit object actions open Details;
-the document editor owns its heading Outline, collapsible Focus mode, Markdown source toggle,
-`/` slash commands, left-gutter block handle (`Alt+Up/Down`), contextual table and link bubble bars,
-off-main-thread Shiki code blocks, GFM callouts, and inline streaming AI co-writing panel (`⌘J`, with
+The right sidebar toggle opens Conversation as the default view. On narrow windows where keeping both sidebars
+open would squeeze the primary work area below 480px, the leading sidebar collapses ephemerally without
+overwriting the user's persisted pinned preference. Source Reading Mode and node Details (`info`) live in the
+canvas-side Source Reader pane; the document editor owns its heading Outline, collapsible Focus mode, Markdown
+source toggle, `/` slash commands, left-gutter block handle (`Alt+Up/Down`), contextual table and link bubble
+bars, off-main-thread Shiki code blocks, GFM callouts, and inline streaming AI co-writing panel (`⌘J`, with
 non-destructive Replace / Insert below / follow-up refinement and `@` Space source grounding) locally.
-Source opens as a temporary drill-in and returns to its originating
-view. Selection alone never changes the active view. The right pane does not change the leading sidebar width.
-Closing it releases workspace width and suspends its content until reopened; it has no hover preview.
+Selection alone never changes the active view unless follow-selection is enabled in Source Reader. The right
+pane does not change the leading sidebar width; closing it releases workspace width and suspends its content
+until reopened, with no hover preview.
 An empty Conversation uses the same borderless inspector-section rhythm as the workbench sidebars:
 a Space content summary, compact starter prompt rows that fill and focus the composer without sending,
 quick-attach rows for live Space sources, and recent Space conversations for one-click resumption. Composer
@@ -627,7 +630,9 @@ The toolbar is part of the knowledge-space workflow. It contains Space navigatio
 task progress and contextual controls; it is not an application switcher. Settings temporarily
 replaces the workspace and returns to the last knowledge-space route with editor sessions retained.
 
-In the Spaces app, one Space is one knowledge context and one infinite canvas; there is no intermediate Board entity. The leading sidebar owns Space navigation and the canvas structure Outline; the latter selects and reveals canvas objects. The current document's heading Outline stays inside the editor: a quiet minibar at the upper right expands on hover or explicit keyboard activation into a compact 288px overlay. The minibar shows at most 16 orientation marks, preferring H1/H2 when at least three exist; the expanded directory includes every heading, highlights the current section and scrolls within a bounded height without a visible scrollbar. It does not resize the document or open the workspace right sidebar. Documents without headings omit the minibar; passive orientation marks appear at the xl breakpoint, while explicit keyboard activation can open the outline at any width. Recents and Favorites are not separate user-facing concepts. Archived Spaces leave the workspace sidebar and are managed from Settings, where they can be restored or permanently deleted. Tags are classification/filtering, not a peer view mode. The right sidebar defaults closed and never opens merely because selection changed. High-frequency selection actions stay in the contextual canvas selection bar.
+In the Spaces app, one Space is one knowledge context and one infinite canvas; there is no intermediate Board entity. The leading sidebar owns Space navigation (Inbox, All Spaces, Recent, Favorites, plus up to six pinned favorite Spaces) and the canvas structure Outline; the latter selects and reveals canvas objects. The current document's heading Outline stays inside the editor: a quiet minibar at the upper right expands on hover or explicit keyboard activation into a compact 288px overlay. The minibar shows at most 16 orientation marks, preferring H1/H2 when at least three exist; the expanded directory includes every heading, highlights the current section and scrolls within a bounded height without a visible scrollbar. It does not resize the document or open the workspace right sidebar. Documents without headings omit the minibar; passive orientation marks appear at the xl breakpoint, while explicit keyboard activation can open the outline at any width. Archived Spaces leave the workspace sidebar and are managed from Settings, where they can be restored or permanently deleted. Tags are classification/filtering, not a peer view mode. The right sidebar starts closed and never opens merely because selection changed. High-frequency selection actions stay in the contextual canvas selection bar. On narrow windows where keeping both sidebars open would leave less than 480px for the main workspace, the shell ephemerally auto-collapses the leading sidebar without mutating the user's persisted preference, restoring it automatically when space returns or closing the right sidebar if the user explicitly reopens the leading sidebar.
+
+Theme modes are `light` (default) and `dark`, plus `system` resolution. Shared overlay surfaces (`UiDialog`, `UiPopover`, `UiDropdownMenu`, `UiSelect`, `UiTooltip`) coordinate stacking order through `OVERLAY_LAYER_CLASSES`.
 
 AI writing actions belong to the selection bubble menu. The document toolbar has no AI writing entry.
 

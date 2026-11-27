@@ -14,5 +14,7 @@
   },
   "credentials": {
     "saveFailed": "接続は保存されましたが、キーを保存できませんでした。もう一度やり直してください"
-  }
+  },
+  "connectOllama": "Ollama に接続 ({count})",
+  "ollamaConnected": "ローカル Ollama に接続しました（{count} 件）"
 }

@@ -14,5 +14,7 @@
   },
   "credentials": {
     "saveFailed": "Connection saved, but the key could not be saved. Try again"
-  }
+  },
+  "connectOllama": "Connect Ollama ({count})",
+  "ollamaConnected": "Connected local Ollama ({count} models)"
 }

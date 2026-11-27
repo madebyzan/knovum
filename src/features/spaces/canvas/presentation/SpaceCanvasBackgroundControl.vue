@@ -49,8 +49,14 @@ function measureTrigger() {
 }
 
 function toggle() {
-  if (!open.value) measureTrigger();
-  open.value = !open.value;
+  if (!open.value) {
+    measureTrigger();
+    open.value = true;
+    const activeIndex = Math.max(0, canvasBackgroundPatterns.indexOf(effectiveSpacePattern.value));
+    void nextTick(() => orbitButtons.value?.[activeIndex]?.focus());
+    return;
+  }
+  open.value = false;
 }
 
 function closeAndRestoreFocus() {
@@ -93,7 +99,7 @@ function handleOrbitKeydown(index: number, event: KeyboardEvent) {
 
 function pick(value: CanvasBackgroundPattern) {
   store.setBackgroundPattern(value);
-  open.value = false;
+  closeAndRestoreFocus();
 }
 </script>
 

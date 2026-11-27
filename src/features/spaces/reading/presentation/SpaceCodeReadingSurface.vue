@@ -107,7 +107,12 @@ watch(
       class="flex h-8.5 shrink-0 items-center justify-between gap-2 border-b border-stroke-divider/60 bg-surface-raised px-3 select-none"
     >
       <div class="flex min-w-0 items-center gap-2 text-caption-sm text-fg-tertiary">
-        <UiSegmentedControl v-if="canPreview" v-model="viewMode" :options="modeOptions" />
+        <UiSegmentedControl
+          v-if="canPreview"
+          v-model="viewMode"
+          :options="modeOptions"
+          :aria-label="node.data.title"
+        />
         <span class="shrink-0 font-mono font-medium uppercase">{{
           reader.language.value || node.data.previewLanguage
         }}</span>
@@ -123,9 +128,8 @@ watch(
           tooltip
           :class="reader.findOpen.value && 'bg-surface-control text-fg-primary'"
           @click="toggleFind"
-        >
-          <Search class="size-3.5" :stroke-width="1.6" />
-        </UiIconButton>
+          ><Search class="size-3.5" :stroke-width="1.6"
+        /></UiIconButton>
         <UiIconButton
           v-if="viewMode === 'code'"
           :label="t('spaces.inspector.reader.wrapLines')"
@@ -133,9 +137,8 @@ watch(
           tooltip
           :class="wrapLines && 'bg-surface-control text-fg-primary'"
           @click="wrapLines = !wrapLines"
-        >
-          <WrapText class="size-3.5" :stroke-width="1.6" />
-        </UiIconButton>
+          ><WrapText class="size-3.5" :stroke-width="1.6"
+        /></UiIconButton>
         <UiIconButton
           :label="copied ? t('common.copied') : t('common.copy')"
           size="sm"
