@@ -45,7 +45,7 @@
     "zoomIn": "Zoom in der Zeitleiste",
     "fit": "Gesamtes Video anpassen",
     "seek": "Zeitleiste suchen",
-    "clearSelection": "Auswahl aufheben"
+    "snapping": "Magnetisches Einrasten"
   },
   "clip": {
     "selected": "Ausgewählter Clip",
@@ -98,7 +98,33 @@
   },
   "captions": {
     "search": "Suchuntertitel",
-    "noMatches": "Keine passenden Untertitel."
+    "noMatches": "Keine passenden Untertitel.",
+    "empty": "Noch keine Texteinblendungen. Drücke T oder klicke auf Text hinzufügen.",
+    "fromTranscript": "Aus Transkript erzeugen",
+    "fromTranscriptDone": "{count} Untertitel aus Transkript erzeugt",
+    "fromTranscriptEmpty": "Transkribiere zuerst einen Videoclip auf der Timeline.",
+    "importFile": "SRT / VTT importieren",
+    "importDone": "{count} Untertitel importiert",
+    "exportMenu": "Untertitel exportieren",
+    "exportSrt": "Als SRT exportieren (.srt)",
+    "exportVtt": "Als WebVTT exportieren (.vtt)",
+    "applyStyleAll": "Stil auf alle Untertitel anwenden",
+    "applyStyleDone": "Stil auf alle {count} Untertitel angewendet",
+    "splitCaption": "Am Abspielkopf teilen",
+    "mergeNext": "Mit nächstem zusammenführen",
+    "position": "Position",
+    "posTop": "Oben",
+    "posCenter": "Mitte",
+    "posBottom": "Unten",
+    "templateTitle": "Untertitelstile",
+    "templates": {
+      "classic": "Klassisch",
+      "cinemaPill": "Kino",
+      "highlight": "Gelb",
+      "softShadow": "Schatten",
+      "lightPill": "Hell",
+      "minimal": "Minimal"
+    }
   },
   "font": {
     "family": "Schriftart",
@@ -107,7 +133,8 @@
     "unavailable": "Die Schriftart {family} ist auf diesem Computer nicht installiert. Wählen Sie eine andere Schriftart.",
     "catalogEmpty": "Es sind keine installierten Schriftarten verfügbar.",
     "size": "Größe",
-    "color": "Textfarbe"
+    "color": "Textfarbe",
+    "italic": "Kursiv"
   },
   "transitions": {
     "title": "Übergang",
@@ -127,19 +154,23 @@
       "slideRight": "Schieben rechts",
       "slideUp": "Schieben oben",
       "slideDown": "Schieben unten"
-    }
+    },
+    "noTarget": "Teile einen Clip oder füge einen zweiten Clip hinzu, um Übergänge anzuwenden."
   },
   "output": {
     "title": "Ausgabeeinstellungen",
     "size": "Bildformat und Auflösung",
-    "frameRate": "Bildrate",
     "background": "Hintergrund"
   },
   "playback": {
     "stepBackward": "Vorheriges Ausgabebild",
     "stepForward": "Nächstes Ausgabebild",
     "goToStart": "Zum Anfang",
-    "goToEnd": "Zum Ende"
+    "goToEnd": "Zum Ende",
+    "stepBackTen": "10 Bilder zurück",
+    "stepForwardTen": "10 Bilder vor",
+    "previousCut": "Vorheriger Schnittpunkt",
+    "nextCut": "Nächster Schnittpunkt"
   },
   "trim": {
     "start": "Clipanfang zuschneiden",

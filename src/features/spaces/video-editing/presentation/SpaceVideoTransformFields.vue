@@ -79,6 +79,7 @@ function setFit(value: string) {
     <div class="grid grid-cols-2 gap-1">
       <UiButton
         size="sm"
+        :class="transform.flipHorizontal && 'border-stroke-accent bg-surface-selected text-fg-accent'"
         :aria-pressed="transform.flipHorizontal"
         @click="patch({ flipHorizontal: !transform.flipHorizontal })"
       >
@@ -86,6 +87,7 @@ function setFit(value: string) {
       </UiButton>
       <UiButton
         size="sm"
+        :class="transform.flipVertical && 'border-stroke-accent bg-surface-selected text-fg-accent'"
         :aria-pressed="transform.flipVertical"
         @click="patch({ flipVertical: !transform.flipVertical })"
       >

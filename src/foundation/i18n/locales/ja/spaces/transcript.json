@@ -17,11 +17,19 @@
     },
     "alignSelected": "整列選択",
     "alignmentLimit": "最大8セグメント/5分",
-    "selectForAlignment": "整列用に選択"
+    "selectForAlignment": "整列用に選択",
+    "seek": "この区間へ移動",
+    "copyAll": "文字起こしをコピー",
+    "copied": "文字起こしをコピーしました",
+    "export": "文字起こしを書き出す",
+    "exportTxt": "テキストで書き出す (.txt)",
+    "exportSrt": "字幕で書き出す (.srt)",
+    "editClearsInsights": "文字起こしの編集を保存すると、生成済みの要約とチャプターはクリアされます。"
   },
   "speakers": {
     "title": "スピーカー トラック",
     "durationLimit": "スピーカーのダイアライゼーションは、最大 2 時間の録音をサポートします。",
-    "generate": "スピーカーの識別"
+    "generate": "スピーカーの識別",
+    "label": "話者 {index}"
   }
 }

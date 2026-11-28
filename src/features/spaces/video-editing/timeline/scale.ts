@@ -1,5 +1,7 @@
 const MIN_PX_PER_SECOND = 2;
 export const MAX_PX_PER_SECOND = 480;
+/** Horizontal gutter so the playhead cap and 00:00 tick are never clipped at the scroll edge. */
+export const TIMELINE_GUTTER_PX = 14;
 /** Trailing room so the last clip can be dragged and trimmed without fighting the viewport edge. */
 const TRAILING_MS = 2_000;
 
@@ -25,6 +27,11 @@ export function timeToPx(timeMs: number, pxPerSecond: number) {
   return (timeMs * pxPerSecond) / 1000;
 }
 
+/** Pixel x-coordinate inside the timeline surface, offset by the leading gutter. */
+export function timeToTimelineX(timeMs: number, pxPerSecond: number) {
+  return TIMELINE_GUTTER_PX + timeToPx(timeMs, pxPerSecond);
+}
+
 export function pxToTime(px: number, pxPerSecond: number) {
   return (px * 1000) / pxPerSecond;
 }
@@ -42,8 +49,12 @@ export function visibleTicks(options: {
 }) {
   const step = tickStepMs(options.pxPerSecond);
   const from = Math.max(0, Math.floor(pxToTime(options.scrollLeft, options.pxPerSecond) / step) * step);
-  const to = Math.min(
+  const extentMs = Math.max(
     options.durationMs + TRAILING_MS,
+    pxToTime(options.scrollLeft + options.viewportWidth, options.pxPerSecond),
+  );
+  const to = Math.min(
+    extentMs,
     pxToTime(options.scrollLeft + options.viewportWidth, options.pxPerSecond) + step,
   );
   const ticks: number[] = [];

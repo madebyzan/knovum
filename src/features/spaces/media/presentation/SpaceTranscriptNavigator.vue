@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { LocateFixed } from "@lucide/vue";
-import { useVirtualizer } from "@tanstack/vue-virtual";
+import { observeElementRect, useVirtualizer, type Rect, type Virtualizer } from "@tanstack/vue-virtual";
+import { refDebounced } from "@vueuse/core";
 import { sumBy } from "es-toolkit";
 import { search } from "fast-fuzzy";
 import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicInstance } from "vue";
@@ -11,13 +12,17 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiScrollEdgeFade from "../../../../shared/ui/UiScrollEdgeFade.vue";
 import UiSearchInput from "../../../../shared/ui/UiSearchInput.vue";
 import type { SpaceTranscriptEdit } from "../schema/knowledge";
-import type { SpaceTranscriptSegment } from "../schema/transcript";
+import type { SpaceMediaTranscript, SpaceTranscriptSegment } from "../schema/transcript";
+import { buildSpeakerMap } from "../speaker-display";
 import SpaceTranscriptAlignmentControl from "./SpaceTranscriptAlignmentControl.vue";
 import SpaceTranscriptSegmentEditor from "./SpaceTranscriptSegmentEditor.vue";
 
 const props = defineProps<{
   nodeId: string;
   segments: SpaceTranscriptSegment[];
+  speakerTracks?: readonly SpaceMediaTranscript["speakerTracks"][number][] | undefined;
+  transcriptRevision?: number | undefined;
+  hasInsights?: boolean;
   currentMs?: number;
   disabled?: boolean;
   alignmentDisabled?: boolean;
@@ -30,8 +35,12 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const scroller = useTemplateRef<HTMLDivElement>("scroller");
 const query = ref("");
+const debouncedQuery = refDebounced(query, 120);
 const autoFollow = ref(true);
 const selected = ref<string[]>([]);
+const speakers = computed(() =>
+  buildSpeakerMap(props.speakerTracks, (index) => t("spaces.transcript.speakers.label", { index })),
+);
 const canAlign = computed(
   () =>
     selected.value.length > 0 &&
@@ -47,13 +56,14 @@ function selectSegment(segmentId: string, checked: boolean) {
     : selected.value.filter((value) => value !== segmentId);
 }
 watch(
-  () => props.segments,
+  () => [props.segments.length, props.transcriptRevision] as const,
   () => {
     selected.value = [];
+    virtualizer.value.measure();
   },
 );
 const visibleIndices = computed(() => {
-  const needle = query.value.trim();
+  const needle = debouncedQuery.value.trim();
   if (!needle) return props.segments.map((_, index) => index);
   const indexed = props.segments.map((segment, index) => ({ segment, index }));
   const matched = search(needle, indexed, {
@@ -67,26 +77,33 @@ const activeIndex = computed(() => {
   return props.segments.findLastIndex((segment) => segment.startMs <= current);
 });
 const activeVisibleIndex = computed(() => visibleIndices.value.indexOf(activeIndex.value));
-const virtualizer = useVirtualizer(
+const virtualizer = useVirtualizer<HTMLDivElement, Element>(
   computed(() => ({
     count: visibleIndices.value.length,
     getScrollElement: () => scroller.value,
-    estimateSize: () => 34,
+    getItemKey: (index) => props.segments[visibleIndices.value[index]!]?.id ?? index,
+    estimateSize: () => 38,
     overscan: 8,
+    initialRect: { width: 320, height: 320 },
+    observeElementRect: (instance: Virtualizer<HTMLDivElement, Element>, cb: (rect: Rect) => void) =>
+      observeElementRect(instance, (rect) => rect.height > 0 && cb(rect)),
   })),
 );
 const rows = computed(() => virtualizer.value.getVirtualItems());
-const totalSize = computed(() => virtualizer.value.getTotalSize());
+const paddingTop = computed(() => rows.value[0]?.start ?? 0);
+const paddingBottom = computed(() =>
+  rows.value.length ? Math.max(0, virtualizer.value.getTotalSize() - rows.value.at(-1)!.end) : 0,
+);
+function speakerFor(index: number) {
+  const speakerId = props.segments[index]?.speakerId;
+  return speakerId ? speakers.value.get(speakerId) : undefined;
+}
 watch(activeVisibleIndex, (index) => {
   if (autoFollow.value && index >= 0) virtualizer.value.scrollToIndex(index, { align: "center" });
 });
-watch(
-  () => props.segments,
-  () => virtualizer.value.measure(),
-  { deep: true },
-);
 function measureElement(element: Element | ComponentPublicInstance | null) {
   const row = element instanceof Element ? element : element?.$el;
+  if (row instanceof HTMLElement && row.offsetHeight === 0) return;
   if (row instanceof Element) virtualizer.value.measureElement(row);
 }
 async function remeasure() {
@@ -123,19 +140,20 @@ async function remeasure() {
     />
     <div class="relative -mx-1.5 overflow-hidden">
       <div ref="scroller" class="h-80 overflow-y-auto overscroll-contain pt-0.5 pb-2">
-        <div class="relative w-full" :style="{ height: `${totalSize}px` }">
+        <div class="w-full" :style="{ paddingTop: `${paddingTop}px`, paddingBottom: `${paddingBottom}px` }">
           <div
             v-for="row in rows"
             :key="visibleIndices[row.index]!"
             :ref="measureElement"
             :data-index="row.index"
-            class="absolute top-0 left-0 w-full"
-            :style="{ transform: `translateY(${row.start}px)` }"
+            class="w-full"
           >
             <SpaceTranscriptSegmentEditor
               :node-id="nodeId"
               :segment="segments[visibleIndices[row.index]!]!"
               :index="visibleIndices[row.index]!"
+              :speaker="speakerFor(visibleIndices[row.index]!)"
+              :has-insights="hasInsights"
               :active="visibleIndices[row.index] === activeIndex"
               :selected="selected.includes(segments[visibleIndices[row.index]!]!.id)"
               :selection-active="selected.length > 0"

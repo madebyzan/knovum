@@ -1,24 +1,10 @@
 import { shallowRef } from "vue";
 
-import { moveClip } from "../edits/arrange";
-import { moveAudioClip, trimAudioClip } from "../edits/audio";
-import { moveTextOverlay, updateTextOverlay } from "../edits/text";
-import { resizeTransition } from "../edits/transition";
-import { trimClip, type TrimEdge } from "../edits/trim";
 import type { VideoEditProject } from "../project";
 import type { VideoSelection } from "../selection";
-import { clipEndMs } from "../timing";
+import { projectDurationMs } from "../timing";
+import { applyTimelineGesture, type TimelineGesture } from "./gesture-apply";
 import { snapTime } from "./snapping";
-
-export type TimelineGesture =
-  | { kind: "scrub" }
-  | { kind: "clip-move"; id: string; grabMs: number }
-  | { kind: "clip-trim"; id: string; edge: TrimEdge }
-  | { kind: "audio-move"; id: string; grabMs: number }
-  | { kind: "audio-trim"; id: string; edge: TrimEdge }
-  | { kind: "text-move"; id: string; grabMs: number }
-  | { kind: "text-trim"; id: string; edge: TrimEdge }
-  | { kind: "transition"; id: string };
 
 interface GestureOptions {
   project: () => VideoEditProject;
@@ -39,86 +25,94 @@ export function useTimelineGestures(options: GestureOptions) {
   const draft = shallowRef<VideoEditProject>();
   const active = shallowRef<TimelineGesture>();
   const snapMs = shallowRef<number>();
+  const snapEnabled = shallowRef(true);
 
-  function timeAt(event: PointerEvent) {
-    return options.timeAt(event);
+  function snapDisabled(event: PointerEvent) {
+    return snapEnabled.value ? event.altKey : !event.altKey;
   }
 
-  function begin(event: PointerEvent, gesture: TimelineGesture) {
-    if (event.button !== 0) return;
-    event.stopPropagation();
-    (event.currentTarget as HTMLElement).setPointerCapture(event.pointerId);
-    options.pause();
-    active.value = gesture;
-    draft.value = undefined;
-    snapMs.value = undefined;
-    if (gesture.kind === "scrub") options.seek(snap(event, undefined).timeMs);
-    else if (gesture.kind !== "transition") options.select(selectionOf(gesture));
-    else options.select({ kind: "transition", id: gesture.id });
-  }
-
-  function selectionOf(gesture: TimelineGesture): VideoSelection {
-    if (gesture.kind.startsWith("clip")) return { kind: "clip", id: (gesture as { id: string }).id };
-    if (gesture.kind.startsWith("audio")) return { kind: "audio", id: (gesture as { id: string }).id };
-    return { kind: "text", id: (gesture as { id: string }).id };
-  }
-
-  function snap(event: PointerEvent, exclude: readonly number[] | undefined) {
+  function snapPoint(
+    timeMs: number,
+    event: PointerEvent,
+    opts?: { exclude?: number[]; includePlayhead?: boolean },
+  ) {
     const snapped = snapTime({
       project: options.project(),
-      timeMs: timeAt(event),
+      timeMs,
       pxPerSecond: options.pxPerSecond(),
-      playheadMs: options.playheadMs(),
-      disabled: event.altKey,
-      exclude,
+      playheadMs: opts?.includePlayhead === false ? undefined : options.playheadMs(),
+      disabled: snapDisabled(event),
+      exclude: opts?.exclude,
     });
     snapMs.value = snapped.snappedTo;
     return snapped;
   }
 
+  function snapBlockStart(rawStartMs: number, lengthMs: number, exclude: number[], event: PointerEvent) {
+    const clampedStart = Math.max(0, rawStartMs);
+    const startSnap = snapPoint(clampedStart, event, { exclude });
+    const endSnap = snapPoint(clampedStart + lengthMs, event, { exclude });
+    const startDist =
+      startSnap.snappedTo !== undefined
+        ? Math.abs(startSnap.snappedTo - clampedStart)
+        : Number.POSITIVE_INFINITY;
+    const endDist =
+      endSnap.snappedTo !== undefined
+        ? Math.abs(endSnap.snappedTo - (clampedStart + lengthMs))
+        : Number.POSITIVE_INFINITY;
+    if (endDist < startDist) {
+      snapMs.value = endSnap.snappedTo;
+      return Math.max(0, endSnap.timeMs - lengthMs);
+    }
+    snapMs.value = startSnap.snappedTo;
+    return startSnap.timeMs;
+  }
+
+  const snapper = { snapPoint, snapBlockStart };
+
+  function scrubAt(event: PointerEvent) {
+    const durationMs = projectDurationMs(options.project());
+    const raw = Math.max(0, Math.min(options.timeAt(event), durationMs));
+    const snapped = snapPoint(raw, event, { includePlayhead: false }).timeMs;
+    options.seek(Math.max(0, Math.min(snapped, durationMs)));
+  }
+
+  function begin(event: PointerEvent, gesture: TimelineGesture) {
+    if (event.button !== 0) return;
+    event.stopPropagation();
+    const target = event.currentTarget as HTMLElement;
+    target.setPointerCapture(event.pointerId);
+    if (event.pointerType) target.blur();
+    options.pause();
+    active.value = gesture;
+    draft.value = undefined;
+    snapMs.value = undefined;
+    if (gesture.kind === "scrub") scrubAt(event);
+    else if (gesture.kind !== "transition") options.select(selectionOf(gesture));
+    else options.select({ kind: "transition", id: gesture.id });
+  }
+
   function move(event: PointerEvent) {
     const gesture = active.value;
     if (!gesture) return;
-    const project = options.project();
     if (gesture.kind === "scrub") {
-      options.seek(snap(event, undefined).timeMs);
+      scrubAt(event);
       return;
     }
     try {
-      draft.value = apply(project, gesture, event);
+      draft.value = applyTimelineGesture(
+        { project: options.project(), pointerMs: options.timeAt(event), event, snapper },
+        gesture,
+      );
     } catch {
       snapMs.value = undefined;
-    }
-  }
-
-  function apply(project: VideoEditProject, gesture: TimelineGesture, event: PointerEvent) {
-    const pointerMs = timeAt(event);
-    switch (gesture.kind) {
-      case "clip-move":
-        return moveClip(project, gesture.id, snap(event, undefined).timeMs - gesture.grabMs);
-      case "clip-trim":
-        return trimClip(project, gesture.id, gesture.edge, snap(event, undefined).timeMs);
-      case "audio-move":
-        return moveAudioClip(project, gesture.id, snap(event, undefined).timeMs - gesture.grabMs);
-      case "audio-trim":
-        return trimAudioClip(project, gesture.id, gesture.edge, snap(event, undefined).timeMs);
-      case "text-move":
-        return moveTextOverlay(project, gesture.id, snap(event, undefined).timeMs - gesture.grabMs);
-      case "text-trim":
-        return trimText(project, gesture.id, gesture.edge, snap(event, undefined).timeMs);
-      case "transition":
-        return stretchTransition(project, gesture.id, pointerMs);
-      default:
-        return project;
     }
   }
 
   function finish() {
     const settled = draft.value;
     const gesture = active.value;
-    active.value = undefined;
-    draft.value = undefined;
-    snapMs.value = undefined;
+    cancel();
     if (settled && gesture) options.commit(settled, `${gesture.kind}:${gestureId(gesture)}`);
   }
 
@@ -128,31 +122,25 @@ export function useTimelineGestures(options: GestureOptions) {
     snapMs.value = undefined;
   }
 
-  return { draft, active, snapMs, begin, move, finish, cancel };
+  return {
+    draft,
+    active,
+    snapMs,
+    snapEnabled,
+    toggleSnap: () => (snapEnabled.value = !snapEnabled.value),
+    begin,
+    move,
+    finish,
+    cancel,
+  };
+}
+
+function selectionOf(gesture: TimelineGesture): VideoSelection {
+  if (gesture.kind.startsWith("clip")) return { kind: "clip", id: (gesture as { id: string }).id };
+  if (gesture.kind.startsWith("audio")) return { kind: "audio", id: (gesture as { id: string }).id };
+  return { kind: "text", id: (gesture as { id: string }).id };
 }
 
 function gestureId(gesture: TimelineGesture) {
   return "id" in gesture ? gesture.id : gesture.kind;
-}
-
-function trimText(
-  project: VideoEditProject,
-  id: string,
-  edge: TrimEdge,
-  timelineMs: number,
-): VideoEditProject {
-  const item = project.textTrack.items.find((candidate) => candidate.id === id);
-  if (!item) return project;
-  return edge === "start"
-    ? updateTextOverlay(project, id, { startMs: Math.min(timelineMs, item.endMs - 100) })
-    : updateTextOverlay(project, id, { endMs: Math.max(timelineMs, item.startMs + 100) });
-}
-
-/** The transition handle grows symmetrically around the cut it belongs to. */
-function stretchTransition(project: VideoEditProject, id: string, pointerMs: number): VideoEditProject {
-  const transition = project.transitions.find((candidate) => candidate.id === id);
-  const clip = project.videoTrack.clips.find(({ id: clipId }) => clipId === transition?.fromClipId);
-  if (!transition || !clip) return project;
-  const center = clipEndMs(clip) - transition.durationMs / 2;
-  return resizeTransition(project, id, Math.round(Math.abs(pointerMs - center) * 2));
 }

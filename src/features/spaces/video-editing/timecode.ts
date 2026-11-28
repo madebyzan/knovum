@@ -16,3 +16,11 @@ export function formatVideoTimelineTime(milliseconds: number) {
     ? `${hours}:${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`
     : `${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
 }
+
+/** Formats ruler tick labels with tenths of a second when zoomed into sub-second intervals. */
+export function formatVideoTimelineTick(milliseconds: number, stepMs: number) {
+  const base = formatVideoTimelineTime(milliseconds);
+  if (stepMs >= 1_000) return base;
+  const tenths = Math.floor((Math.max(0, Math.round(milliseconds)) % 1_000) / 100);
+  return `${base}.${tenths}`;
+}

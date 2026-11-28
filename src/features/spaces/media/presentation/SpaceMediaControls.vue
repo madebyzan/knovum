@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Pause, Play } from "@lucide/vue";
+import { Pause, Play, Volume2, VolumeX } from "@lucide/vue";
 import { useI18n } from "vue-i18n";
 
 import { formatDurationMs } from "../format-duration";
@@ -10,18 +10,25 @@ withDefaults(
     playing: boolean;
     currentMs: number;
     durationMs: number;
+    rate?: number;
+    muted?: boolean;
     density?: "compact" | "regular";
   }>(),
-  { density: "regular" },
+  { density: "regular", rate: 1, muted: false },
 );
-const emit = defineEmits<{ toggle: []; seek: [positionMs: number] }>();
+const emit = defineEmits<{
+  toggle: [];
+  seek: [positionMs: number];
+  cycleRate: [];
+  toggleMute: [];
+}>();
 const { t } = useI18n();
 </script>
 
 <template>
   <div
     class="nodrag pointer-events-auto flex items-center rounded-full border border-white/15 bg-black/75 text-white shadow-dialog backdrop-blur-md select-none"
-    :class="density === 'compact' ? 'h-7 gap-2 px-2.5' : 'h-8 gap-2.5 px-3'"
+    :class="density === 'compact' ? 'h-7 gap-1.5 px-2' : 'h-8 gap-2 px-2.5'"
   >
     <button
       type="button"
@@ -37,5 +44,24 @@ const { t } = useI18n();
     <span class="shrink-0 text-caption-sm font-medium text-white/80 tabular-nums">
       {{ formatDurationMs(currentMs) }} / {{ formatDurationMs(durationMs) }}
     </span>
+    <button
+      type="button"
+      class="shrink-0 rounded-full px-1.5 py-0.5 font-mono text-caption-sm font-medium text-white/85 tabular-nums transition-colors hover:bg-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:outline-none"
+      :aria-label="t('spaces.media.player.speed')"
+      :title="t('spaces.media.player.speed')"
+      @click="emit('cycleRate')"
+    >
+      {{ rate }}×
+    </button>
+    <button
+      type="button"
+      class="grid size-6 shrink-0 place-items-center rounded-full text-white/85 transition-colors hover:bg-white/20 hover:text-white focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:outline-none"
+      :aria-label="muted ? t('spaces.media.player.unmute') : t('spaces.media.player.mute')"
+      :title="muted ? t('spaces.media.player.unmute') : t('spaces.media.player.mute')"
+      @click="emit('toggleMute')"
+    >
+      <VolumeX v-if="muted" class="size-3.5" />
+      <Volume2 v-else class="size-3.5" />
+    </button>
   </div>
 </template>

@@ -52,7 +52,7 @@ function registerCommandHandlers(
     const commandId = command.id;
     handlers[keybinding] = (event) => {
       const current = resolveCommand(commandId);
-      if (!current || event.repeat) return;
+      if (!current || (event.repeat && !current.allowRepeat)) return;
       if (isEditableTarget(event.target) && !current.allowInEditable) return;
       if (bareKey && isInteractiveTarget(event.target)) return;
       event.preventDefault();

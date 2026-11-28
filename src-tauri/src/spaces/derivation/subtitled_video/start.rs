@@ -51,6 +51,7 @@ pub async fn start(
     };
     let source = SubtitleVideoSource {
         path: required_string(&video, "assetPath")?.into(),
+        frame_size: video_frame_size(&video),
         subtitles,
     };
     let now = crate::foundation::clock::unix_time_millis()?;
@@ -74,6 +75,29 @@ async fn load_node_content(
     serde_json::from_str(&encoded).map_err(db::json_error)
 }
 
+fn video_frame_size(video: &Value) -> Option<(u32, u32)> {
+    let w = video.get("intrinsicWidth").and_then(Value::as_u64)?;
+    let h = video.get("intrinsicHeight").and_then(Value::as_u64)?;
+    Some((u32::try_from(w).ok()?, u32::try_from(h).ok()?))
+}
+
+fn has_glued_latin_words(cues: &[crate::media::transcript::SubtitleCue]) -> bool {
+    cues.iter().any(|cue| {
+        let mut run = 0usize;
+        for ch in cue.text.chars() {
+            if ch.is_ascii_alphabetic() {
+                run += 1;
+                if run >= 22 {
+                    return true;
+                }
+            } else {
+                run = 0;
+            }
+        }
+        false
+    })
+}
+
 pub(super) fn automatic_subtitles(
     video: &Value,
     source_revision: &str,
@@ -87,17 +111,33 @@ pub(super) fn automatic_subtitles(
         return Err("Video knowledge does not match the current source".into());
     }
     match knowledge.pointer("/transcript/subtitleCues") {
-        Some(cues) => {
+        Some(cues_value) => {
             let duration_ms = knowledge
                 .pointer("/transcript/durationMs")
                 .and_then(Value::as_u64)
                 .ok_or("Video transcript duration is unavailable")?;
-            let cues: Vec<crate::media::transcript::SubtitleCue> =
-                serde_json::from_value(cues.clone())
+            let mut cues: Vec<crate::media::transcript::SubtitleCue> =
+                serde_json::from_value(cues_value.clone())
                     .map_err(|error| format!("Subtitle cues are invalid: {error}"))?;
-            Ok(PreparedSubtitles::Ready(super::srt::from_cues(
+            // Repair cues stored before word-spacing preservation by rebuilding them directly from
+            // the transcript's own spaced segments and word timestamps.
+            if has_glued_latin_words(&cues) {
+                if let Some(segments_value) = knowledge.pointer("/transcript/segments") {
+                    if let Ok(segments) = serde_json::from_value::<
+                        Vec<crate::media::transcript::NormalizedTranscriptSegment>,
+                    >(segments_value.clone())
+                    {
+                        let rebuilt = crate::media::transcript::cues_from_segments(&segments);
+                        if !rebuilt.is_empty() {
+                            cues = rebuilt;
+                        }
+                    }
+                }
+            }
+            Ok(PreparedSubtitles::Ready(super::ass::from_cues(
                 &cues,
                 duration_ms,
+                video_frame_size(video),
             )?))
         }
         None => Ok(PreparedSubtitles::Recognize),

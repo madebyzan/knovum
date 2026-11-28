@@ -38,6 +38,7 @@ const title = computed({
       :disabled="disabled"
     />
     <div class="flex shrink-0 items-center gap-0.5">
+      <slot name="actions" />
       <UiIconButton
         v-if="count > 1"
         size="sm"

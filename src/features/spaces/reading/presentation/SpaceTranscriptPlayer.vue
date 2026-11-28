@@ -1,21 +1,32 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, useTemplateRef, watch } from "vue";
+import { Pause, Play, RotateCcw, RotateCw, Volume2, VolumeX } from "@lucide/vue";
+import { computed, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiSearchInput from "../../../../shared/ui/UiSearchInput.vue";
-import { versionedMediaSource, waitForMediaMetadata } from "../../media/media-element-source";
+import { formatDurationMs } from "../../media/format-duration";
+import { versionedMediaSource } from "../../media/media-element-source";
+import type { SpaceMediaPlaybackState } from "../../media/playback";
+import SpaceMediaTimeline from "../../media/presentation/SpaceMediaTimeline.vue";
+import { useMediaPlayback } from "../../media/use-media-playback";
 import type { SpaceAudioPayload, SpaceVideoPayload } from "../../model/nodes/node-payload";
 
-const props = defineProps<{
-  media: SpaceVideoPayload | SpaceAudioPayload;
-  hasSegments: boolean;
-}>();
+const props = withDefaults(
+  defineProps<{
+    media: SpaceVideoPayload | SpaceAudioPayload;
+    hasSegments: boolean;
+    visible?: boolean;
+  }>(),
+  { visible: true },
+);
 
 const query = defineModel<string>("query", { required: true });
-const emit = defineEmits<{ timeUpdate: [ms: number] }>();
+const emit = defineEmits<{ timeUpdate: [ms: number]; playback: [state: SpaceMediaPlaybackState] }>();
 const { t } = useI18n();
 const mediaElement = useTemplateRef<HTMLMediaElement>("mediaElement");
-let seekGeneration = 0;
+const searchWrapper = useTemplateRef<HTMLElement>("searchWrapper");
 
 const mediaSrc = computed(() => versionedMediaSource(props.media.assetPath, props.media.sourceRevision));
 const posterSrc = computed(() =>
@@ -23,74 +34,142 @@ const posterSrc = computed(() =>
     ? versionedMediaSource(props.media.previewPath, props.media.sourceRevision)
     : undefined,
 );
+const fallbackDurationMs = computed(() => {
+  if (props.media.mediaAnalysis?.durationMs) return props.media.mediaAnalysis.durationMs;
+  if (props.media.kind === "video" && props.media.durationSeconds) return props.media.durationSeconds * 1_000;
+  return 0;
+});
 
-watch(mediaSrc, () => {
-  seekGeneration += 1;
+const {
+  loaded,
+  playing,
+  currentMs,
+  durationMs,
+  rate,
+  muted,
+  togglePlayback: rawToggle,
+  pause,
+  seekTo: rawSeekTo,
+  seekFromControl,
+  skipBy,
+  cycleRate,
+  toggleMute,
+} = useMediaPlayback(mediaElement, {
+  sourceRevision: () => props.media.sourceRevision,
+  onPlayback: (state) => {
+    emit("timeUpdate", state.currentMs);
+    emit("playback", state);
+  },
+  onUnload: () => {
+    loaded.value = true;
+  },
 });
-onBeforeUnmount(() => {
-  seekGeneration += 1;
-});
+
+loaded.value = true;
+const effectiveDurationMs = computed(() => durationMs.value || fallbackDurationMs.value);
+
+watch(
+  () => props.visible,
+  (visible) => {
+    if (!visible && playing.value) pause();
+  },
+);
 
 async function seekTo(startMs: number, autoplay = true) {
-  const generation = ++seekGeneration;
-  const element = mediaElement.value;
-  if (!element) return;
-  if (element.readyState < HTMLMediaElement.HAVE_METADATA) {
-    try {
-      await waitForMediaMetadata(element, "Media metadata could not be loaded");
-    } catch {
-      return;
-    }
-    if (generation !== seekGeneration || mediaElement.value !== element) return;
+  try {
+    await rawSeekTo(startMs, autoplay);
+  } catch {
+    toast.error(t("spaces.media.player.playbackFailed"));
   }
-  const duration = Number.isFinite(element.duration) ? element.duration : Number.POSITIVE_INFINITY;
-  element.currentTime = Math.min(Math.max(startMs / 1_000, 0), duration);
-  if (autoplay) void element.play().catch(() => {});
-}
-function togglePlayback() {
-  const player = mediaElement.value;
-  if (!player) return;
-  if (player.paused) void player.play().catch(() => {});
-  else player.pause();
-}
-function onTimeUpdate(event: Event) {
-  const target = event.target as HTMLMediaElement | null;
-  if (target) emit("timeUpdate", Math.round(target.currentTime * 1_000));
 }
 
-defineExpose({ seekTo, togglePlayback });
+async function togglePlayback() {
+  try {
+    await rawToggle();
+  } catch {
+    toast.error(t("spaces.media.player.playbackFailed"));
+  }
+}
+
+function focusSearch() {
+  searchWrapper.value?.querySelector<HTMLInputElement>("input")?.focus();
+}
+
+defineExpose({ seekTo, togglePlayback, skipBy, pause, focusSearch });
 </script>
 
 <template>
   <div
     data-reader-ignore-selection
-    class="shrink-0 border-b border-stroke-divider/70 bg-surface-panel p-3 select-none"
+    class="shrink-0 space-y-2 border-b border-stroke-divider/70 bg-surface-panel p-3 select-none"
   >
     <video
       v-if="media.kind === 'video'"
       ref="mediaElement"
       :src="mediaSrc"
       :poster="posterSrc"
-      controls
       preload="metadata"
-      class="block aspect-video max-h-56 w-full rounded-lg bg-surface-stage object-contain"
-      @timeupdate="onTimeUpdate"
+      class="block aspect-video max-h-56 w-full cursor-pointer rounded-lg bg-surface-stage object-contain"
+      @click="togglePlayback"
     />
-    <audio
-      v-else
-      ref="mediaElement"
-      :src="mediaSrc"
-      controls
-      preload="metadata"
-      class="block w-full"
-      @timeupdate="onTimeUpdate"
-    />
-    <UiSearchInput
-      v-if="hasSegments"
-      v-model="query"
-      size="sm"
-      class="mt-2.5 w-full"
-      :placeholder="t('spaces.transcript.text.search')"
-    />
+    <audio v-else ref="mediaElement" :src="mediaSrc" preload="metadata" class="hidden" />
+
+    <div
+      class="flex items-center gap-1.5 rounded-lg border border-stroke-divider bg-surface-raised px-2 py-1.5"
+    >
+      <UiIconButton
+        size="sm"
+        tooltip
+        :label="playing ? t('common.pause') : t('spaces.media.player.play')"
+        @click="togglePlayback"
+      >
+        <Pause v-if="playing" class="size-3.5" fill="currentColor" />
+        <Play v-else class="ml-px size-3.5" fill="currentColor" />
+      </UiIconButton>
+      <UiIconButton size="sm" tooltip :label="t('spaces.media.player.skipBack')" @click="skipBy(-10_000)">
+        <RotateCcw class="size-3" />
+      </UiIconButton>
+      <UiIconButton size="sm" tooltip :label="t('spaces.media.player.skipForward')" @click="skipBy(10_000)">
+        <RotateCw class="size-3" />
+      </UiIconButton>
+      <SpaceMediaTimeline
+        tone="control"
+        class="mx-1"
+        :current-ms="currentMs"
+        :duration-ms="effectiveDurationMs"
+        @seek="seekFromControl"
+      />
+      <span class="shrink-0 font-mono text-caption-sm text-fg-tertiary tabular-nums">
+        {{ formatDurationMs(currentMs) }} / {{ formatDurationMs(effectiveDurationMs) }}
+      </span>
+      <button
+        type="button"
+        class="shrink-0 rounded px-1.5 py-0.5 font-mono text-caption-sm font-medium text-fg-secondary tabular-nums transition-colors hover:bg-surface-control-hover hover:text-fg-primary"
+        :aria-label="t('spaces.media.player.speed')"
+        :title="t('spaces.media.player.speed')"
+        @click="cycleRate"
+      >
+        {{ rate }}×
+      </button>
+      <UiIconButton
+        size="sm"
+        tooltip
+        :label="muted ? t('spaces.media.player.unmute') : t('spaces.media.player.mute')"
+        @click="toggleMute"
+      >
+        <VolumeX v-if="muted" class="size-3.5" />
+        <Volume2 v-else class="size-3.5" />
+      </UiIconButton>
+    </div>
+
+    <div v-if="hasSegments" ref="searchWrapper" class="flex items-center gap-1.5">
+      <UiSearchInput
+        v-model="query"
+        size="sm"
+        class="min-w-0 flex-1"
+        :placeholder="t('spaces.transcript.text.search')"
+      />
+      <slot name="actions" />
+    </div>
   </div>
 </template>

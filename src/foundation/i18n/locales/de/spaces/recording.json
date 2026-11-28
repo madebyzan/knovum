@@ -7,13 +7,22 @@
   "note": "Audio-Notiz",
   "startFailed": "Die Aufnahme konnte nicht gestartet oder Audio gespeichert werden.",
   "microphone": {
-    "settingsHint": "Mikrofonzugriff verweigert. Bitte erlauben Sie den Mikrofonzugriff in den Systemeinstellungen."
+    "settingsHint": "Mikrofonzugriff verweigert. Bitte erlauben Sie den Mikrofonzugriff in den Systemeinstellungen.",
+    "select": "Mikrofon",
+    "default": "Systemstandard"
   },
   "problems": {
     "denied": "Die Erlaubnis zum Mikrofon wurde verweigert.",
     "missing": "Kein Mikrofongerät erkannt.",
     "busy": "Das Mikrofon wird von einer anderen Anwendung verwendet.",
     "unsupported": "Die Audioaufnahme wird in dieser Umgebung nicht unterstützt.",
-    "unknown": "Das Mikrofongerät konnte nicht geöffnet werden."
+    "unknown": "Das Mikrofongerät konnte nicht geöffnet werden.",
+    "saveFailed": "Aufnahme konnte nicht gespeichert werden.",
+    "interrupted": "Mikrofonverbindung während der Aufnahme unterbrochen."
+  },
+  "discard": {
+    "prompt": "Aufnahme verwerfen?",
+    "confirm": "Verwerfen",
+    "keep": "Behalten"
   }
 }

@@ -225,3 +225,78 @@ async fn resetting_image_edits_replaces_every_reading_of_the_picture_through_the
     assert_eq!(jobs_in("cancelled").await, readings(&edited));
     assert_eq!(jobs_in("pending").await, readings(&reset));
 }
+
+#[tokio::test]
+async fn optimistic_lock_matches_float_and_integer_json_numbers_after_js_roundtrip() {
+    use crate::spaces::nodes::contracts::NodeContentChange;
+    let pool = sqlx::SqlitePool::connect("sqlite::memory:").await.unwrap();
+    crate::spaces::db::migrate(&pool).await.unwrap();
+    let mut stored = json!({
+        "kind": "video",
+        "title": "Clip",
+        "assetPath": "/assets/clip.mp4",
+        "fileName": "clip.mp4",
+        "sourceRevision": "rev-1",
+        "durationSeconds": 10,
+        "mediaAnalysis": {
+            "schemaVersion": 1,
+            "sourceRevision": "rev-1",
+            "durationMs": 10_000,
+            "waveform": [0.0, 0.5, 1.0]
+        }
+    });
+    crate::spaces::knowledge::model::revision::apply(&mut stored).unwrap();
+    sqlx::query("INSERT INTO spaces(id,kind,title,created_at,updated_at) VALUES('space','space','Space',1,1)")
+        .execute(&pool)
+        .await
+        .unwrap();
+    sqlx::query("INSERT INTO spaces_nodes(id,space_id,kind,initial_x,initial_y,data,created_at,updated_at) VALUES('node','space','video',0,0,$1,1,1)")
+        .bind(stored.to_string())
+        .execute(&pool)
+        .await
+        .unwrap();
+
+    // JavaScript JSON.stringify strips `.0` from whole-number floats (`0.0` -> `0`, `1.0` -> `1`).
+    let mut js_roundtripped = stored.clone();
+    js_roundtripped["mediaAnalysis"]["waveform"] = json!([0, 0.5, 1]);
+    let mut after = js_roundtripped.clone();
+    after["title"] = json!("Clip Edited");
+
+    let mut tx = pool.begin().await.unwrap();
+    crate::spaces::knowledge::validation::normalize_node(&mut tx, "space", "video", &mut after)
+        .await
+        .unwrap();
+    super::update_many_in_transaction(
+        &mut tx,
+        "space",
+        &[NodeContentChange {
+            id: "node".into(),
+            expected_content: js_roundtripped,
+            data: after.clone(),
+            source_chunks: None,
+        }],
+        "human",
+        2,
+    )
+    .await
+    .expect("JS integer representation of 0.0/1.0 must match SQLite float JSON");
+
+    // Genuine mismatch must still fail optimistic locking.
+    let mut stale = after.clone();
+    stale["title"] = json!("Different");
+    let conflict = super::update_many_in_transaction(
+        &mut tx,
+        "space",
+        &[NodeContentChange {
+            id: "node".into(),
+            expected_content: stale,
+            data: after,
+            source_chunks: None,
+        }],
+        "human",
+        3,
+    )
+    .await;
+    assert!(conflict.is_err());
+    tx.commit().await.unwrap();
+}

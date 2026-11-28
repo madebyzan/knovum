@@ -52,5 +52,17 @@
     "audiobook": "Hörbuch generieren",
     "shortDubbing": "Sprache generieren",
     "videoDubbing": "Synchronisiertes Video generieren"
+  },
+  "prepareNarration": {
+    "action": "Mit Knovum aufbereiten",
+    "actionAll": "Alle mit Knovum aufbereiten",
+    "clean": "Für Sprache bereinigen",
+    "cleanDescription": "Formatierung, Zitate und Störzeichen entfernen, Sinn bewahren",
+    "adapt": "Für flüssiges Vorlesen anpassen",
+    "adaptDescription": "Lange Sätze für natürliches Sprechen glätten",
+    "restore": "Vorheriges Skript wiederherstellen",
+    "restoreAll": "Alle Kapitel wiederherstellen",
+    "model": "Modell",
+    "hint": "Knovum bereinigt unruhigen Text oder passt ihn für natürliches Vorlesen an"
   }
 }

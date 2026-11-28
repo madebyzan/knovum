@@ -45,7 +45,7 @@
     "zoomIn": "Zoom in timeline",
     "fit": "Fit entire video",
     "seek": "Seek timeline",
-    "clearSelection": "Clear selection"
+    "snapping": "Magnetic snapping"
   },
   "clip": {
     "selected": "Selected clip",
@@ -98,7 +98,33 @@
   },
   "captions": {
     "search": "Search captions",
-    "noMatches": "No matching captions."
+    "noMatches": "No matching captions.",
+    "empty": "No text overlays yet. Press T or click Add text.",
+    "fromTranscript": "Generate from transcript",
+    "fromTranscriptDone": "Generated {count} captions from transcript",
+    "fromTranscriptEmpty": "Transcribe a video clip on the timeline first to generate captions.",
+    "importFile": "Import SRT / VTT",
+    "importDone": "Imported {count} captions",
+    "exportMenu": "Export subtitles",
+    "exportSrt": "Export SRT (.srt)",
+    "exportVtt": "Export WebVTT (.vtt)",
+    "applyStyleAll": "Apply style to all captions",
+    "applyStyleDone": "Updated style across all {count} captions",
+    "splitCaption": "Split at playhead",
+    "mergeNext": "Merge with next",
+    "position": "Position",
+    "posTop": "Top",
+    "posCenter": "Center",
+    "posBottom": "Bottom",
+    "templateTitle": "Caption styles",
+    "templates": {
+      "classic": "Classic",
+      "cinemaPill": "Cinema",
+      "highlight": "Highlight",
+      "softShadow": "Shadow",
+      "lightPill": "Light",
+      "minimal": "Minimal"
+    }
   },
   "font": {
     "family": "Font",
@@ -107,7 +133,8 @@
     "unavailable": "Font {family} is not installed on this computer. Choose another font.",
     "catalogEmpty": "No installed fonts are available.",
     "size": "Size",
-    "color": "Text color"
+    "color": "Text color",
+    "italic": "Italic"
   },
   "transitions": {
     "title": "Transition",
@@ -127,19 +154,23 @@
       "slideRight": "Slide right",
       "slideUp": "Slide up",
       "slideDown": "Slide down"
-    }
+    },
+    "noTarget": "Split a clip or add a second clip to apply transitions between cuts."
   },
   "output": {
     "title": "Output settings",
     "size": "Frame size and resolution",
-    "frameRate": "Frame rate",
     "background": "Background"
   },
   "playback": {
     "stepBackward": "Previous output frame",
     "stepForward": "Next output frame",
     "goToStart": "Go to start",
-    "goToEnd": "Go to end"
+    "goToEnd": "Go to end",
+    "stepBackTen": "Back 10 frames",
+    "stepForwardTen": "Forward 10 frames",
+    "previousCut": "Previous edit point",
+    "nextCut": "Next edit point"
   },
   "trim": {
     "start": "Trim clip start",

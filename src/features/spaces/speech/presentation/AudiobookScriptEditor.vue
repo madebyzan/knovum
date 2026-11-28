@@ -8,17 +8,17 @@ import type { SaveSpeechProjectRevisionRequest } from "../../contracts/generated
 import type { SpeechProjectSnapshot } from "../../contracts/generated/SpeechProjectSnapshot";
 import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibraryRevision";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
+import { formatEstimatedDuration } from "../spoken-duration";
+import { useAudiobookChapterPreparation } from "../use-audiobook-chapter-preparation";
 import { useAudiobookDraft } from "../use-audiobook-draft";
 import { voiceRevisionOptions } from "../voice-options";
 import AudiobookChapterEditor from "./AudiobookChapterEditor.vue";
-import AudiobookMetadataEditor from "./AudiobookMetadataEditor.vue";
-import AudiobookOutputSettings from "./AudiobookOutputSettings.vue";
+import AudiobookProductionSettings from "./AudiobookProductionSettings.vue";
 import AudiobookRoleBindings from "./AudiobookRoleBindings.vue";
 import AudiobookScriptImport from "./AudiobookScriptImport.vue";
-import PronunciationLexiconEditor from "./PronunciationLexiconEditor.vue";
 import SpeechEditorPage from "./SpeechEditorPage.vue";
 import SpeechEditorTabs from "./SpeechEditorTabs.vue";
-import SpeechSettingsDisclosure from "./SpeechSettingsDisclosure.vue";
+import SpeechNarrationPrepareMenu from "./SpeechNarrationPrepareMenu.vue";
 
 const props = defineProps<{
   sourceNode: SpaceCanvasNode;
@@ -42,8 +42,6 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const page = shallowRef("script");
 const importing = shallowRef(false);
-const editingDisabled = computed(() => props.disabled || importing.value);
-watch(importing, (value) => emit("busy", value), { immediate: true });
 const chaptersRef = useTemplateRef("chaptersRef");
 async function addChapter() {
   if (!draft.roles.value.length) draft.addRole(t("spaces.speech.project.defaultRole"));
@@ -54,6 +52,17 @@ async function addChapter() {
 const draft = useAudiobookDraft(
   () => props.project,
   () => props.voices,
+);
+const chapterPrep = useAudiobookChapterPreparation(() => draft.roles.value[0]?.key ?? "");
+const editingDisabled = computed(() => props.disabled || importing.value || chapterPrep.preparing.value);
+watch([importing, chapterPrep.preparing], ([imp, prep]) => emit("busy", imp || prep), { immediate: true });
+const hasAnyChapterText = computed(() =>
+  draft.chapters.value.some((chapter) => chapter.paragraphs.some((paragraph) => paragraph.text.trim())),
+);
+const batchProgressLabel = computed(() =>
+  chapterPrep.batchProgress.value
+    ? `${chapterPrep.batchProgress.value.current}/${chapterPrep.batchProgress.value.total}`
+    : undefined,
 );
 const voiceOptions = computed(() => voiceRevisionOptions(props.voices, draft.selectedVoiceRevisionIds.value));
 const roleUsageCounts = computed(() => {
@@ -67,6 +76,9 @@ const roleUsageCounts = computed(() => {
 });
 const paragraphCount = computed(() =>
   draft.chapters.value.reduce((total, chapter) => total + chapter.paragraphs.length, 0),
+);
+const estimatedDuration = computed(() =>
+  formatEstimatedDuration(draft.chapters.value.flatMap((c) => c.paragraphs.map((p) => p.text)).join(" ")),
 );
 const rolesInvalid = computed(() => {
   const validIds = new Set(props.voices.map((voice) => voice.revisionId));
@@ -95,12 +107,6 @@ const pages = computed(() => [
     invalid: settingsInvalid.value,
   },
 ]);
-const outputSummary = computed(
-  () => `${draft.output.format.value.toUpperCase()} · ${Number(draft.output.sampleRate.value) / 1000} kHz`,
-);
-const lexiconSummary = computed(() =>
-  draft.lexicon.entries.value.length ? String(draft.lexicon.entries.value.length) : undefined,
-);
 function forwardPreview(
   text: string,
   voiceRevisionId: string,
@@ -126,16 +132,36 @@ watchEffect(() =>
   >
     <SpeechEditorPage value="script" :active="page">
       <div class="flex flex-wrap items-center justify-between gap-2">
-        <AudiobookScriptImport
-          :node="sourceNode"
-          :disabled="disabled"
-          :initialize="project.project.activeRevision === 1 && !project.segments.length"
-          @imported="draft.importScript($event)"
-          @initialized="draft.initializeFromScript($event)"
-          @busy="importing = $event"
-        />
+        <div class="flex flex-wrap items-center gap-1.5">
+          <AudiobookScriptImport
+            :node="sourceNode"
+            :disabled="editingDisabled"
+            :initialize="project.project.activeRevision === 1 && !project.segments.length"
+            @imported="draft.importScript($event)"
+            @initialized="draft.initializeFromScript($event)"
+            @busy="importing = $event"
+          />
+          <SpeechNarrationPrepareMenu
+            v-if="draft.chapters.value.length"
+            :label="
+              draft.chapters.value.length > 1
+                ? t('spaces.speech.project.prepareNarration.actionAll')
+                : t('spaces.speech.project.prepareNarration.action')
+            "
+            :restore-label="t('spaces.speech.project.prepareNarration.restoreAll')"
+            :progress-label="batchProgressLabel"
+            :disabled="editingDisabled && chapterPrep.preparingScope.value !== 'book'"
+            :empty="!hasAnyChapterText"
+            :preparing="chapterPrep.preparing.value && chapterPrep.preparingScope.value === 'book'"
+            :can-restore="chapterPrep.canRestoreBook.value"
+            @prepare="(mode, target) => chapterPrep.prepareAllChapters(draft.chapters.value, mode, target)"
+            @cancel="chapterPrep.cancel()"
+            @restore="chapterPrep.restoreAllChapters(draft.chapters.value)"
+          />
+        </div>
         <span v-if="draft.chapters.value.length" class="text-caption-sm text-fg-tertiary tabular-nums">
-          {{ draft.chapters.value.length }} · {{ paragraphCount }}
+          {{ draft.chapters.value.length }} · {{ paragraphCount
+          }}<template v-if="estimatedDuration"> · {{ estimatedDuration }}</template>
         </span>
       </div>
       <div
@@ -154,6 +180,7 @@ watchEffect(() =>
         ref="chaptersRef"
         :draft="draft"
         :voices="voices"
+        :preparation="chapterPrep"
         :disabled="editingDisabled"
         @preview="forwardPreview"
       />
@@ -175,43 +202,7 @@ watchEffect(() =>
       />
     </SpeechEditorPage>
     <SpeechEditorPage value="settings" :active="page">
-      <SpeechSettingsDisclosure :title="t('spaces.speech.audiobook.metadataSettings')" :is-expanded="true">
-        <AudiobookMetadataEditor v-model="draft.output.metadata.value" :disabled="editingDisabled" />
-      </SpeechSettingsDisclosure>
-      <SpeechSettingsDisclosure
-        :title="t('spaces.speech.audiobook.outputSettings')"
-        :summary="outputSummary"
-        :is-invalid="draft.output.format.value === 'wav' && Boolean(draft.output.metadata.value.cover)"
-      >
-        <AudiobookOutputSettings
-          v-model:format="draft.output.format.value"
-          v-model:sample-rate="draft.output.sampleRate.value"
-          v-model:loudness="draft.output.loudness.value"
-          v-model:peak="draft.output.peak.value"
-          v-model:paragraph-pause="draft.output.paragraphPause.value"
-          v-model:chapter-pause="draft.output.chapterPause.value"
-          v-model:wav-precision="draft.output.wavPrecision.value"
-          :disabled="editingDisabled"
-        />
-        <p
-          v-if="draft.output.format.value === 'wav' && draft.output.metadata.value.cover"
-          class="text-caption text-fg-danger"
-        >
-          {{ t("spaces.speech.audiobook.coverRequiresEncodedOutput") }}
-        </p>
-      </SpeechSettingsDisclosure>
-      <SpeechSettingsDisclosure
-        :title="t('spaces.speech.audiobook.lexicon.title')"
-        :summary="lexiconSummary"
-        :is-invalid="!draft.lexicon.isValid.value"
-      >
-        <PronunciationLexiconEditor
-          v-model="draft.lexicon.entries.value"
-          :valid="draft.lexicon.isValid.value"
-          :disabled="editingDisabled"
-          hide-title
-        />
-      </SpeechSettingsDisclosure>
+      <AudiobookProductionSettings :draft="draft" :disabled="editingDisabled" />
     </SpeechEditorPage>
   </SpeechEditorTabs>
 </template>

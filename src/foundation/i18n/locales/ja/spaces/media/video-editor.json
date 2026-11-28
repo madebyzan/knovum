@@ -45,7 +45,7 @@
     "zoomIn": "タイムラインのズーム",
     "fit": "ビデオ全体をフィット",
     "seek": "シーク タイムライン",
-    "clearSelection": "選択を解除"
+    "snapping": "マグネットスナップ"
   },
   "clip": {
     "selected": "選択されたクリップ",
@@ -98,7 +98,33 @@
   },
   "captions": {
     "search": "検索キャプション",
-    "noMatches": "一致するキャプションがありません。"
+    "noMatches": "一致するキャプションがありません。",
+    "empty": "テキストはまだありません。Tキーまたは「テキストを追加」で作成できます。",
+    "fromTranscript": "文字起こしから字幕を生成",
+    "fromTranscriptDone": "文字起こしから {count} 件の字幕を生成しました",
+    "fromTranscriptEmpty": "字幕を生成するには、タイムライン上の動画を先に文字起こししてください。",
+    "importFile": "SRT / VTT を読み込む",
+    "importDone": "{count} 件の字幕を読み込みました",
+    "exportMenu": "字幕を書き出す",
+    "exportSrt": "SRT で書き出す (.srt)",
+    "exportVtt": "WebVTT で書き出す (.vtt)",
+    "applyStyleAll": "スタイルと位置を全字幕に適用",
+    "applyStyleDone": "全 {count} 件の字幕にスタイルと位置を適用しました",
+    "splitCaption": "再生ヘッドで分割",
+    "mergeNext": "次と結合",
+    "position": "配置位置",
+    "posTop": "上部",
+    "posCenter": "中央",
+    "posBottom": "下部",
+    "templateTitle": "字幕スタイル",
+    "templates": {
+      "classic": "クラシック",
+      "cinemaPill": "シネマ",
+      "highlight": "ハイライト",
+      "softShadow": "シャドウ",
+      "lightPill": "ライト",
+      "minimal": "ミニマル"
+    }
   },
   "font": {
     "family": "フォント",
@@ -107,7 +133,8 @@
     "unavailable": "フォント {family} はこのコンピュータにインストールされていません。別のフォントを選択してください。",
     "catalogEmpty": "インストールされているフォントは使用できません。",
     "size": "サイズ",
-    "color": "テキストの色"
+    "color": "テキストの色",
+    "italic": "斜体"
   },
   "transitions": {
     "title": "トランジション",
@@ -127,19 +154,23 @@
       "slideRight": "右へスライド",
       "slideUp": "上へスライド",
       "slideDown": "下へスライド"
-    }
+    },
+    "noTarget": "トランジションを適用するには、クリップを分割するか2つ目のクリップを追加してください。"
   },
   "output": {
     "title": "出力設定",
     "size": "画面サイズと解像度",
-    "frameRate": "フレームレート",
     "background": "背景色"
   },
   "playback": {
     "stepBackward": "前の出力フレーム",
     "stepForward": "次の出力フレーム",
     "goToStart": "先頭へ",
-    "goToEnd": "末尾へ"
+    "goToEnd": "末尾へ",
+    "stepBackTen": "10フレーム戻る",
+    "stepForwardTen": "10フレーム進む",
+    "previousCut": "前の編集点",
+    "nextCut": "次の編集点"
   },
   "trim": {
     "start": "クリップ開始のトリム",

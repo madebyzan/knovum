@@ -17,11 +17,19 @@
     },
     "alignSelected": "对齐所选片段",
     "alignmentLimit": "最多 8 段 / 5 分钟",
-    "selectForAlignment": "选择此片段进行对齐"
+    "selectForAlignment": "选择此片段进行对齐",
+    "seek": "跳转到此片段",
+    "copyAll": "复制转录全文",
+    "copied": "已复制转录全文",
+    "export": "导出转录",
+    "exportTxt": "导出纯文本 (.txt)",
+    "exportSrt": "导出字幕 (.srt)",
+    "editClearsInsights": "保存转录修改将清除已生成的摘要和章节，保存后可重新生成。"
   },
   "speakers": {
     "title": "说话人轨道",
     "durationLimit": "说话人分离支持最长两小时的媒体。",
-    "generate": "识别说话人"
+    "generate": "识别说话人",
+    "label": "说话人 {index}"
   }
 }

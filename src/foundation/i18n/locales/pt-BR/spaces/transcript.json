@@ -17,11 +17,19 @@
     },
     "alignSelected": "Alinhar selecionado",
     "alignmentLimit": "Até 8 segmentos/5 minutos",
-    "selectForAlignment": "Selecionar para alinhamento"
+    "selectForAlignment": "Selecionar para alinhamento",
+    "seek": "Ir para o segmento",
+    "copyAll": "Copiar transcrição",
+    "copied": "Transcrição copiada",
+    "export": "Exportar transcrição",
+    "exportTxt": "Exportar texto (.txt)",
+    "exportSrt": "Exportar legendas (.srt)",
+    "editClearsInsights": "Salvar edições na transcrição limpa o resumo e os capítulos gerados."
   },
   "speakers": {
     "title": "Faixas de alto-falante",
     "durationLimit": "A diarização do alto-falante suporta gravações de até duas horas.",
-    "generate": "Identificar alto-falantes"
+    "generate": "Identificar alto-falantes",
+    "label": "Locutor {index}"
   }
 }

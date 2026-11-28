@@ -45,7 +45,7 @@
     "zoomIn": "放大時間軸",
     "fit": "適配整段視頻",
     "seek": "定位時間軸",
-    "clearSelection": "取消選取"
+    "snapping": "磁性吸附"
   },
   "clip": {
     "selected": "所選片段",
@@ -98,7 +98,33 @@
   },
   "captions": {
     "search": "搜尋字幕文字",
-    "noMatches": "沒有符合的字幕。"
+    "noMatches": "沒有符合的字幕。",
+    "empty": "尚無文字疊加，按 T 或點擊「新增文字」開始。",
+    "fromTranscript": "從轉錄產生字幕",
+    "fromTranscriptDone": "已從轉錄產生 {count} 條字幕",
+    "fromTranscriptEmpty": "請先對時間線上的影片進行轉錄，再一鍵產生字幕。",
+    "importFile": "匯入 SRT / VTT",
+    "importDone": "已匯入 {count} 條字幕",
+    "exportMenu": "匯出字幕",
+    "exportSrt": "匯出 SRT 字幕 (.srt)",
+    "exportVtt": "匯出 WebVTT 字幕 (.vtt)",
+    "applyStyleAll": "將樣式與位置套用至全部字幕",
+    "applyStyleDone": "已將樣式與位置同步至全部 {count} 條字幕",
+    "splitCaption": "在播放頭分割",
+    "mergeNext": "合併下一條",
+    "position": "畫面位置",
+    "posTop": "頂部",
+    "posCenter": "置中",
+    "posBottom": "底部字幕位",
+    "templateTitle": "字幕樣式範本",
+    "templates": {
+      "classic": "經典白字",
+      "cinemaPill": "電影黑底",
+      "highlight": "醒目黃字",
+      "softShadow": "柔和陰影",
+      "lightPill": "黑字白底",
+      "minimal": "極簡純白"
+    }
   },
   "font": {
     "family": "字體",
@@ -107,7 +133,8 @@
     "unavailable": "本機未安裝字型「{family}」，請重新選擇。",
     "catalogEmpty": "本機沒有可用字體。",
     "size": "字號",
-    "color": "字體顏色"
+    "color": "字體顏色",
+    "italic": "斜體"
   },
   "transitions": {
     "title": "轉場",
@@ -127,19 +154,23 @@
       "slideRight": "向右滑動",
       "slideUp": "向上滑動",
       "slideDown": "向下滑動"
-    }
+    },
+    "noTarget": "分割片段或新增第二個片段後，即可在剪輯點之間套用轉場。"
   },
   "output": {
     "title": "輸出設定",
     "size": "畫面尺寸與解析度",
-    "frameRate": "影格率",
     "background": "背景色"
   },
   "playback": {
     "stepBackward": "上一輸出影格",
     "stepForward": "下一輸出影格",
     "goToStart": "回到開頭",
-    "goToEnd": "跳至結尾"
+    "goToEnd": "跳至結尾",
+    "stepBackTen": "後退 10 影格",
+    "stepForwardTen": "前進 10 影格",
+    "previousCut": "上一個剪輯點",
+    "nextCut": "下一個剪輯點"
   },
   "trim": {
     "start": "修剪片段起點",

@@ -1,4 +1,4 @@
-import { ALL_FORMATS, CanvasSink, Input, UrlSource, type InputVideoTrack } from "mediabunny";
+import { ALL_FORMATS, Input, UrlSource, type InputVideoTrack } from "mediabunny";
 import { shallowRef } from "vue";
 
 import { versionedMediaSource } from "../../media/media-element-source";
@@ -8,24 +8,10 @@ import { assetIdentity, createAssetCache } from "./asset-cache";
 import { mediaSourceOf } from "./source-ipc";
 import type { SourceMediaLibrary } from "./source-media";
 
-/**
- * Canvases the sink keeps in its ring buffer. The presentation queue holds a few frames while the
- * decoder reads ahead, so the pool keeps the allocated surfaces constant instead of growing.
- */
-const POOL_SIZE = 8;
-/** Largest side a preview frame is decoded to; the stage never shows more than this. */
-const PREVIEW_EDGE = 1_920;
-
 export interface PreviewVideo {
   track: InputVideoTrack;
-  sink: CanvasSink;
-}
-
-/** The decoded size of a preview frame: the source's own, scaled into the preview edge. */
-export function previewFrameSize(width: number, height: number) {
-  const scale = Math.min(1, PREVIEW_EDGE / Math.max(1, width), PREVIEW_EDGE / Math.max(1, height));
-  if (scale === 1) return {};
-  return { width: Math.round(width * scale), height: Math.round(height * scale), fit: "fill" as const };
+  /** Playback URL for native hardware `<video>` decoding (original source or H.264 proxy). */
+  url: string;
 }
 
 interface VideoLibraryOptions {
@@ -35,10 +21,9 @@ interface VideoLibraryOptions {
 }
 
 /**
- * The decodable video track of every video asset. The source itself is decoded whenever the WebView
- * can, so a video is on the stage and the timeline as soon as its container index is read, as in
- * any desktop editor. Only a codec the WebView cannot decode is normalized by Rust into a proxy,
- * and that wait is published so the editor can say what it is waiting for.
+ * The decodable video track and hardware playback URL of every video asset. Native codecs play
+ * directly from the original file through the platform media engine; codecs the WebView cannot
+ * decode are normalized by Rust into an H.264 proxy and played through the exact same hardware path.
  */
 export function createVideoLibrary(options: VideoLibraryOptions) {
   const proxyInputsByKey = new Map<string, Input>();
@@ -58,30 +43,31 @@ export function createVideoLibrary(options: VideoLibraryOptions) {
     converting.value = next;
   }
 
-  async function proxyTrack(asset: VideoAsset) {
+  async function proxyTrack(asset: VideoAsset): Promise<PreviewVideo> {
     setConverting(asset, true);
     try {
       const path = await prepareVideoEditProxy(mediaSourceOf(options.spaceId, asset), options.signal);
+      const url = versionedMediaSource(path, asset.sourceRevision)!;
       const key = assetIdentity(asset);
       disposeProxy(key);
       const input = new Input({
         formats: ALL_FORMATS,
-        source: new UrlSource(versionedMediaSource(path, asset.sourceRevision)!),
+        source: new UrlSource(url),
       });
       proxyInputsByKey.set(key, input);
       const track = await input.getPrimaryVideoTrack();
       if (!track || !(await track.canDecode()))
         throw new Error("This video cannot be decoded on this device");
-      return track;
+      return { track, url };
     } finally {
       setConverting(asset, false);
     }
   }
 
   async function open(asset: VideoAsset): Promise<PreviewVideo> {
-    const track = (await options.sources.load(asset)).video ?? (await proxyTrack(asset));
-    const size = previewFrameSize(track.displayWidth, track.displayHeight);
-    return { track, sink: new CanvasSink(track, { ...size, poolSize: POOL_SIZE }) };
+    const source = await options.sources.load(asset);
+    if (source.video) return { track: source.video, url: source.url };
+    return await proxyTrack(asset);
   }
 
   const cache = createAssetCache(open);

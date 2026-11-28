@@ -92,6 +92,7 @@ fn main() {
                     "detect_local_ollama_models",
                     "list_external_agent_descriptors",
                     "list_provider_descriptors",
+                    "prepare_narration_script_stream",
                     "transform_editor_text_stream",
                     "translate_text_stream",
                     "validate_model_settings",

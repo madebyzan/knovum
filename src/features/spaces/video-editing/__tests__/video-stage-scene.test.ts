@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { createVideoEditProject, defaultTextStyle, type VideoTextOverlay } from "../project";
 import { applyGroupStyle } from "../stage/scene-layer";
-import { textAnchorX, textBoxPadding, textConfig } from "../stage/scene-text";
+import { textAnchorX, textBoxMetrics, textConfig } from "../stage/scene-text";
 import { PLAIN_LAYER, transitionStyle } from "../stage/scene-transition";
 
 const output = createVideoEditProject({
@@ -83,12 +83,20 @@ describe("stage text", () => {
 
   it("maps the outline, shadow and box decorations the export writes", () => {
     const outline = textConfig(overlay({ decoration: "outline", decorationStrength: 3 }), output);
-    expect(outline).toMatchObject({ stroke: "#000000", strokeWidth: 6, shadowOpacity: 0 });
+    expect(outline).toMatchObject({ stroke: "#000000", strokeWidth: 6, shadowOpacity: 0.45 });
     const shadow = textConfig(overlay({ decoration: "shadow", decorationStrength: 2 }), output);
-    expect(shadow).toMatchObject({ strokeWidth: 0, shadowOpacity: 1 });
-    expect(shadow.shadowOffset).toEqual({ x: 2, y: 2 });
-    expect(textBoxPadding(overlay({ decoration: "box", decorationStrength: 4 }), output)).toBe(4);
-    expect(textBoxPadding(overlay({ decoration: "outline" }), output)).toBe(0);
+    expect(shadow).toMatchObject({ strokeWidth: 0, shadowOpacity: 0.85 });
+    expect(shadow.shadowOffset).toEqual({ x: 1.4, y: 1.8 });
+    expect(textBoxMetrics(overlay({ decoration: "box", decorationStrength: 4 }), output)).toEqual({
+      paddingX: 8.4,
+      paddingY: 3.4,
+      cornerRadius: 6,
+    });
+    expect(textBoxMetrics(overlay({ decoration: "outline" }), output)).toEqual({
+      paddingX: 0,
+      paddingY: 0,
+      cornerRadius: 0,
+    });
   });
 
   it("anchors the text box the way the alignment does", () => {

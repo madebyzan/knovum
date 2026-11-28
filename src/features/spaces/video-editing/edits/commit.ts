@@ -1,6 +1,6 @@
 import { videoEditProjectSchema } from "../../model/nodes/schema/video-edit";
-import { MIN_CLIP_MS, type VideoEditProject } from "../project";
-import { clipEndMs, projectDurationMs } from "../timing";
+import { MIN_CLIP_MS, type VideoAudioClip, type VideoEditProject } from "../project";
+import { clipEndMs, clipLengthMs, projectDurationMs } from "../timing";
 
 /**
  * Normalizes a project after an edit and validates it. Edits produce the intended structure; this
@@ -17,19 +17,30 @@ export function commitProject(project: VideoEditProject): VideoEditProject {
   return videoEditProjectSchema.parse(
     pruneAssets({
       ...normalized,
-      audioTrack: { clips: clampAudio(normalized.audioTrack.clips, durationMs) },
+      audioTrack: { clips: normalizeAudio(normalized.audioTrack.clips, durationMs) },
       textTrack: { items: clampText(normalized.textTrack.items, durationMs) },
     }),
   );
 }
 
-/** Music follows the video track: it is trimmed to the timeline, not discarded. */
-function clampAudio(clips: VideoEditProject["audioTrack"]["clips"], durationMs: number) {
-  const kept: VideoEditProject["audioTrack"]["clips"] = [];
-  for (const clip of clips) {
-    if (clip.timelineStartMs > durationMs - MIN_CLIP_MS) continue;
-    const overflowMs = clipEndMs(clip) - durationMs;
-    kept.push(overflowMs > 0 ? { ...clip, sourceOutMs: clip.sourceOutMs - overflowMs } : clip);
+/** Music follows the video track: sorted per lane and trimmed to the timeline without overlap. */
+function normalizeAudio(clips: VideoEditProject["audioTrack"]["clips"], durationMs: number) {
+  const sorted = clips.toSorted(
+    (left, right) => left.lane - right.lane || left.timelineStartMs - right.timelineStartMs,
+  );
+  const kept: VideoAudioClip[] = [];
+  const laneEnd = new Map<number, number>();
+  for (const clip of sorted) {
+    const earliestStart = Math.max(clip.timelineStartMs, laneEnd.get(clip.lane) ?? 0);
+    if (earliestStart > durationMs - MIN_CLIP_MS) continue;
+    const adjusted =
+      earliestStart === clip.timelineStartMs ? clip : { ...clip, timelineStartMs: earliestStart };
+    const overflowMs = clipEndMs(adjusted) - durationMs;
+    const clamped =
+      overflowMs > 0 ? { ...adjusted, sourceOutMs: adjusted.sourceOutMs - overflowMs } : adjusted;
+    if (clipLengthMs(clamped) < MIN_CLIP_MS) continue;
+    kept.push(clamped);
+    laneEnd.set(clamped.lane, clipEndMs(clamped));
   }
   return kept;
 }

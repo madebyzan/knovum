@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import type { VideoAudioClip } from "../project";
 import { stepAudioTrimFrame } from "../timeline/frame-step";
-import { timeToPx } from "../timeline/scale";
+import { timeToPx, timeToTimelineX } from "../timeline/scale";
 import { clipLengthMs } from "../timing";
 import SpaceVideoWaveform from "./SpaceVideoWaveform.vue";
 import type { VideoEditor } from "./use-video-editor";
@@ -16,7 +16,7 @@ const EDGES = ["start", "end"] as const;
 
 const selected = computed(() => selection.selection.value?.id === props.clip.id);
 const geometry = computed(() => ({
-  left: `${timeToPx(props.clip.timelineStartMs, timeline.pxPerSecond.value)}px`,
+  left: `${timeToTimelineX(props.clip.timelineStartMs, timeline.pxPerSecond.value)}px`,
   width: `${Math.max(10, timeToPx(clipLengthMs(props.clip), timeline.pxPerSecond.value))}px`,
 }));
 const title = computed(
@@ -50,14 +50,14 @@ function nudge(edge: "start" | "end", direction: -1 | 1) {
     <SpaceVideoWaveform :clip="clip" :editor="editor" />
     <button
       type="button"
-      class="absolute inset-0 w-full cursor-grab touch-none truncate px-2 text-left text-caption-sm text-fg-secondary focus-visible:outline-2 focus-visible:outline-stroke-focus active:cursor-grabbing"
+      class="absolute inset-0 flex w-full cursor-grab touch-none items-center text-left text-caption-sm font-medium text-fg-secondary focus-visible:outline-2 focus-visible:outline-stroke-focus active:cursor-grabbing"
       :aria-label="title"
       @pointerdown="grab"
       @pointermove="gestures.move"
       @pointerup="gestures.finish"
       @pointercancel="gestures.cancel"
     >
-      {{ title }}
+      <span class="sticky left-1.5 max-w-full truncate px-1.5">{{ title }}</span>
     </button>
     <button
       v-for="edge in EDGES"

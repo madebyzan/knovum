@@ -7,5 +7,10 @@
   "timeline": "Medien-Timeline",
   "transcribe": "Transkribieren",
   "transcribing": "Transkription wird verarbeitet",
-  "retranscribe": "Erneut transkribieren"
+  "retranscribe": "Erneut transkribieren",
+  "speed": "Wiedergabegeschwindigkeit",
+  "mute": "Stummschalten",
+  "unmute": "Stummschaltung aufheben",
+  "skipBack": "10 Sekunden zurück",
+  "skipForward": "10 Sekunden vor"
 }

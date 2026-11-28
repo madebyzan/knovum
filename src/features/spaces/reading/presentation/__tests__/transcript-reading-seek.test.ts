@@ -67,4 +67,53 @@ describe("SpaceTranscriptReadingSurface media citation playback", () => {
     expect(playSpy).toHaveBeenCalledTimes(2);
     playSpy.mockRestore();
   });
+
+  it("renders transcript cues immediately in normal flow and resets scroll offset when switching media nodes", async () => {
+    const longSegments = Array.from({ length: 40 }, (_, index) => ({
+      startMs: index * 3_000,
+      endMs: (index + 1) * 3_000,
+      text: `Long segment ${index}`,
+    }));
+    const longNode = createSpaceNode(
+      {
+        kind: "video",
+        title: "Long",
+        fileName: "long.mp4",
+        assetPath: "/long.mp4",
+        sourceRevision: "rev-long",
+        mediaKnowledge: {
+          sourceRevision: "rev-long",
+          schemaVersion: 1,
+          transcript: transcriptFixture("rev-long", longSegments),
+        },
+      },
+      { x: 0, y: 0 },
+      "video-long",
+    ) as SpaceCanvasNode<SpaceVideoPayload>;
+
+    const wrapper = mount(SpaceTranscriptReadingSurface, {
+      props: { node: longNode },
+      global: { plugins: [i18n], stubs: { SpaceNodeTranscriptionAction: true } },
+    });
+    await flushPromises();
+
+    // First cues render immediately on mount without requiring a scroll event or absolute transforms.
+    expect(wrapper.text()).toContain("Long segment 0");
+    const firstRow = wrapper.get("[data-index='0']").element as HTMLElement;
+    expect(firstRow.style.transform).toBe("");
+    expect(firstRow.className).not.toContain("absolute");
+
+    // Simulate scrolling deep into the first video, then switching to a shorter video node.
+    const scroller = wrapper.get(".transcript-rows").element as HTMLDivElement;
+    scroller.scrollTop = 1_500;
+    scroller.dispatchEvent(new Event("scroll"));
+    await flushPromises();
+
+    await wrapper.setProps({ node: videoNode() });
+    await flushPromises();
+
+    expect(scroller.scrollTop).toBe(0);
+    expect(wrapper.text()).toContain("Opening");
+    expect(wrapper.text()).toContain("I auditioned when I was nine");
+  });
 });

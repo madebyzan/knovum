@@ -12,11 +12,14 @@ export interface PreparedAudioRecording {
   session: SpaceAudioRecordingSession;
 }
 
-export async function prepareAudioRecording(isCurrent: () => boolean) {
+export async function prepareAudioRecording(isCurrent: () => boolean, deviceId?: string) {
   let stream: MediaStream | undefined;
   let session: SpaceAudioRecordingSession | undefined;
   try {
-    stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const audioConstraint: MediaTrackConstraints | boolean = deviceId
+      ? { deviceId: { exact: deviceId } }
+      : true;
+    stream = await navigator.mediaDevices.getUserMedia({ audio: audioConstraint });
     if (!isCurrent()) return stopAudioCapture(stream);
     const recorder = createAudioMediaRecorder(stream);
     session = await startSpaceAudioRecording(recorder.mimeType);

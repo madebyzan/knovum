@@ -51,9 +51,10 @@ function cancel() {
 
 function save() {
   const cleanTitle = draft.title.trim();
-  if (!cleanTitle) return;
+  const cleanSummary = draft.summary.trim();
+  if (!cleanTitle || !cleanSummary) return;
   nodeDraft.end();
-  emit("save", props.index, cleanTitle, draft.summary.trim());
+  emit("save", props.index, cleanTitle, cleanSummary);
   dialogOpen.value = false;
 }
 </script>
@@ -70,7 +71,7 @@ function save() {
       @click="emit('seek', chapter.startMs)"
     >
       <span
-        class="w-10 shrink-0 pt-0.5 font-mono text-caption-sm font-medium tabular-nums"
+        class="min-w-11 shrink-0 pt-0.5 font-mono text-caption-sm font-medium tabular-nums"
         :class="active ? 'text-fg-accent' : 'text-fg-tertiary'"
       >
         {{ formatDurationMs(chapter.startMs) }}
@@ -112,7 +113,12 @@ function save() {
       </div>
       <template #footer>
         <UiButton size="sm" variant="ghost" @click="cancel">{{ t("common.cancel") }}</UiButton>
-        <UiButton size="sm" variant="primary" :disabled="!draft.title.trim()" @click="save">
+        <UiButton
+          size="sm"
+          variant="primary"
+          :disabled="!draft.title.trim() || !draft.summary.trim()"
+          @click="save"
+        >
           {{ t("common.save") }}
         </UiButton>
       </template>

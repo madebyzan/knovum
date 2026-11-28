@@ -54,3 +54,18 @@ pub struct TranslationCommandRequest {
     pub text: String,
     pub target_language: String,
 }
+
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq, Eq, ts_rs::TS)]
+#[serde(rename_all = "camelCase")]
+pub enum NarrationPreparationMode {
+    Clean,
+    Adapt,
+}
+
+#[derive(Debug, Deserialize, ts_rs::TS)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct NarrationPreparationCommandRequest {
+    pub target: TaskTargetSelection,
+    pub mode: NarrationPreparationMode,
+    pub text: String,
+}

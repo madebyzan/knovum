@@ -44,8 +44,10 @@ function cancelSummaryEdit() {
   editing.value = false;
 }
 function saveMediaSummary() {
+  const cleanSummary = draft.value.trim();
+  if (!cleanSummary) return;
   nodeDraft.end();
-  emit("save", draft.value);
+  emit("save", cleanSummary);
   editing.value = false;
 }
 </script>
@@ -60,7 +62,12 @@ function saveMediaSummary() {
         <UiIconButton :label="t('common.cancel')" tooltip size="sm" @click="cancelSummaryEdit"
           ><X class="size-3"
         /></UiIconButton>
-        <UiIconButton :label="t('common.save')" tooltip size="sm" @click="saveMediaSummary"
+        <UiIconButton
+          :label="t('common.save')"
+          tooltip
+          size="sm"
+          :disabled="!draft.trim()"
+          @click="saveMediaSummary"
           ><Check class="size-3"
         /></UiIconButton>
       </template>

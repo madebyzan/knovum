@@ -7,5 +7,10 @@
   "timeline": "メディア タイムライン",
   "transcribe": "文字起こし",
   "transcribing": "転写処理中",
-  "retranscribe": "再文字起こし"
+  "retranscribe": "再文字起こし",
+  "speed": "再生速度",
+  "mute": "ミュート",
+  "unmute": "ミュート解除",
+  "skipBack": "10秒戻る",
+  "skipForward": "10秒進む"
 }

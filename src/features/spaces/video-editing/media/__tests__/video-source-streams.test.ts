@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { VideoAsset } from "../../project";
 import { waveformBars } from "../../timeline/waveform";
 import { AUDIO_CHUNK_MS, audioBufferOf, createAudioChunks } from "../audio-chunks";
-import { previewFrameSize } from "../preview-video";
 
 const ipc = vi.hoisted(() => ({ readSourceAudio: vi.fn<() => Promise<ArrayBuffer>>() }));
 vi.mock("../source-ipc", () => ({
@@ -106,14 +105,6 @@ describe("source audio pieces", () => {
 function chunksWith(audible: () => Promise<boolean>, onFailed = vi.fn<(error: unknown) => void>()) {
   return createAudioChunks({ spaceId: "space", context: fakeContext, audible, onFailed });
 }
-
-describe("preview frame size", () => {
-  it("decodes at the source's own size up to the preview edge, keeping its shape", () => {
-    expect(previewFrameSize(1920, 1080)).toEqual({});
-    expect(previewFrameSize(3840, 2160)).toEqual({ width: 1920, height: 1080, fit: "fill" });
-    expect(previewFrameSize(2160, 3840)).toEqual({ width: 1080, height: 1920, fit: "fill" });
-  });
-});
 
 describe("waveform bars", () => {
   it("takes the loudest peak of each slice of the source window", () => {

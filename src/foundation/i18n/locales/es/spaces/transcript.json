@@ -17,11 +17,19 @@
     },
     "alignSelected": "Alinear seleccionado",
     "alignmentLimit": "Hasta 8 segmentos / 5 minutos",
-    "selectForAlignment": "Seleccionar para alineación"
+    "selectForAlignment": "Seleccionar para alineación",
+    "seek": "Ir al segmento",
+    "copyAll": "Copiar transcripción",
+    "copied": "Transcripción copiada",
+    "export": "Exportar transcripción",
+    "exportTxt": "Exportar texto (.txt)",
+    "exportSrt": "Exportar subtítulos (.srt)",
+    "editClearsInsights": "Guardar cambios en la transcripción borrará el resumen y los capítulos generados."
   },
   "speakers": {
     "title": "Pistas de altavoz",
     "durationLimit": "La registro del hablante admite grabaciones de hasta dos horas.",
-    "generate": "Identificar hablantes"
+    "generate": "Identificar hablantes",
+    "label": "Hablante {index}"
   }
 }

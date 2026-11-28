@@ -10,7 +10,7 @@ use crate::spaces::{db, knowledge::model::revision};
 
 pub struct VideoSubtitleSource {
     pub path: String,
-    pub srt: String,
+    pub ass: String,
 }
 
 pub async fn complete(

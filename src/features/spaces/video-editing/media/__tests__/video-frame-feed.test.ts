@@ -1,127 +1,175 @@
-import type { CanvasSink } from "mediabunny";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { createFrameFeed } from "../video-frames";
 
-interface Frame {
-  id: string;
-  timestamp: number;
-  duration: number;
-}
-
-const flush = () => new Promise((resolve) => globalThis.setTimeout(resolve, 0));
-
-function fakeSink(frames: Frame[]) {
-  const starts: number[] = [];
-  const sink = {
-    canvases(from = 0) {
-      starts.push(from);
-      const pending = frames.filter((frame) => frame.timestamp + frame.duration > from);
-      return (async function* generate() {
-        for (const frame of pending) {
-          yield {
-            canvas: frame.id as unknown as HTMLCanvasElement,
-            timestamp: frame.timestamp,
-            duration: frame.duration,
-          };
-        }
-      })();
+function fakeVideoElement() {
+  const listeners = new Map<string, Set<() => void>>();
+  const state = {
+    src: "",
+    muted: false,
+    playsInline: false,
+    preload: "",
+    paused: true,
+    seeking: false,
+    readyState: 4,
+    duration: 30,
+    currentTime: 0,
+    playbackRate: 1,
+    error: null as { message: string } | null,
+    playCalls: 0,
+    pauseCalls: 0,
+  };
+  const element = {
+    get src() {
+      return state.src;
+    },
+    set src(value: string) {
+      state.src = value;
+    },
+    get muted() {
+      return state.muted;
+    },
+    set muted(value: boolean) {
+      state.muted = value;
+    },
+    get playsInline() {
+      return state.playsInline;
+    },
+    set playsInline(value: boolean) {
+      state.playsInline = value;
+    },
+    get preload() {
+      return state.preload;
+    },
+    set preload(value: string) {
+      state.preload = value;
+    },
+    get paused() {
+      return state.paused;
+    },
+    get seeking() {
+      return state.seeking;
+    },
+    get readyState() {
+      return state.readyState;
+    },
+    get duration() {
+      return state.duration;
+    },
+    get currentTime() {
+      return state.currentTime;
+    },
+    set currentTime(value: number) {
+      state.currentTime = value;
+    },
+    get playbackRate() {
+      return state.playbackRate;
+    },
+    set playbackRate(value: number) {
+      state.playbackRate = value;
+    },
+    get error() {
+      return state.error;
+    },
+    play: vi.fn<() => Promise<void>>(() => {
+      state.paused = false;
+      state.playCalls += 1;
+      return Promise.resolve();
+    }),
+    pause: vi.fn<() => void>(() => {
+      state.paused = true;
+      state.pauseCalls += 1;
+    }),
+    removeAttribute: vi.fn<(name: string) => void>(() => {
+      state.src = "";
+    }),
+    load: vi.fn<() => void>(),
+    addEventListener(type: string, fn: () => void) {
+      const set = listeners.get(type) ?? new Set();
+      set.add(fn);
+      listeners.set(type, set);
+    },
+    removeEventListener(type: string, fn: () => void) {
+      listeners.get(type)?.delete(fn);
     },
   };
-  return { starts, sink: sink as unknown as CanvasSink };
+  const emit = (type: string) => {
+    for (const fn of listeners.get(type) ?? []) fn();
+  };
+  return { element: element as unknown as HTMLVideoElement, state, emit };
 }
 
-function feedOf(frames: Frame[]) {
-  const { starts, sink } = fakeSink(frames);
-  const decoded: string[] = [];
-  const feed = createFrameFeed(sink, {
-    onDecoded: () => decoded.push("decoded"),
-    onFailed: () => decoded.push("failed"),
-  });
-  return { feed, starts, decoded };
-}
+describe("hardware video frame feed", () => {
+  it("plays natively on the GPU element and smoothly phase-locks small audio-clock drift", () => {
+    const { element, state } = fakeVideoElement();
+    const feed = createFrameFeed(
+      "asset://clip.mp4",
+      { onDecoded: vi.fn<() => void>(), onFailed: vi.fn<(e: unknown) => void>() },
+      () => element,
+    );
 
-/** Three presentations with a turn of the event loop between them, as the render loop does. */
-async function present(frame: ReturnType<typeof feedOf>, atS: number, playing = true) {
-  frame.feed.frameAt(atS, playing);
-  await flush();
-  frame.feed.frameAt(atS, playing);
-  await flush();
-  return frame.feed.frameAt(atS, playing);
-}
+    expect(feed.frameAt(1.0, true)).toBe(element);
+    expect(state.paused).toBe(false);
+    expect(state.currentTime).toBe(1.0);
+    expect(state.playbackRate).toBe(1);
 
-const steady: Frame[] = [
-  { id: "a", timestamp: 0, duration: 0.5 },
-  { id: "b", timestamp: 0.5, duration: 0.5 },
-  { id: "c", timestamp: 1, duration: 0.5 },
-];
+    // Small drift (80ms behind clock) nudges playbackRate instead of seeking.
+    state.currentTime = 2.0;
+    feed.frameAt(2.08, true);
+    expect(state.playbackRate).toBe(1.04);
+    expect(state.currentTime).toBe(2.0);
 
-describe("video frame feed", () => {
-  it("holds the last picture while a frame is still decoding", async () => {
-    const frame = feedOf(steady);
-    expect(frame.feed.frameAt(0, false)).toBeUndefined();
-    expect(await present(frame, 0, false)).toBe("a");
-    expect(frame.decoded).toContain("decoded");
-  });
+    // Within tight lock (<60ms) restores nominal 1.0x rate.
+    state.currentTime = 2.1;
+    feed.frameAt(2.11, true);
+    expect(state.playbackRate).toBe(1);
 
-  it("advances to the newest frame at or before the position", async () => {
-    const frame = feedOf(steady);
-    await present(frame, 0);
-    expect(await present(frame, 0.6)).toBe("b");
-    expect(await present(frame, 1.2)).toBe("c");
+    // Large cut/jump (>500ms) after startup cooldown snaps cleanly to target time.
+    vi.spyOn(performance, "now").mockReturnValueOnce(performance.now() + 1_000);
+    feed.frameAt(8.5, true);
+    expect(state.currentTime).toBe(8.5);
+    expect(state.playbackRate).toBe(1);
+    feed.dispose();
   });
 
-  it("re-seeks on a backwards scrub instead of presenting a stale frame", async () => {
-    const frame = feedOf(steady);
-    await present(frame, 1.2);
-    expect(await present(frame, 0.1, false)).toBe("a");
-    expect(frame.starts).toEqual([1.2, 0.1]);
+  it("coalesces rapid paused scrubs while a hardware seek is in flight", () => {
+    const { element, state, emit } = fakeVideoElement();
+    const onDecoded = vi.fn<() => void>();
+    const feed = createFrameFeed(
+      "asset://clip.mp4",
+      { onDecoded, onFailed: vi.fn<(e: unknown) => void>() },
+      () => element,
+    );
+
+    feed.frameAt(1.0, false);
+    expect(state.currentTime).toBe(1.0);
+
+    state.seeking = true;
+    feed.frameAt(2.0, false);
+    feed.frameAt(4.5, false);
+    expect(state.currentTime).toBe(1.0);
+
+    state.seeking = false;
+    emit("seeked");
+    expect(state.currentTime).toBe(4.5);
+    expect(onDecoded).toHaveBeenCalled();
+    feed.dispose();
   });
 
-  it("seeks over a long jump rather than decoding everything in between", async () => {
-    const frame = feedOf([...steady, { id: "far", timestamp: 9, duration: 0.5 }]);
-    await present(frame, 0);
-    await present(frame, 9);
-    expect(frame.starts).toEqual([0, 9]);
-  });
+  it("reports media errors once and stops returning the failed element", () => {
+    const { element, state, emit } = fakeVideoElement();
+    const onFailed = vi.fn<(error: unknown) => void>();
+    const feed = createFrameFeed(
+      "asset://broken.mp4",
+      { onDecoded: vi.fn<() => void>(), onFailed },
+      () => element,
+    );
 
-  it("stops requesting frames once the window covers a paused position", async () => {
-    const frame = feedOf(steady);
-    await present(frame, 0.1, false);
-    const requested = frame.starts.length;
-    frame.feed.frameAt(0.1, false);
-    frame.feed.frameAt(0.1, false);
-    expect(frame.starts).toHaveLength(requested);
-    expect(frame.decoded.filter((entry) => entry === "decoded")).toHaveLength(1);
-  });
-
-  it("reports a decoder failure once and keeps the surface untouched", async () => {
-    const broken = {
-      canvases: () => ({
-        next: () => Promise.reject(new Error("decoder lost")),
-        return: () => Promise.resolve({ done: true, value: undefined }),
-      }),
-    } as unknown as CanvasSink;
-    const failures: unknown[] = [];
-    const feed = createFrameFeed(broken, {
-      onDecoded: () => undefined,
-      onFailed: (error) => failures.push(error),
-    });
-    feed.frameAt(0, true);
-    await flush();
-    feed.frameAt(0, true);
-    await flush();
-    expect(failures).toHaveLength(1);
+    state.error = { message: "MEDIA_ERR_DECODE" };
+    emit("error");
+    emit("error");
+    expect(onFailed).toHaveBeenCalledTimes(1);
     expect(feed.frameAt(0, true)).toBeUndefined();
-  });
-
-  it("presents the initial frame even when stream packets start with a positive offset", async () => {
-    const offsetStream: Frame[] = [
-      { id: "first", timestamp: 0.08, duration: 0.04 },
-      { id: "second", timestamp: 0.12, duration: 0.04 },
-    ];
-    const frame = feedOf(offsetStream);
-    expect(await present(frame, 0, false)).toBe("first");
-    expect(frame.starts).toEqual([0]);
+    feed.dispose();
   });
 });

@@ -52,5 +52,17 @@
     "audiobook": "Générer un livre audio",
     "shortDubbing": "Générer la parole",
     "videoDubbing": "Générer une vidéo doublée"
+  },
+  "prepareNarration": {
+    "action": "Préparer avec Knovum",
+    "actionAll": "Tout préparer avec Knovum",
+    "clean": "Nettoyer pour la voix",
+    "cleanDescription": "Supprime balises, citations et bruit tout en gardant le sens",
+    "adapt": "Adapter pour une lecture naturelle",
+    "adaptDescription": "Fluidifie les phrases denses pour la narration orale",
+    "restore": "Restaurer le script précédent",
+    "restoreAll": "Restaurer tous les chapitres",
+    "model": "Modèle",
+    "hint": "Utilisez Knovum pour nettoyer le texte ou l’adapter à la lecture orale"
   }
 }

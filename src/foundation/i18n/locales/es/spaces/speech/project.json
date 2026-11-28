@@ -52,5 +52,17 @@
     "audiobook": "Generar audiolibro",
     "shortDubbing": "Generar voz",
     "videoDubbing": "Generar vídeo doblado"
+  },
+  "prepareNarration": {
+    "action": "Preparar con Knovum",
+    "actionAll": "Preparar todo con Knovum",
+    "clean": "Limpiar para locución",
+    "cleanDescription": "Elimina marcas, citas y ruido manteniendo el sentido",
+    "adapt": "Adaptar para lectura natural",
+    "adaptDescription": "Suaviza frases densas para una locución natural",
+    "restore": "Restaurar guion anterior",
+    "restoreAll": "Restaurar todos los capítulos",
+    "model": "Modelo",
+    "hint": "Usa Knovum para limpiar texto con ruido o adaptarlo a lectura natural"
   }
 }

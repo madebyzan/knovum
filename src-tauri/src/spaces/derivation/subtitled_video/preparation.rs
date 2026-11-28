@@ -22,6 +22,7 @@ pub(super) enum PreparedSubtitles {
 
 pub(super) struct SubtitleVideoSource {
     pub path: String,
+    pub frame_size: Option<(u32, u32)>,
     pub subtitles: PreparedSubtitles,
 }
 
@@ -74,7 +75,11 @@ pub(super) async fn prepare(
                     error
                 }
             })?;
-            super::srt::from_cues(&transcript.subtitle_cues, transcript.duration_ms)?
+            super::ass::from_cues(
+                &transcript.subtitle_cues,
+                transcript.duration_ms,
+                source.frame_size,
+            )?
         }
     };
     if cancellation.is_cancelled() {
@@ -82,6 +87,6 @@ pub(super) async fn prepare(
     }
     Ok(VideoSubtitleSource {
         path: source.path,
-        srt,
+        ass: srt,
     })
 }

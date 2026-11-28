@@ -1,12 +1,11 @@
-import type { CanvasSink, WrappedCanvas } from "mediabunny";
-
-/** Frames held ahead of the playhead; the sink decodes further ahead on its own. */
-const QUEUE_LIMIT = 3;
-/** Tolerance behind the request before the window is considered stale and is re-seeked. */
-const REWIND_S = 0.05;
-/** Forward gap that is cheaper to seek to than to decode through. */
-const JUMP_S = 0.75;
-const JUMP_PLAYING_S = 2.0;
+/** Large jump/cut threshold where hardware playback snaps immediately to the new position. */
+const HARD_SYNC_DRIFT_S = 0.5;
+/** Smooth phase-lock band corrected by subtle playbackRate nudging with zero seek hiccup. */
+const SOFT_SYNC_DRIFT_S = 0.06;
+/** Minimum cooldown after a seek or play() startup so AVFoundation never gets trapped in a seek loop. */
+const SEEK_COOLDOWN_MS = 500;
+/** Seek tolerance while paused so identical frames do not re-trigger hardware seeks. */
+const PAUSED_SEEK_EPSILON_S = 0.012;
 
 export interface FrameFeedEvents {
   onDecoded: () => void;
@@ -14,115 +13,162 @@ export interface FrameFeedEvents {
 }
 
 /**
- * Presents the frame a timeline position needs from one video track. Decoding is pulled ahead
- * from the sink's sequential iterator, so frames are already queued when the playhead reaches them
- * and scrubbing restarts the iterator without decoding unwanted intermediate pictures.
+ * Native hardware video feed backed directly by the platform media engine (AVFoundation /
+ * VideoToolbox on macOS, Media Foundation on Windows) via an `HTMLVideoElement`.
+ *
+ * Play startup is issued once per playback segment and guarded by a seek cooldown so long-GOP
+ * videos never get aborted mid-keyframe decode; drift within 0.5s is corrected silently via
+ * playbackRate nudging so playback stays locked at the video's native frame rate.
  */
-export function createFrameFeed(sink: CanvasSink, events: FrameFeedEvents) {
-  let iterator: AsyncGenerator<WrappedCanvas, void, unknown> | undefined;
-  let queue: WrappedCanvas[] = [];
-  let current: WrappedCanvas | undefined;
-  let previous: WrappedCanvas | undefined;
-  let lastCanvas: CanvasImageSource | undefined;
-  let generation = 0;
-  let requesting = false;
-  let exhausted = false;
-  let startedS = 0;
-  let decodedToS = 0;
-  let advanced = false;
-  let isPlaying = false;
+export function createFrameFeed(
+  url: string,
+  events: FrameFeedEvents,
+  createElement: () => HTMLVideoElement = () => document.createElement("video"),
+) {
+  const video = createElement();
+  video.muted = true;
+  video.playsInline = true;
+  video.preload = "auto";
+  video.src = url;
 
-  function restart(fromS: number) {
-    generation += 1;
-    void iterator?.return();
-    iterator = sink.canvases(Math.max(0, fromS));
-    queue = [];
-    previous = current ?? previous;
-    current = undefined;
-    exhausted = false;
-    requesting = false;
-    startedS = fromS;
-    decodedToS = fromS;
-    advanced = false;
-  }
+  let disposed = false;
+  let failed = false;
+  let playInFlight = false;
+  let lastSeekAtMs = 0;
+  let pendingSeekS: number | undefined;
+  let lastRequestedPauseS = -1;
 
-  function stale(atS: number, playing: boolean) {
-    if (!iterator) return true;
-    if (requesting && decodedToS === startedS) return false;
-    if (playing) {
-      return atS > decodedToS + JUMP_PLAYING_S || atS < startedS - 0.2;
+  function clampTime(targetS: number): number {
+    const clamped = Math.max(0, targetS);
+    if (Number.isFinite(video.duration) && video.duration > 0) {
+      return Math.min(clamped, Math.max(0, video.duration - 0.005));
     }
-    const floor = advanced && current ? Math.min(current.timestamp, atS) : startedS;
-    return atS + REWIND_S < floor || atS > decodedToS + JUMP_S;
+    return clamped;
   }
 
-  function accept(frame: WrappedCanvas) {
-    queue.push(frame);
-    decodedToS = frame.timestamp + frame.duration;
+  function setRate(rate: number) {
+    if (video.playbackRate !== rate) video.playbackRate = rate;
+  }
+
+  function applySeek(targetS: number) {
+    const clamped = clampTime(targetS);
+    if (video.readyState < HTMLMediaElement.HAVE_METADATA || video.seeking) {
+      pendingSeekS = clamped;
+      return;
+    }
+    if (Math.abs(video.currentTime - clamped) > PAUSED_SEEK_EPSILON_S) {
+      lastSeekAtMs = performance.now();
+      video.currentTime = clamped;
+    }
+  }
+
+  function flushPendingSeek() {
+    if (disposed || pendingSeekS === undefined || video.seeking) return;
+    const next = pendingSeekS;
+    pendingSeekS = undefined;
+    applySeek(next);
+  }
+
+  function onLoadedData() {
+    if (disposed) return;
+    flushPendingSeek();
     events.onDecoded();
   }
 
-  function request() {
-    const active = iterator;
-    if (!active || requesting || exhausted || queue.length >= QUEUE_LIMIT) return;
-    const token = generation;
-    requesting = true;
-    void pull(active, token);
+  function onSeeked() {
+    if (disposed) return;
+    flushPendingSeek();
+    events.onDecoded();
   }
 
-  async function pull(active: AsyncGenerator<WrappedCanvas, void, unknown>, token: number) {
-    try {
-      const iteration = await active.next();
-      if (token !== generation) return;
-      requesting = false;
-      if (iteration.done) exhausted = true;
-      else accept(iteration.value);
-    } catch (error) {
-      if (token !== generation) return;
-      requesting = false;
-      exhausted = true;
-      events.onFailed(error);
+  function onError() {
+    if (disposed || failed) return;
+    failed = true;
+    playInFlight = false;
+    events.onFailed(new Error(video.error?.message || "Video playback failed"));
+  }
+
+  video.addEventListener("loadedmetadata", flushPendingSeek);
+  video.addEventListener("loadeddata", onLoadedData);
+  video.addEventListener("seeked", onSeeked);
+  video.addEventListener("error", onError);
+
+  function startPlayback(target: number) {
+    if (playInFlight) return;
+    if (Math.abs(target - video.currentTime) > 0.08 && !video.seeking) {
+      applySeek(target);
+    }
+    setRate(1);
+    playInFlight = true;
+    lastSeekAtMs = performance.now();
+    const promise = video.play();
+    if (promise) {
+      void promise
+        .catch(() => {})
+        .finally(() => {
+          playInFlight = false;
+        });
+    } else {
+      playInFlight = false;
     }
   }
 
-  function advance(atS: number) {
-    let moved = false;
-    while (queue.length > 0 && (!current || queue[0]!.timestamp <= atS)) {
-      if (current) advanced = true;
-      current = queue.shift();
-      previous = undefined;
-      moved = true;
+  function syncPlaying(sourceS: number) {
+    lastRequestedPauseS = -1;
+    const target = clampTime(sourceS);
+    if (video.paused) {
+      startPlayback(target);
+      return;
     }
-    if (moved && isPlaying) request();
+    if (video.seeking || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
+    const drift = target - video.currentTime;
+    const absDrift = Math.abs(drift);
+    if (absDrift > HARD_SYNC_DRIFT_S && performance.now() - lastSeekAtMs >= SEEK_COOLDOWN_MS) {
+      setRate(1);
+      applySeek(target);
+      return;
+    }
+    setRate(absDrift > SOFT_SYNC_DRIFT_S ? (drift > 0 ? 1.04 : 0.96) : 1);
+  }
+
+  function syncPaused(sourceS: number) {
+    playInFlight = false;
+    if (!video.paused) video.pause();
+    setRate(1);
+    if (Math.abs(sourceS - lastRequestedPauseS) <= 0.002) return;
+    lastRequestedPauseS = sourceS;
+    applySeek(sourceS);
   }
 
   return {
-    /**
-     * The newest decoded frame at or before the requested source position, or the first frame of a
-     * fresh window while it is still catching up. Never returns a hole: until a frame arrives the
-     * previous picture stays on screen.
-     */
-    frameAt(sourceS: number, playing: boolean) {
-      isPlaying = playing;
-      if (stale(sourceS, playing)) restart(sourceS);
-      advance(sourceS);
-      const covered =
-        current &&
-        (current.timestamp <= sourceS || !advanced) &&
-        current.timestamp + current.duration > sourceS;
-      if (playing || !covered) request();
-      const frame = current ?? previous;
-      if (frame?.canvas) lastCanvas = frame.canvas;
-      return lastCanvas;
+    frameAt(sourceS: number, playing: boolean): HTMLVideoElement | undefined {
+      if (disposed || failed) return undefined;
+      if (playing) syncPlaying(sourceS);
+      else syncPaused(sourceS);
+      return video;
+    },
+    prewarm(sourceS: number) {
+      if (disposed || failed || !video.paused) return;
+      applySeek(sourceS);
+    },
+    pause() {
+      if (disposed) return;
+      playInFlight = false;
+      if (!video.paused) video.pause();
+      setRate(1);
     },
     dispose() {
-      generation += 1;
-      void iterator?.return();
-      iterator = undefined;
-      queue = [];
-      current = undefined;
-      previous = undefined;
-      lastCanvas = undefined;
+      if (disposed) return;
+      disposed = true;
+      playInFlight = false;
+      pendingSeekS = undefined;
+      video.removeEventListener("loadedmetadata", flushPendingSeek);
+      video.removeEventListener("loadeddata", onLoadedData);
+      video.removeEventListener("seeked", onSeeked);
+      video.removeEventListener("error", onError);
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
     },
   };
 }

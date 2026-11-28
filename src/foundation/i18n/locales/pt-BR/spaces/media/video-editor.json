@@ -45,7 +45,7 @@
     "zoomIn": "Zoom na linha do tempo",
     "fit": "Ajustar todo o vídeo",
     "seek": "Procurar linha do tempo",
-    "clearSelection": "Limpar a seleção"
+    "snapping": "Alinhamento magnético"
   },
   "clip": {
     "selected": "Clipe selecionado",
@@ -98,7 +98,33 @@
   },
   "captions": {
     "search": "Pesquisar legendas",
-    "noMatches": "Sem legendas correspondentes."
+    "noMatches": "Sem legendas correspondentes.",
+    "empty": "Nenhum texto ainda. Pressione T ou clique em Adicionar texto.",
+    "fromTranscript": "Gerar da transcrição",
+    "fromTranscriptDone": "{count} legendas geradas da transcrição",
+    "fromTranscriptEmpty": "Transcreva primeiro um clipe de vídeo na linha do tempo.",
+    "importFile": "Importar SRT / VTT",
+    "importDone": "{count} legendas importadas",
+    "exportMenu": "Exportar legendas",
+    "exportSrt": "Exportar SRT (.srt)",
+    "exportVtt": "Exportar WebVTT (.vtt)",
+    "applyStyleAll": "Aplicar estilo a todas as legendas",
+    "applyStyleDone": "Estilo aplicado a todas as {count} legendas",
+    "splitCaption": "Dividir no cursor",
+    "mergeNext": "Mesclar com a próxima",
+    "position": "Posição",
+    "posTop": "Topo",
+    "posCenter": "Centro",
+    "posBottom": "Inferior",
+    "templateTitle": "Estilos de legenda",
+    "templates": {
+      "classic": "Clássico",
+      "cinemaPill": "Cinema",
+      "highlight": "Destaque",
+      "softShadow": "Sombra",
+      "lightPill": "Claro",
+      "minimal": "Minimal"
+    }
   },
   "font": {
     "family": "Fonte",
@@ -107,7 +133,8 @@
     "unavailable": "A fonte {family} não está instalada neste computador. Escolha outra fonte.",
     "catalogEmpty": "Nenhuma fonte instalada está disponível.",
     "size": "Tamanho",
-    "color": "Cor do texto"
+    "color": "Cor do texto",
+    "italic": "Itálico"
   },
   "transitions": {
     "title": "Transição",
@@ -127,19 +154,23 @@
       "slideRight": "Deslizar à direita",
       "slideUp": "Deslizar para cima",
       "slideDown": "Deslizar para baixo"
-    }
+    },
+    "noTarget": "Divida um clipe ou adicione um segundo clipe para aplicar transições."
   },
   "output": {
     "title": "Configurações de saída",
     "size": "Formato e resolução",
-    "frameRate": "Taxa de quadros",
     "background": "Fundo"
   },
   "playback": {
     "stepBackward": "Quadro de saída anterior",
     "stepForward": "Próximo quadro de saída",
     "goToStart": "Ir para o início",
-    "goToEnd": "Ir para o fim"
+    "goToEnd": "Ir para o fim",
+    "stepBackTen": "Voltar 10 quadros",
+    "stepForwardTen": "Avançar 10 quadros",
+    "previousCut": "Corte anterior",
+    "nextCut": "Próximo corte"
   },
   "trim": {
     "start": "Início do clipe de corte",

@@ -5,11 +5,13 @@ import { toast } from "vue-sonner";
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import { systemSansFamily } from "../../../../foundation/typography/system-font";
 import { registerVideoEditCommands } from "../../commands/video-edit-commands";
-import { duplicateClip, splitClip } from "../edits/arrange";
+import { editPoints } from "../edits/commit";
+import { duplicateSelectedItem } from "../edits/duplicate-selection";
+import { canSplitTarget, splitTargetAt } from "../edits/split-selection";
 import { addTextOverlay } from "../edits/text";
 import { defaultTextStyle, type VideoEditProject } from "../project";
 import { renderVideoEdit } from "../render";
-import { canSplitAt, lastFrameMs, stepFrame } from "../timing";
+import { frameDurationMs, lastFrameMs, stepFrame } from "../timing";
 import { useVideoProjectSave } from "../use-video-project-save";
 import type { VideoSession } from "../video-session-store";
 import type { VideoSelectionController } from "./use-video-selection";
@@ -22,6 +24,10 @@ interface ActionOptions {
   selection: VideoSelectionController;
   playheadMs: () => number;
   seek: (timeMs: number) => void;
+  reveal: (timeMs: number) => void;
+  zoom: (factor: number) => void;
+  fitTimeline: () => void;
+  toggleSnapping: () => void;
   pause: () => void;
   toggle: () => void;
   focusText: () => void;
@@ -32,25 +38,34 @@ export function useVideoEditActions(options: ActionOptions) {
   const { session, project, selection } = options;
   const { t } = useI18n();
   const autosave = useVideoProjectSave(session, options.active);
-  const canSplit = computed(() => !!project.value && canSplitAt(project.value, options.playheadMs()));
+  const canSplit = computed(
+    () => !!project.value && canSplitTarget(project.value, selection.selection.value, options.playheadMs()),
+  );
+  const canDuplicate = computed(() =>
+    Boolean(selection.clip.value || selection.audio.value || selection.text.value),
+  );
+
+  function seekAndReveal(timeMs: number) {
+    options.seek(timeMs);
+    options.reveal(timeMs);
+  }
 
   function split() {
     const current = project.value;
     if (!current) return;
-    const next = splitClip(current, options.playheadMs());
-    if (next === current) return;
-    options.commit(next);
-    const tail = next.videoTrack.clips.find(
-      (clip) => clip.timelineStartMs === Math.round(options.playheadMs()),
-    );
-    if (tail) selection.select({ kind: "clip", id: tail.id }, { reveal: false });
+    const result = splitTargetAt(current, selection.selection.value, options.playheadMs());
+    if (result.project === current) return;
+    options.commit(result.project);
+    if (result.nextSelection) selection.select(result.nextSelection, { reveal: false });
   }
 
   function duplicate() {
     const current = project.value;
-    const clip = selection.clip.value;
-    if (!current || !clip) return;
-    options.commit(duplicateClip(current, clip.id));
+    if (!current) return;
+    const result = duplicateSelectedItem(current, selection.selection.value);
+    if (result.project === current) return;
+    options.commit(result.project);
+    if (result.nextSelection) selection.select(result.nextSelection, { reveal: false });
   }
 
   async function addText() {
@@ -74,16 +89,40 @@ export function useVideoEditActions(options: ActionOptions) {
     if (next) options.commit(next);
   }
 
-  function step(direction: -1 | 1) {
-    if (!project.value) return;
+  function step(direction: -1 | 1, frames = 1) {
+    const current = project.value;
+    if (!current) return;
     options.pause();
-    options.seek(stepFrame(project.value, options.playheadMs(), direction));
+    const target =
+      frames === 1
+        ? stepFrame(current, options.playheadMs(), direction)
+        : Math.max(
+            0,
+            Math.min(
+              lastFrameMs(current),
+              Math.round(options.playheadMs() + direction * frames * frameDurationMs(current)),
+            ),
+          );
+    seekAndReveal(target);
   }
 
   function jump(edge: "start" | "end") {
     if (!project.value) return;
     options.pause();
-    options.seek(edge === "start" ? 0 : lastFrameMs(project.value));
+    seekAndReveal(edge === "start" ? 0 : lastFrameMs(project.value));
+  }
+
+  function jumpCut(direction: -1 | 1) {
+    const current = project.value;
+    if (!current) return;
+    options.pause();
+    const now = options.playheadMs();
+    const points = editPoints(current);
+    const target =
+      direction < 0
+        ? (points.findLast((point) => point < now - 5) ?? 0)
+        : (points.find((point) => point > now + 5) ?? lastFrameMs(current));
+    seekAndReveal(Math.min(target, lastFrameMs(current)));
   }
 
   async function render() {
@@ -91,7 +130,6 @@ export function useVideoEditActions(options: ActionOptions) {
     if (session.rendering.value || !current) return;
     session.rendering.value = true;
     try {
-      // The render reads the stored project, so the edits it should include are stored first.
       await autosave.persist();
       await renderVideoEdit(session.tab.spaceId, session.node.value, current);
     } catch (error) {
@@ -111,7 +149,7 @@ export function useVideoEditActions(options: ActionOptions) {
           canRedo: () => session.history.canRedo.value,
           canDelete: () => selection.canDelete.value,
           canSplit: () => canSplit.value,
-          canDuplicate: () => !!selection.clip.value,
+          canDuplicate: () => canDuplicate.value,
           undo: session.history.undo,
           redo: session.history.redo,
           remove,
@@ -121,6 +159,10 @@ export function useVideoEditActions(options: ActionOptions) {
           togglePlayback: options.toggle,
           step,
           jump,
+          jumpCut,
+          toggleSnapping: options.toggleSnapping,
+          zoomTimeline: options.zoom,
+          fitTimeline: options.fitTimeline,
           save: autosave.persist,
         }),
       );
@@ -130,6 +172,7 @@ export function useVideoEditActions(options: ActionOptions) {
 
   return {
     canSplit,
+    canDuplicate,
     canDelete: selection.canDelete,
     addText,
     duplicate,
@@ -140,5 +183,6 @@ export function useVideoEditActions(options: ActionOptions) {
     split,
     step,
     jump,
+    jumpCut,
   };
 }

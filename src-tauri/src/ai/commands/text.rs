@@ -9,7 +9,10 @@ use crate::ai::{
         self,
         completion::{TaskCompletionOutput, TaskInput},
         stream::TaskStreamEvent,
-        text::{EditorTransformCommandRequest, TranslationCommandRequest},
+        text::{
+            EditorTransformCommandRequest, NarrationPreparationCommandRequest,
+            TranslationCommandRequest,
+        },
         TaskExecutionTarget, TaskTargetSelection,
     },
 };
@@ -83,6 +86,18 @@ pub async fn translate_text_stream(
         cancellation,
     )
     .await
+}
+
+#[tauri::command]
+pub async fn prepare_narration_script_stream(
+    app: tauri::AppHandle,
+    request: NarrationPreparationCommandRequest,
+    job_id: String,
+    on_event: Channel<TaskStreamEvent>,
+) -> Result<TaskCompletionOutput, AppError> {
+    let (cancellation, _lease) = executions::acquire(job_id).map_err(AppError::from)?;
+    let task_input = capabilities::narration::input(&request)?;
+    execute(&app, request.target, task_input, on_event, cancellation).await
 }
 
 #[tauri::command]

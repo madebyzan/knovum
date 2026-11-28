@@ -231,6 +231,7 @@ pub(super) fn export(config: &Config) -> Result<(), String> {
         crate::ai::contracts::ExecutionCapability::export_all,
         crate::ai::contracts::RoutingPurpose::export_all,
         crate::ai::tasks::text::EditorTransformCommandRequest::export_all,
+        crate::ai::tasks::text::NarrationPreparationCommandRequest::export_all,
         crate::ai::tasks::text::TranslationCommandRequest::export_all,
         crate::ai::models::text::CompletionOutput::export_all,
         crate::ai::models::text::CompletionStreamEvent::export_all,

@@ -63,6 +63,23 @@ export function moveTextOverlay(project: VideoEditProject, id: string, startMs: 
   return updateTextOverlay(project, id, { startMs: start, endMs: start + length });
 }
 
+export function duplicateTextOverlay(project: VideoEditProject, id: string): VideoEditProject {
+  const item = project.textTrack.items.find((candidate) => candidate.id === id);
+  if (!item) return project;
+  const durationMs = projectDurationMs(project);
+  const length = item.endMs - item.startMs;
+  const startMs = clamp(item.endMs, 0, Math.max(0, durationMs - MIN_CLIP_MS));
+  const endMs = clamp(startMs + length, startMs + MIN_CLIP_MS, durationMs);
+  const copy: VideoTextOverlay = {
+    ...item,
+    id: crypto.randomUUID(),
+    startMs,
+    endMs,
+    style: { ...item.style },
+  };
+  return commitProject({ ...project, textTrack: { items: [...project.textTrack.items, copy] } });
+}
+
 export function removeTextOverlay(project: VideoEditProject, id: string): VideoEditProject {
   return commitProject({
     ...project,

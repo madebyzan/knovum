@@ -25,7 +25,11 @@ const durationMs = computed(() => (project.value ? projectDurationMs(project.val
       <span class="text-caption text-fg-tertiary tabular-nums">{{ formatVideoEditTime(durationMs) }}</span>
     </div>
     <SpaceEditorSaveStatus v-if="project" :status="actions.saveStatus.value" />
-    <SpaceVideoOutputSettings v-if="project" :project="project" @edit="commit" />
+    <SpaceVideoOutputSettings
+      v-if="project"
+      :project="project"
+      @edit="(next, mergeKey) => commit(next, mergeKey)"
+    />
     <UiButton
       size="sm"
       variant="primary"

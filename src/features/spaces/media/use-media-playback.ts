@@ -1,15 +1,29 @@
 import { useMediaControls } from "@vueuse/core";
 import { clamp } from "es-toolkit";
-import { computed, nextTick, shallowRef, toValue, watch, type MaybeRefOrGetter, type Ref } from "vue";
+import {
+  computed,
+  nextTick,
+  onScopeDispose,
+  shallowRef,
+  toValue,
+  watch,
+  type MaybeRefOrGetter,
+  type Ref,
+} from "vue";
 
+import { claimActiveMediaPlayback, releaseActiveMediaPlayback } from "./active-media-playback";
 import { waitForMediaMetadata } from "./media-element-source";
 import type { SpaceMediaPlaybackState } from "./playback";
+
+const MEDIA_PLAYBACK_RATES = [0.75, 1, 1.25, 1.5, 2] as const;
 
 interface UseMediaPlaybackOptions {
   sourceRevision?: MaybeRefOrGetter<string | number | undefined> | undefined;
   onPlayback?: ((state: SpaceMediaPlaybackState) => void) | undefined;
   onUnload?: (() => void) | undefined;
 }
+
+const boundAudioTrackElements = new WeakSet<HTMLMediaElement>();
 
 function selectPrimaryAudioTrack(element: HTMLMediaElement) {
   const media = element as unknown as {
@@ -25,6 +39,8 @@ function selectPrimaryAudioTrack(element: HTMLMediaElement) {
     }
   };
   enforce();
+  if (boundAudioTrackElements.has(element)) return;
+  boundAudioTrackElements.add(element);
   media.audioTracks?.addEventListener?.("addtrack", enforce);
   media.audioTracks?.addEventListener?.("change", enforce);
 }
@@ -34,12 +50,25 @@ export function useMediaPlayback(
   options: UseMediaPlaybackOptions = {},
 ) {
   const loaded = shallowRef(false);
-  const { playing, currentTime, duration: durationSeconds } = useMediaControls(mediaElement);
+  const {
+    playing,
+    currentTime,
+    duration: durationSeconds,
+    rate,
+    volume,
+    muted,
+  } = useMediaControls(mediaElement);
 
   const currentMs = computed(() => Math.round(currentTime.value * 1000));
   const durationMs = computed(() =>
     Number.isFinite(durationSeconds.value) ? Math.round(durationSeconds.value * 1000) : 0,
   );
+
+  function pause() {
+    playing.value = false;
+    mediaElement.value?.pause();
+    releaseActiveMediaPlayback(pause);
+  }
 
   function emitPlayback() {
     if (!loaded.value) return;
@@ -49,6 +78,11 @@ export function useMediaPlayback(
       playing: playing.value,
     });
   }
+
+  watch(playing, (isPlaying) => {
+    if (isPlaying) claimActiveMediaPlayback(pause);
+    else releaseActiveMediaPlayback(pause);
+  });
 
   watch([currentMs, durationMs, playing], emitPlayback);
 
@@ -70,36 +104,78 @@ export function useMediaPlayback(
   }
 
   async function togglePlayback() {
-    await ensureReady();
+    const element = await ensureReady();
+    if (
+      !playing.value &&
+      (element.ended ||
+        (Number.isFinite(element.duration) &&
+          element.duration > 0 &&
+          element.currentTime >= element.duration - 0.05))
+    ) {
+      element.currentTime = 0;
+    }
     playing.value = !playing.value;
   }
 
-  async function seekTo(positionMs: number) {
+  async function seekTo(positionMs: number, autoplay = true) {
     const element = await ensureReady();
-    element.currentTime = clamp(positionMs / 1000, 0, element.duration || Number.POSITIVE_INFINITY);
-    playing.value = true;
+    const maxSeconds =
+      Number.isFinite(element.duration) && element.duration > 0 ? element.duration : Number.POSITIVE_INFINITY;
+    element.currentTime = clamp(positionMs / 1000, 0, maxSeconds);
+    if (!autoplay) return;
+    if (playing.value) void element.play().catch(() => {});
+    else playing.value = true;
   }
 
   function seekFromControl(positionMs: number) {
-    currentTime.value = positionMs / 1000;
+    const maxSeconds =
+      Number.isFinite(durationSeconds.value) && durationSeconds.value > 0
+        ? durationSeconds.value
+        : Number.POSITIVE_INFINITY;
+    currentTime.value = clamp(positionMs / 1000, 0, maxSeconds);
+  }
+
+  function skipBy(deltaMs: number) {
+    seekFromControl(currentMs.value + deltaMs);
+  }
+
+  function cycleRate() {
+    const currentIndex = MEDIA_PLAYBACK_RATES.findIndex(
+      (candidate) => Math.abs(candidate - rate.value) < 0.01,
+    );
+    const next = MEDIA_PLAYBACK_RATES[(currentIndex + 1) % MEDIA_PLAYBACK_RATES.length] ?? 1;
+    rate.value = next;
+  }
+
+  function toggleMute() {
+    muted.value = !muted.value;
   }
 
   function unload() {
-    playing.value = false;
+    pause();
     loaded.value = false;
     currentTime.value = 0;
     options.onUnload?.();
   }
+
+  onScopeDispose(() => releaseActiveMediaPlayback(pause));
 
   return {
     loaded,
     playing,
     currentMs,
     durationMs,
+    rate,
+    volume,
+    muted,
     ensureReady,
     togglePlayback,
+    pause,
     seekTo,
     seekFromControl,
+    skipBy,
+    cycleRate,
+    toggleMute,
     unload,
   };
 }

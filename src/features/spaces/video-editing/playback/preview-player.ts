@@ -1,5 +1,6 @@
 import { shallowRef } from "vue";
 
+import { claimActiveMediaPlayback, releaseActiveMediaPlayback } from "../../media/active-media-playback";
 import type { VideoMaterialNode } from "../material";
 import { createAudioChunks } from "../media/audio-chunks";
 import { createImageLibrary } from "../media/preview-images";
@@ -42,24 +43,18 @@ export function createPreviewPlayer(options: PlayerOptions) {
     audible: media.audible,
     onFailed: options.onFailed,
   });
-  const sources = createFrameSources({ videos, images, onChanged: invalidate, onFailed: options.onFailed });
-  const clock = createPlaybackClock({ context: audioContext, durationMs });
-  const sound = createSoundTrack({ project: options.project, chunks, clock });
-  const displayMs = shallowRef(0);
-  const listeners = new Set<FrameListener>();
   let scene: StageScene | undefined;
   let handle: number | undefined;
   let dirty = true,
     publishedAt = 0,
     viewScale = 1;
-
-  function durationMs() {
-    return options.project() ? projectDurationMs(options.project()!) : 0;
-  }
-
-  function invalidate() {
-    dirty = true;
-  }
+  const durationMs = () => (options.project() ? projectDurationMs(options.project()!) : 0);
+  const invalidate = () => (dirty = true);
+  const sources = createFrameSources({ videos, images, onChanged: invalidate, onFailed: options.onFailed });
+  const clock = createPlaybackClock({ context: audioContext, durationMs });
+  const sound = createSoundTrack({ project: options.project, chunks, clock });
+  const displayMs = shallowRef(0);
+  const listeners = new Set<FrameListener>();
 
   function publish(force: boolean) {
     const at = clock.positionMs();
@@ -71,8 +66,10 @@ export function createPreviewPlayer(options: PlayerOptions) {
   }
 
   function halt() {
+    releaseActiveMediaPlayback(pause);
     clock.pause();
     sound.stop();
+    sources.pauseAll();
     suspendAudioContext();
     invalidate();
   }
@@ -81,7 +78,14 @@ export function createPreviewPlayer(options: PlayerOptions) {
     if (!scene) return;
     scene.resize(project.output, viewScale);
     const at = Math.min(clock.positionMs(), lastFrameMs(project));
-    scene.present(buildScene(project, at, (asset, sourceMs) => sources.resolve(asset, sourceMs, playing)));
+    const activeKeys = new Set<string>();
+    const nextScene = buildScene(project, at, (asset, sourceMs, slotKey) => {
+      if (asset.kind === "video") activeKeys.add(sources.feedKey(asset, slotKey));
+      return sources.resolve(asset, sourceMs, playing, slotKey);
+    });
+    sources.syncActive(activeKeys);
+    if (playing) sources.prewarmUpcoming(project, at, activeKeys);
+    scene.present(nextScene);
   }
 
   function seek(value: number) {
@@ -92,17 +96,23 @@ export function createPreviewPlayer(options: PlayerOptions) {
   }
 
   async function play() {
-    if (clock.playing.value || !options.project()) return;
+    const project = options.project();
+    if (clock.playing.value || !project) return;
+    if (clock.positionMs() >= lastFrameMs(project)) {
+      clock.seek(0);
+      sound.reposition();
+    }
+    claimActiveMediaPlayback(pause);
     await clock.play();
     sound.pump();
     invalidate();
     publish(true);
   }
 
-  function pause() {
+  const pause = () => {
     halt();
     publish(true);
-  }
+  };
 
   function tick() {
     handle = requestAnimationFrame(tick);
@@ -140,9 +150,7 @@ export function createPreviewPlayer(options: PlayerOptions) {
     seek,
     play,
     pause,
-    toggle() {
-      return clock.playing.value ? (pause(), Promise.resolve()) : play();
-    },
+    toggle: () => (clock.playing.value ? (pause(), Promise.resolve()) : play()),
     attach(container: HTMLDivElement) {
       scene?.dispose();
       scene = createStageScene(container);
@@ -154,7 +162,6 @@ export function createPreviewPlayer(options: PlayerOptions) {
       invalidate();
     },
     invalidate,
-    /** The project itself changed: sound is rescheduled and newly referenced media decoded. */
     revise() {
       sound.revise();
       invalidate();
@@ -165,7 +172,6 @@ export function createPreviewPlayer(options: PlayerOptions) {
       media.forget(asset);
       invalidate();
     },
-    /** Media that failed is read again, and the preview redrawn from it. */
     retry() {
       sources.retry();
       chunks.retry();

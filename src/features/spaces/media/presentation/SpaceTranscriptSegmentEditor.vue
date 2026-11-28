@@ -12,11 +12,14 @@ import { useNodeDraft } from "../../inspection/presentation/use-node-draft";
 import { formatDurationMs } from "../format-duration";
 import type { SpaceTranscriptEdit } from "../schema/knowledge";
 import type { SpaceTranscriptSegment } from "../schema/transcript";
+import type { SpeakerBadge } from "../speaker-display";
 
 const props = defineProps<{
   nodeId: string;
   segment: SpaceTranscriptSegment;
   index: number;
+  speaker?: SpeakerBadge | undefined;
+  hasInsights?: boolean;
   active?: boolean;
   disabled?: boolean;
   selected?: boolean;
@@ -86,20 +89,29 @@ function save() {
     <div class="flex items-start gap-2 px-1.5 py-1.5">
       <button
         type="button"
-        class="flex h-5 w-10 shrink-0 items-center justify-start rounded-xs font-mono text-caption-sm font-medium tabular-nums transition-colors hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus"
+        class="flex h-5 min-w-11 shrink-0 items-center justify-start rounded-xs font-mono text-caption-sm font-medium tabular-nums transition-colors hover:text-fg-primary focus-visible:outline-2 focus-visible:outline-stroke-focus"
         :class="active ? 'font-semibold text-fg-accent' : 'text-fg-tertiary'"
-        :title="t('spaces.transcript.chapters.seek')"
+        :title="t('spaces.transcript.text.seek')"
         @click="emit('seek', segment.startMs)"
       >
         {{ formatDurationMs(segment.startMs) }}
       </button>
 
-      <p
-        class="min-w-0 flex-1 text-caption leading-5 wrap-break-word whitespace-pre-wrap select-text"
-        :class="active ? 'font-medium text-fg-primary' : 'text-fg-secondary'"
-      >
-        {{ segment.text }}
-      </p>
+      <div class="min-w-0 flex-1">
+        <span
+          v-if="speaker"
+          class="mb-0.5 inline-flex items-center gap-1 rounded bg-surface-control px-1.5 py-px text-caption-sm font-medium text-fg-secondary"
+        >
+          <span class="size-1.5 rounded-full" :class="speaker.dotClass" aria-hidden="true" />
+          {{ speaker.label }}
+        </span>
+        <p
+          class="text-caption leading-5 wrap-break-word whitespace-pre-wrap select-text"
+          :class="active ? 'font-medium text-fg-primary' : 'text-fg-secondary'"
+        >
+          {{ segment.text }}
+        </p>
+      </div>
 
       <div
         class="flex h-5 shrink-0 items-center gap-1 transition-opacity duration-100"
@@ -129,11 +141,23 @@ function save() {
     </div>
 
     <UiDialog v-model:open="dialogOpen" :title="t('spaces.transcript.text.editSegment')">
-      <div class="space-y-4 py-1">
+      <div class="space-y-3 py-1">
         <label class="block text-caption-sm font-medium text-fg-tertiary">
           {{ t("spaces.transcript.text.title") }}
-          <UiTextarea v-model="draft.text" class="mt-1 w-full resize-none" :rows="4" />
+          <UiTextarea
+            v-model="draft.text"
+            class="mt-1 w-full resize-none"
+            :rows="4"
+            @keydown.meta.enter.stop.prevent="save"
+            @keydown.ctrl.enter.stop.prevent="save"
+          />
         </label>
+        <p
+          v-if="hasInsights"
+          class="rounded-md border border-stroke-warning/35 bg-surface-warning-subtle px-2.5 py-2 text-caption-sm leading-relaxed text-fg-warning"
+        >
+          {{ t("spaces.transcript.text.editClearsInsights") }}
+        </p>
       </div>
       <template #footer>
         <UiButton size="sm" variant="ghost" @click="cancel">{{ t("common.cancel") }}</UiButton>

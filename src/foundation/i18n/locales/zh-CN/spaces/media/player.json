@@ -7,5 +7,10 @@
   "timeline": "媒体时间轴",
   "transcribe": "转录",
   "transcribing": "正在处理转录",
-  "retranscribe": "重新转录"
+  "retranscribe": "重新转录",
+  "speed": "播放倍速",
+  "mute": "静音",
+  "unmute": "取消静音",
+  "skipBack": "后退 10 秒",
+  "skipForward": "前进 10 秒"
 }
