@@ -1,6 +1,13 @@
 import { isFunction, isNotNil } from "es-toolkit";
 
-export type AudioCaptureProblem = "denied" | "missing" | "busy" | "unsupported" | "unknown";
+export type AudioCaptureProblem =
+  | "denied"
+  | "missing"
+  | "busy"
+  | "unsupported"
+  | "interrupted"
+  | "saveFailed"
+  | "unknown";
 
 export function classifyAudioCaptureProblem(reason: unknown): AudioCaptureProblem {
   if (!(reason instanceof DOMException)) return "unknown";

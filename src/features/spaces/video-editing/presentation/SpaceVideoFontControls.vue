@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { Italic } from "@lucide/vue";
 import { useQuery } from "@tanstack/vue-query";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import { getErrorMessage } from "../../../../foundation/errors/error-format";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import { videoFontCatalogQuery } from "../font-catalog";
 import type { VideoTextStyle } from "../project";
@@ -76,13 +78,25 @@ function weightName(value: number): string {
       <span class="mb-1.5 block text-caption text-fg-secondary">{{
         $t("spaces.media.videoEditor.font.weight")
       }}</span>
-      <UiSelect
-        v-model="weight"
-        :label="$t('spaces.media.videoEditor.font.weight')"
-        :options="weights"
-        :disabled="isPending || !!error || !selectedFont"
-        size="sm"
-      />
+      <div class="flex items-center gap-1">
+        <UiSelect
+          v-model="weight"
+          class="min-w-0 flex-1"
+          :label="$t('spaces.media.videoEditor.font.weight')"
+          :options="weights"
+          :disabled="isPending || !!error || !selectedFont"
+          size="sm"
+        />
+        <UiIconButton
+          size="sm"
+          tooltip
+          :active="style.italic"
+          :label="$t('spaces.media.videoEditor.font.italic')"
+          @click="emit('change', { italic: !style.italic })"
+        >
+          <Italic class="size-3.5" />
+        </UiIconButton>
+      </div>
     </div>
     <p v-if="error" class="col-span-2 text-caption-sm text-fg-danger">{{ error }}</p>
     <p v-else-if="!isPending && !selectedFont" class="col-span-2 text-caption-sm text-fg-danger">

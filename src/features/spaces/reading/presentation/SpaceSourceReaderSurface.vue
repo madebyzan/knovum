@@ -117,6 +117,7 @@ const isSpreadsheet = computed(() => isSpreadsheetPayload(props.node.data));
     :locator="locator"
     :locate-nonce="locateNonce"
     :quote="quote"
+    :visible="visible"
   />
   <SpaceImageReadingSurface
     v-else-if="kind === 'image' && node.data.kind === 'image'"

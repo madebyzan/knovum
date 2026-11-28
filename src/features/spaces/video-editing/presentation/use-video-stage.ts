@@ -66,8 +66,11 @@ export function useVideoStage(editor: VideoEditor, { viewport, container }: Vide
   watch([() => selection.clip.value?.id, () => selection.text.value?.id], updateHighlight, {
     immediate: true,
   });
+  let lastPlaying: boolean | undefined;
   onScopeDispose(
     player.subscribe((_time, playing) => {
+      if (playing === lastPlaying) return;
+      lastPlaying = playing;
       if (playing) editing.highlight(undefined);
       else updateHighlight();
     }),
@@ -85,6 +88,10 @@ export function useVideoStage(editor: VideoEditor, { viewport, container }: Vide
     zoomBy(factor: number) {
       const current = fitted.value ? fitScale.value : zoom.value;
       zoom.value = Math.min(ZOOM_RANGE.max, Math.max(ZOOM_RANGE.min, current * factor));
+      fitted.value = false;
+    },
+    setZoom(target: number) {
+      zoom.value = Math.min(ZOOM_RANGE.max, Math.max(ZOOM_RANGE.min, target));
       fitted.value = false;
     },
     fit() {

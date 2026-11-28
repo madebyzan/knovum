@@ -9,6 +9,7 @@ import UiSlider from "../../../../shared/ui/UiSlider.vue";
 import { closeGapBefore, swapClip } from "../edits/arrange";
 import { setClipFades, setClipVolume, setClipWindow } from "../edits/trim";
 import type { VideoClip, VideoEditProject } from "../project";
+import { formatVideoEditTime } from "../timecode";
 import { clipEndMs, clipIndexOf, clipLengthMs } from "../timing";
 import SpaceVideoFadeFields from "./SpaceVideoFadeFields.vue";
 import SpaceVideoTimeField from "./SpaceVideoTimeField.vue";
@@ -57,9 +58,9 @@ function apply(next: () => VideoEditProject, mergeKey?: string) {
         @change="apply(() => setClipWindow(project!, clip.id, { sourceOutMs: $event }))"
       />
     </section>
-    <p class="text-caption text-fg-tertiary tabular-nums">
+    <p class="font-mono text-caption text-fg-tertiary tabular-nums">
       {{ t("spaces.media.videoEditor.clip.placement") }}
-      {{ (clip.timelineStartMs / 1000).toFixed(3) }}s · {{ (clipLengthMs(clip) / 1000).toFixed(3) }}s
+      {{ formatVideoEditTime(clip.timelineStartMs) }} · {{ formatVideoEditTime(clipLengthMs(clip)) }}
     </p>
     <section class="flex flex-wrap gap-1">
       <UiButton size="sm" :disabled="index <= 0" @click="apply(() => swapClip(project!, clip.id, -1))">{{

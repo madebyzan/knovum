@@ -3,6 +3,7 @@ pub mod editor;
 pub mod embedding;
 pub mod files;
 pub mod image;
+pub mod narration;
 mod response_text;
 pub mod translation;
 pub mod video;

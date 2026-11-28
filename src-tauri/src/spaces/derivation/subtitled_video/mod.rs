@@ -1,7 +1,7 @@
+pub(super) mod ass;
 mod persistence;
 mod preparation;
 mod render;
-pub(super) mod srt;
 mod start;
 
 #[cfg(test)]

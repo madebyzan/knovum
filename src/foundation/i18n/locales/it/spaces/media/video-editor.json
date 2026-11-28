@@ -45,7 +45,7 @@
     "zoomIn": "Zoom nella timeline",
     "fit": "Adatta l'intero video",
     "seek": "Cerca timeline",
-    "clearSelection": "Annulla la selezione"
+    "snapping": "Aggancio magnetico"
   },
   "clip": {
     "selected": "Clip selezionata",
@@ -98,7 +98,33 @@
   },
   "captions": {
     "search": "Cerca didascalie",
-    "noMatches": "Nessuna didascalia corrispondente."
+    "noMatches": "Nessuna didascalia corrispondente.",
+    "empty": "Nessun testo ancora. Premi T o fai clic su Aggiungi testo.",
+    "fromTranscript": "Genera dalla trascrizione",
+    "fromTranscriptDone": "Generati {count} sottotitoli dalla trascrizione",
+    "fromTranscriptEmpty": "Trascrivi prima una clip video sulla timeline per generare i sottotitoli.",
+    "importFile": "Importa SRT / VTT",
+    "importDone": "Importati {count} sottotitoli",
+    "exportMenu": "Esporta sottotitoli",
+    "exportSrt": "Esporta SRT (.srt)",
+    "exportVtt": "Esporta WebVTT (.vtt)",
+    "applyStyleAll": "Applica stile a tutti i sottotitoli",
+    "applyStyleDone": "Stile applicato a tutti i {count} sottotitoli",
+    "splitCaption": "Dividi alla testina",
+    "mergeNext": "Unisci al successivo",
+    "position": "Posizione",
+    "posTop": "Alto",
+    "posCenter": "Centro",
+    "posBottom": "Basso",
+    "templateTitle": "Stili sottotitoli",
+    "templates": {
+      "classic": "Classico",
+      "cinemaPill": "Cinema",
+      "highlight": "Evidenziato",
+      "softShadow": "Ombra",
+      "lightPill": "Chiaro",
+      "minimal": "Minimale"
+    }
   },
   "font": {
     "family": "Font",
@@ -107,7 +133,8 @@
     "unavailable": "Il carattere {family} non è installato su questo computer. Scegli un altro carattere.",
     "catalogEmpty": "Non sono disponibili caratteri installati.",
     "size": "Dimensione",
-    "color": "Colore testo"
+    "color": "Colore testo",
+    "italic": "Corsivo"
   },
   "transitions": {
     "title": "Transizione",
@@ -127,19 +154,23 @@
       "slideRight": "Scorrimento a destra",
       "slideUp": "Scorrimento verso l’alto",
       "slideDown": "Scorrimento verso il basso"
-    }
+    },
+    "noTarget": "Dividi una clip o aggiungine una seconda per applicare le transizioni."
   },
   "output": {
     "title": "Impostazioni di uscita",
     "size": "Formato e risoluzione",
-    "frameRate": "Frequenza fotogrammi",
     "background": "Sfondo"
   },
   "playback": {
     "stepBackward": "Fotogramma di uscita precedente",
     "stepForward": "Fotogramma di uscita successivo",
     "goToStart": "Vai all’inizio",
-    "goToEnd": "Vai alla fine"
+    "goToEnd": "Vai alla fine",
+    "stepBackTen": "Indietro di 10 fotogrammi",
+    "stepForwardTen": "Avanti di 10 fotogrammi",
+    "previousCut": "Punto di taglio precedente",
+    "nextCut": "Punto di taglio successivo"
   },
   "trim": {
     "start": "Inizio clip taglio",

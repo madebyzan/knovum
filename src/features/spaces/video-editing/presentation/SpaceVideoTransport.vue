@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import {
   CopyPlus,
-  Maximize2,
   Pause,
   Play,
   Redo2,
   Scissors,
   SkipBack,
   SkipForward,
+  StepBack,
+  StepForward,
   Trash2,
   Type,
   Undo2,
-  ZoomIn,
-  ZoomOut,
 } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
@@ -20,11 +19,12 @@ import { useI18n } from "vue-i18n";
 import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import { formatVideoEditTime } from "../timecode";
 import { projectDurationMs } from "../timing";
+import SpaceVideoTimelineZoomControls from "./SpaceVideoTimelineZoomControls.vue";
 import type { VideoEditor } from "./use-video-editor";
 
 const props = defineProps<{ editor: VideoEditor }>();
 const { t } = useI18n();
-const { player, project, history, actions, timeline, selection } = props.editor;
+const { player, project, history, actions } = props.editor;
 const durationMs = computed(() => (project.value ? projectDurationMs(project.value) : 0));
 </script>
 
@@ -35,6 +35,7 @@ const durationMs = computed(() => (project.value ? projectDurationMs(project.val
     <div class="flex min-w-0 items-center gap-1">
       <UiIconButton
         :label="t('common.undo')"
+        tooltip
         size="sm"
         :disabled="!history.canUndo.value"
         @click="history.undo"
@@ -43,6 +44,7 @@ const durationMs = computed(() => (project.value ? projectDurationMs(project.val
       </UiIconButton>
       <UiIconButton
         :label="t('common.redo')"
+        tooltip
         size="sm"
         :disabled="!history.canRedo.value"
         @click="history.redo"
@@ -63,7 +65,7 @@ const durationMs = computed(() => (project.value ? projectDurationMs(project.val
         :label="t('spaces.media.videoEditor.clip.duplicate')"
         tooltip
         size="sm"
-        :disabled="!selection.clip.value"
+        :disabled="!actions.canDuplicate.value"
         @click="actions.duplicate"
       >
         <CopyPlus class="size-3.5" />
@@ -86,20 +88,30 @@ const durationMs = computed(() => (project.value ? projectDurationMs(project.val
         <Trash2 class="size-3.5" />
       </UiIconButton>
     </div>
-    <div class="flex items-center gap-1.5">
-      <span class="w-22 text-right text-caption font-medium tabular-nums">{{
+    <div class="flex items-center gap-1">
+      <span class="w-22 text-right font-mono text-caption font-medium tabular-nums">{{
         formatVideoEditTime(player.displayMs.value)
       }}</span>
       <UiIconButton
         :label="t('spaces.media.videoEditor.playback.goToStart')"
+        tooltip
         size="sm"
         @click="actions.jump('start')"
       >
         <SkipBack class="size-3.5" />
       </UiIconButton>
       <UiIconButton
-        class="size-8"
+        :label="t('spaces.media.videoEditor.playback.stepBackward')"
+        tooltip
+        size="sm"
+        @click="actions.step(-1)"
+      >
+        <StepBack class="size-3.5" />
+      </UiIconButton>
+      <UiIconButton
+        class="mx-0.5 size-8"
         :label="player.playing.value ? t('common.pause') : t('spaces.media.player.play')"
+        tooltip
         size="sm"
         tone="primary"
         @click="player.toggle"
@@ -108,56 +120,25 @@ const durationMs = computed(() => (project.value ? projectDurationMs(project.val
         <Play v-else class="size-3.5" fill="currentColor" />
       </UiIconButton>
       <UiIconButton
-        :label="t('spaces.media.videoEditor.playback.goToEnd')"
-        size="sm"
-        @click="actions.jump('end')"
-      >
-        <SkipForward class="size-3.5" />
-      </UiIconButton>
-      <span class="w-22 text-caption text-fg-tertiary tabular-nums">{{
-        formatVideoEditTime(durationMs)
-      }}</span>
-    </div>
-    <div class="flex items-center justify-end gap-1">
-      <UiIconButton
-        :label="t('spaces.media.videoEditor.playback.stepBackward')"
-        tooltip
-        size="sm"
-        @click="actions.step(-1)"
-      >
-        <SkipBack class="size-3" />
-      </UiIconButton>
-      <UiIconButton
         :label="t('spaces.media.videoEditor.playback.stepForward')"
         tooltip
         size="sm"
         @click="actions.step(1)"
       >
-        <SkipForward class="size-3" />
-      </UiIconButton>
-      <span class="mx-1 h-5 w-px bg-stroke-divider" aria-hidden="true" />
-      <UiIconButton
-        :label="t('spaces.media.videoEditor.timeline.zoomOut')"
-        size="sm"
-        @click="timeline.zoom(1 / 1.4)"
-      >
-        <ZoomOut class="size-3.5" />
+        <StepForward class="size-3.5" />
       </UiIconButton>
       <UiIconButton
-        :label="t('spaces.media.videoEditor.timeline.zoomIn')"
-        size="sm"
-        @click="timeline.zoom(1.4)"
-      >
-        <ZoomIn class="size-3.5" />
-      </UiIconButton>
-      <UiIconButton
-        :label="t('spaces.media.videoEditor.timeline.fit')"
+        :label="t('spaces.media.videoEditor.playback.goToEnd')"
         tooltip
         size="sm"
-        @click="timeline.fit"
+        @click="actions.jump('end')"
       >
-        <Maximize2 class="size-3.5" />
+        <SkipForward class="size-3.5" />
       </UiIconButton>
+      <span class="w-22 font-mono text-caption text-fg-tertiary tabular-nums">{{
+        formatVideoEditTime(durationMs)
+      }}</span>
     </div>
+    <SpaceVideoTimelineZoomControls :editor="editor" />
   </div>
 </template>

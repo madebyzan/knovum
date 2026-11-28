@@ -7,5 +7,10 @@
   "timeline": "미디어 타임라인",
   "transcribe": "음성 전사",
   "transcribing": "녹취 처리 중",
-  "retranscribe": "다시 전사"
+  "retranscribe": "다시 전사",
+  "speed": "재생 속도",
+  "mute": "음소거",
+  "unmute": "음소거 해제",
+  "skipBack": "10초 뒤로",
+  "skipForward": "10초 앞으로"
 }

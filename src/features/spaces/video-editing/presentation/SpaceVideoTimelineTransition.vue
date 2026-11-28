@@ -4,7 +4,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { VideoTransition } from "../project";
-import { timeToPx } from "../timeline/scale";
+import { timeToPx, timeToTimelineX } from "../timeline/scale";
 import { clipEndMs } from "../timing";
 import type { VideoEditor } from "./use-video-editor";
 
@@ -17,7 +17,10 @@ const geometry = computed(() => {
   const clip = project?.videoTrack.clips.find(({ id }) => id === props.transition.fromClipId);
   if (!clip) return undefined;
   const width = Math.max(14, timeToPx(props.transition.durationMs, timeline.pxPerSecond.value));
-  const center = timeToPx(clipEndMs(clip) - props.transition.durationMs / 2, timeline.pxPerSecond.value);
+  const center = timeToTimelineX(
+    clipEndMs(clip) - props.transition.durationMs / 2,
+    timeline.pxPerSecond.value,
+  );
   return { left: `${center - width / 2}px`, width: `${width}px` };
 });
 const selected = computed(() => selection.selection.value?.id === props.transition.id);

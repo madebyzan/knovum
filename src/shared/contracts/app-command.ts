@@ -35,6 +35,7 @@ export interface AppCommand {
   editingIntent?: EditingCommand;
   palette?: false;
   allowInEditable?: true;
+  allowRepeat?: true;
   availability?: () => ActionAvailability<CommandUnavailableReason>;
   run: () => void | Promise<void>;
 }

@@ -1,14 +1,24 @@
 <script setup lang="ts">
+import { Layers, Merge, Scissors } from "@lucide/vue";
+import { sortBy } from "es-toolkit";
 import { computed, shallowRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiNumberField from "../../../../shared/ui/UiNumberField.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
+import {
+  applyTextStyleToAll,
+  canSplitTextAt,
+  mergeTextOverlayWithNext,
+  splitTextOverlayAt,
+} from "../edits/captions";
 import { updateTextOverlay, updateTextStyle } from "../edits/text";
 import type { VideoTextOverlay, VideoTextStyle } from "../project";
 import { projectDurationMs } from "../timing";
+import SpaceVideoCaptionStylePresets from "./SpaceVideoCaptionStylePresets.vue";
 import SpaceVideoColorField from "./SpaceVideoColorField.vue";
 import SpaceVideoFontControls from "./SpaceVideoFontControls.vue";
 import SpaceVideoTimeField from "./SpaceVideoTimeField.vue";
@@ -16,28 +26,44 @@ import type { VideoEditor } from "./use-video-editor";
 
 const props = defineProps<{ editor: VideoEditor; item: VideoTextOverlay }>();
 const { t } = useI18n();
-const { project, commit } = props.editor;
-const DECORATIONS = ["plain", "outline", "shadow", "box"] as const;
+const { project, player, commit } = props.editor;
 const ALIGNMENTS = ["left", "center", "right"] as const;
+const positions = computed(() => [
+  { key: "posTop", label: t("spaces.media.videoEditor.captions.posTop"), y: 0.14 },
+  { key: "posCenter", label: t("spaces.media.videoEditor.captions.posCenter"), y: 0.5 },
+  { key: "posBottom", label: t("spaces.media.videoEditor.captions.posBottom"), y: 0.88 },
+]);
 const draft = shallowRef(props.item.text);
 const durationMs = computed(() => (project.value ? projectDurationMs(project.value) : 0));
-
+const captionCount = computed(() => project.value?.textTrack.items.length ?? 0);
+const canSplit = computed(() => canSplitTextAt(props.item, player.positionMs()));
+const hasNextCaption = computed(() => {
+  const ordered = sortBy(project.value?.textTrack.items ?? [], [(c) => c.startMs, (c) => c.endMs]);
+  const index = ordered.findIndex((c) => c.id === props.item.id);
+  return index >= 0 && index < ordered.length - 1;
+});
 watch(
   () => props.item.text,
   (value) => (draft.value = value),
 );
 
-function patch(change: Partial<VideoTextOverlay>, mergeKey?: string) {
-  if (project.value) commit(updateTextOverlay(project.value, props.item.id, change), mergeKey);
-}
-function patchStyle(change: Partial<VideoTextStyle>, mergeKey?: string) {
-  if (project.value) commit(updateTextStyle(project.value, props.item.id, change), mergeKey);
-}
-function patchSize(value: number | undefined) {
+const patch = (change: Partial<VideoTextOverlay>, mergeKey?: string) =>
+  project.value && commit(updateTextOverlay(project.value, props.item.id, change), mergeKey);
+const patchStyle = (change: Partial<VideoTextStyle>, mergeKey?: string) =>
+  project.value && commit(updateTextStyle(project.value, props.item.id, change), mergeKey);
+const patchSize = (value: number | undefined) =>
   patchStyle({ size: Math.round(value ?? props.item.style.size) }, `size:${props.item.id}`);
+
+function applyToAll() {
+  if (!project.value) return;
+  commit(applyTextStyleToAll(project.value, props.item.id));
+  toast.success(t("spaces.media.videoEditor.captions.applyStyleDone", { count: captionCount.value }));
 }
-function patchStrength(value: number | undefined) {
-  patchStyle({ decorationStrength: Math.round(value ?? props.item.style.decorationStrength) });
+function splitHere() {
+  if (project.value) commit(splitTextOverlayAt(project.value, props.item.id, player.positionMs()));
+}
+function mergeNext() {
+  if (project.value) commit(mergeTextOverlayWithNext(project.value, props.item.id));
 }
 </script>
 
@@ -50,12 +76,33 @@ function patchStrength(value: number | undefined) {
       <UiTextarea
         id="video-edit-text"
         v-model="draft"
-        class="min-h-20 resize-none"
-        :rows="3"
+        class="min-h-16 resize-none"
+        :rows="2"
         @update:model-value="patch({ text: draft }, `text:${item.id}`)"
         @blur="draft = item.text"
       />
+      <div class="mt-1.5 flex items-center gap-1">
+        <UiButton
+          size="sm"
+          variant="secondary"
+          class="flex-1 justify-center"
+          :disabled="!canSplit"
+          @click="splitHere"
+        >
+          <Scissors class="size-3" />{{ t("spaces.media.videoEditor.captions.splitCaption") }}
+        </UiButton>
+        <UiButton
+          size="sm"
+          variant="secondary"
+          class="flex-1 justify-center"
+          :disabled="!hasNextCaption"
+          @click="mergeNext"
+        >
+          <Merge class="size-3" />{{ t("spaces.media.videoEditor.captions.mergeNext") }}
+        </UiButton>
+      </div>
     </section>
+    <SpaceVideoCaptionStylePresets :item-id="item.id" :style="item.style" @change="patchStyle" />
     <SpaceVideoFontControls :style="item.style" @change="patchStyle" />
     <section class="grid grid-cols-2 gap-2">
       <label class="text-caption text-fg-secondary">
@@ -94,42 +141,32 @@ function patchStrength(value: number | undefined) {
       @change="patchStyle({ color: $event }, `color:${item.id}`)"
     />
     <section>
-      <h3 class="mb-2 text-caption text-fg-secondary">
-        {{ t("spaces.media.videoEditor.text.presets.title") }}
+      <h3 class="mb-1.5 text-caption text-fg-secondary">
+        {{ t("spaces.media.videoEditor.captions.position") }}
       </h3>
-      <div class="grid grid-cols-4 gap-1.5">
+      <div class="grid grid-cols-3 gap-1">
         <UiButton
-          v-for="decoration in DECORATIONS"
-          :key="decoration"
+          v-for="pos in positions"
+          :key="pos.key"
           size="sm"
-          :variant="item.style.decoration === decoration ? 'primary' : 'secondary'"
+          :variant="Math.abs(item.y - pos.y) < 0.04 ? 'primary' : 'secondary'"
           class="justify-center"
-          @click="patchStyle({ decoration })"
-          >{{ t(`spaces.media.videoEditor.text.presets.${decoration}`) }}</UiButton
+          @click="patch({ x: 0.5, y: pos.y })"
         >
+          {{ pos.label }}
+        </UiButton>
       </div>
     </section>
-    <section v-if="item.style.decoration !== 'plain'" class="space-y-2">
-      <label class="text-caption text-fg-secondary">
-        {{ t("spaces.media.videoEditor.text.strength") }}
-        <UiNumberField
-          class="mt-1"
-          size="sm"
-          :min="0"
-          :max="20"
-          :step="1"
-          :model-value="item.style.decorationStrength"
-          @update:model-value="patchStrength($event)"
-        />
-      </label>
-      <SpaceVideoColorField
-        :key="`decoration-${item.id}`"
-        :label="t('spaces.media.videoEditor.text.decorationColor')"
-        :color="item.style.decorationColor"
-        @change="patchStyle({ decorationColor: $event }, `decoration:${item.id}`)"
-      />
-    </section>
-    <section class="grid grid-cols-2 gap-2 border-t border-stroke-divider pt-4">
+    <UiButton
+      v-if="captionCount > 1"
+      size="sm"
+      variant="secondary"
+      class="w-full justify-center"
+      @click="applyToAll"
+    >
+      <Layers class="size-3.5" />{{ t("spaces.media.videoEditor.captions.applyStyleAll") }}
+    </UiButton>
+    <section class="grid grid-cols-2 gap-2 border-t border-stroke-divider pt-3">
       <SpaceVideoTimeField
         :label="t('spaces.media.videoEditor.clip.startsAt')"
         :value="item.startMs"

@@ -17,11 +17,19 @@
     },
     "alignSelected": "Allinea selezionato",
     "alignmentLimit": "Fino a 8 segmenti/5 minuti",
-    "selectForAlignment": "Seleziona per allineamento"
+    "selectForAlignment": "Seleziona per allineamento",
+    "seek": "Vai al segmento",
+    "copyAll": "Copia trascrizione",
+    "copied": "Trascrizione copiata",
+    "export": "Esporta trascrizione",
+    "exportTxt": "Esporta testo (.txt)",
+    "exportSrt": "Esporta sottotitoli (.srt)",
+    "editClearsInsights": "Salvare le modifiche alla trascrizione cancellerà riepilogo e capitoli generati."
   },
   "speakers": {
     "title": "Tracce del relatore",
     "durationLimit": "La diarizzazione dell'altoparlante supporta registrazioni fino a due ore.",
-    "generate": "Identifica gli altoparlanti"
+    "generate": "Identifica gli altoparlanti",
+    "label": "Speaker {index}"
   }
 }

@@ -7,5 +7,10 @@
   "timeline": "Media timeline",
   "transcribe": "Transcribe",
   "transcribing": "Processing transcription",
-  "retranscribe": "Retranscribe"
+  "retranscribe": "Retranscribe",
+  "speed": "Playback speed",
+  "mute": "Mute",
+  "unmute": "Unmute",
+  "skipBack": "Back 10 seconds",
+  "skipForward": "Forward 10 seconds"
 }

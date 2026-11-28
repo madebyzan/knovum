@@ -15,11 +15,13 @@ import {
 } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiScrollArea from "../../../../shared/ui/UiScrollArea.vue";
 import { applyTransition, maxTransitionMs, removeTransition } from "../edits/transition";
-import type { VideoTransitionKind } from "../project";
+import type { VideoEditProject, VideoTransitionKind } from "../project";
 import { clipEndMs, clipIndexOf, transitionFrom } from "../timing";
 import SpaceVideoTimeField from "./SpaceVideoTimeField.vue";
 import type { VideoEditor } from "./use-video-editor";
@@ -67,20 +69,33 @@ const maximum = computed(() =>
   project.value && target.value ? maxTransitionMs(project.value, target.value.id) : 0,
 );
 
+function runCommit(next: () => VideoEditProject) {
+  try {
+    commit(next());
+  } catch (error) {
+    toast.error(getErrorMessage(error));
+  }
+}
 function apply(kind: VideoTransitionKind) {
-  if (project.value && target.value) commit(applyTransition(project.value, target.value.id, kind));
+  if (project.value && target.value) runCommit(() => applyTransition(project.value!, target.value!.id, kind));
 }
 function clear() {
-  if (project.value && current.value) commit(removeTransition(project.value, current.value.id));
+  if (project.value && current.value) runCommit(() => removeTransition(project.value!, current.value!.id));
 }
 function resize(durationMs: number) {
   if (project.value && target.value && current.value)
-    commit(applyTransition(project.value, target.value.id, current.value.kind, durationMs));
+    runCommit(() => applyTransition(project.value!, target.value!.id, current.value!.kind, durationMs));
 }
 </script>
 
 <template>
   <div class="flex min-h-0 flex-1 flex-col">
+    <p
+      v-if="!target"
+      class="border-b border-stroke-divider px-2.5 py-2 text-caption-sm leading-relaxed text-fg-tertiary"
+    >
+      {{ t("spaces.media.videoEditor.transitions.noTarget") }}
+    </p>
     <UiScrollArea class="min-h-0 flex-1">
       <div class="grid grid-cols-2 gap-1.5 p-2">
         <button

@@ -52,5 +52,17 @@
     "audiobook": "生成有声书",
     "shortDubbing": "生成语音",
     "videoDubbing": "生成配音视频"
+  },
+  "prepareNarration": {
+    "action": "Knovum 整理",
+    "actionAll": "Knovum 整理全书",
+    "clean": "清洗口播稿件",
+    "cleanDescription": "去除格式标记、引用编号与噪声，保留原意",
+    "adapt": "改写为自然朗读稿",
+    "adaptDescription": "调整长难句与书面语，更适合自然口播朗读",
+    "restore": "还原整理前稿件",
+    "restoreAll": "还原全书整理前稿件",
+    "model": "模型",
+    "hint": "使用 Knovum 清洗杂乱格式或改写为更自然的口播朗读稿"
   }
 }

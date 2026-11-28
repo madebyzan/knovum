@@ -5,7 +5,7 @@ import type { VideoEditProject } from "../project";
  * they cannot drift apart.
  */
 export const TIMELINE_ROWS = {
-  ruler: 28,
+  ruler: 32,
   text: 30,
   video: 72,
   audio: 30,

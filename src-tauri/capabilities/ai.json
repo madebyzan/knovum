@@ -11,6 +11,7 @@
     "ai:allow-list-external-agent-descriptors",
     "ai:allow-list-provider-descriptors",
     "ai:allow-get-token-usage-report",
+    "ai:allow-prepare-narration-script-stream",
     "ai:allow-transform-editor-text-stream",
     "ai:allow-translate-text-stream",
     "ai:allow-validate-model-settings"

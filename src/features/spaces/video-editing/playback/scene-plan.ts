@@ -3,7 +3,11 @@ import type { Scene } from "../stage/scene";
 import { compositionAt, textItemsAt } from "../timing";
 
 /** Resolves the picture an asset shows at a source position, or nothing while it is still decoding. */
-export type FrameResolver = (asset: VideoAsset, sourceMs: number) => CanvasImageSource | undefined;
+export type FrameResolver = (
+  asset: VideoAsset,
+  sourceMs: number,
+  slotKey?: string,
+) => CanvasImageSource | undefined;
 
 /**
  * Describes the frame the stage must show at one timeline position. Layers whose picture has not
@@ -15,7 +19,7 @@ export function buildScene(project: VideoEditProject, timeMs: number, resolve: F
   const composition = compositionAt(project, timeMs);
   const layers = composition.layers.flatMap((layer) => {
     const asset = assetByNodeId.get(layer.clip.assetId);
-    const image = asset ? resolve(asset, layer.sourceMs) : undefined;
+    const image = asset ? resolve(asset, layer.sourceMs, layer.clip.id) : undefined;
     if (!asset || !image) return [];
     return [
       {

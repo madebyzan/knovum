@@ -7,13 +7,22 @@
   "note": "录音笔记",
   "startFailed": "无法启动录音或保存音频。",
   "microphone": {
-    "settingsHint": "麦克风权限受限，请在系统偏好设置中允许访问。"
+    "settingsHint": "麦克风权限受限，请在系统偏好设置中允许访问。",
+    "select": "选择麦克风",
+    "default": "系统默认"
   },
   "problems": {
     "denied": "麦克风访问权限被拒绝。",
     "missing": "未检测到可用麦克风设备。",
     "busy": "麦克风被其他应用占用。",
     "unsupported": "当前环境不支持音频采集。",
-    "unknown": "无法打开麦克风设备。"
+    "unknown": "无法打开麦克风设备。",
+    "saveFailed": "录音保存失败。",
+    "interrupted": "麦克风已断开，录音中断。"
+  },
+  "discard": {
+    "prompt": "放弃当前录音？",
+    "confirm": "放弃",
+    "keep": "继续"
   }
 }

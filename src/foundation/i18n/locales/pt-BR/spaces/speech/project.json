@@ -52,5 +52,17 @@
     "audiobook": "Gerar audiolivro",
     "shortDubbing": "Gerar fala",
     "videoDubbing": "Gerar vídeo dublado"
+  },
+  "prepareNarration": {
+    "action": "Preparar com Knovum",
+    "actionAll": "Preparar tudo com Knovum",
+    "clean": "Limpar para narração",
+    "cleanDescription": "Remove marcações, citações e ruído preservando o sentido",
+    "adapt": "Adaptar para leitura natural",
+    "adaptDescription": "Suaviza frases densas para uma narração mais fluida",
+    "restore": "Restaurar roteiro anterior",
+    "restoreAll": "Restaurar todos os capítulos",
+    "model": "Modelo",
+    "hint": "Use o Knovum para limpar ruídos ou adaptar o texto para leitura natural"
   }
 }

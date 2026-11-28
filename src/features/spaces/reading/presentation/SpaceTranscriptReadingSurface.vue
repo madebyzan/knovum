@@ -1,38 +1,58 @@
 <script setup lang="ts">
+import { Copy, Download, LocateFixed } from "@lucide/vue";
 import { refDebounced } from "@vueuse/core";
 import { search } from "fast-fuzzy";
+import { getActivePinia } from "pinia";
 import { ToolbarRoot } from "reka-ui";
-import { computed, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, shallowRef, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
+import UiDropdownMenu from "../../../../shared/ui/UiDropdownMenu.vue";
+import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiOutlineRail, { type UiOutlineItem } from "../../../../shared/ui/UiOutlineRail.vue";
 import UiScrollEdgeFade from "../../../../shared/ui/UiScrollEdgeFade.vue";
 import type { KnowledgeLocator } from "../../knowledge/model/schema/chunk";
 import { formatDurationMs } from "../../media/format-duration";
+import type { SpaceMediaPlaybackState } from "../../media/playback";
 import SpaceNodeTranscriptionAction from "../../media/presentation/SpaceNodeTranscriptionAction.vue";
 import type { SpaceTranscriptSegment } from "../../media/schema/transcript";
+import { buildSpeakerMap } from "../../media/speaker-display";
 import type { SpaceCanvasNode } from "../../model/nodes/canvas-node";
 import type { SpaceAudioPayload, SpaceVideoPayload } from "../../model/nodes/node-payload";
+import { useSpaceStore } from "../../session/space-store";
 import SpaceTranscriptCue from "./SpaceTranscriptCue.vue";
 import SpaceTranscriptPlayer from "./SpaceTranscriptPlayer.vue";
+import { useTranscriptExport } from "./use-transcript-export";
 import { useTranscriptVirtualizer } from "./use-transcript-virtualizer";
 
-const props = defineProps<{
-  node: SpaceCanvasNode<SpaceVideoPayload | SpaceAudioPayload>;
-  locator?: KnowledgeLocator | undefined;
-  locateNonce?: number | undefined;
-  quote?: string | undefined;
-}>();
+const props = withDefaults(
+  defineProps<{
+    node: SpaceCanvasNode<SpaceVideoPayload | SpaceAudioPayload>;
+    locator?: KnowledgeLocator | undefined;
+    locateNonce?: number | undefined;
+    quote?: string | undefined;
+    visible?: boolean;
+  }>(),
+  { visible: true },
+);
 
 const { t } = useI18n();
+const store = getActivePinia() ? useSpaceStore() : undefined;
 const scroller = useTemplateRef<HTMLDivElement>("scroller");
 const player = useTemplateRef<InstanceType<typeof SpaceTranscriptPlayer>>("player");
 const query = ref("");
 const debouncedQuery = refDebounced(query, 120);
+const autoFollow = shallowRef(true);
 const activeSegmentId = shallowRef<string>();
 const currentMs = shallowRef(0);
 
-const segments = computed(() => props.node.data.mediaKnowledge?.transcript.segments ?? []);
+const transcript = computed(() => props.node.data.mediaKnowledge?.transcript);
+const segments = computed(() => transcript.value?.segments ?? []);
+const speakers = computed(() =>
+  buildSpeakerMap(transcript.value?.speakerTracks, (index) =>
+    t("spaces.transcript.speakers.label", { index }),
+  ),
+);
 const chapters = computed(() => props.node.data.mediaKnowledge?.insights?.chapters ?? []);
 const chapterOutline = computed<readonly UiOutlineItem[]>(() =>
   chapters.value.map((c) => ({
@@ -57,8 +77,14 @@ const { rows, totalSize, measureElement, scrollToSegment } = useTranscriptVirtua
 
 function updateActiveSegment(ms: number) {
   currentMs.value = ms;
-  const hit = segments.value.find((s) => ms >= s.startMs && ms < s.endMs);
-  if (hit?.id !== activeSegmentId.value) activeSegmentId.value = hit?.id;
+  const hit = segments.value.findLast((s) => ms >= s.startMs) ?? segments.value[0];
+  if (hit && hit.id !== activeSegmentId.value) {
+    activeSegmentId.value = hit.id;
+    if (autoFollow.value && !debouncedQuery.value.trim()) scrollToSegment(hit.startMs, "center");
+  }
+}
+function handlePlayback(state: SpaceMediaPlaybackState) {
+  store?.updateMediaPlayback(props.node.id, state);
 }
 function isHighlightedSegment(segment: SpaceTranscriptSegment) {
   const loc = props.locator?.location;
@@ -81,14 +107,26 @@ function jumpToChapter(id: string) {
   const target = visibleSegments.value.find((s) => s.endMs > startMs);
   if (target) scrollToSegment(target.startMs, "start");
 }
+const { copyTranscript, exportItems } = useTranscriptExport(() => props.node.data.title, segments, speakers);
+const KEY_SKIP_MS: Record<string, number> = { ArrowLeft: -5_000, ArrowRight: 5_000 };
+function isFindShortcut(event: KeyboardEvent) {
+  return (event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "f";
+}
 function onKeyDown(event: KeyboardEvent) {
-  if (
-    event.key !== " " ||
-    (event.target as HTMLElement | null)?.closest("input, textarea, button, video, audio")
-  )
+  if (isFindShortcut(event)) {
+    event.preventDefault();
+    player.value?.focusSearch();
     return;
-  event.preventDefault();
-  player.value?.togglePlayback();
+  }
+  if ((event.target as HTMLElement | null)?.closest("input, textarea, button, video, audio")) return;
+  const skipDelta = KEY_SKIP_MS[event.key];
+  if (skipDelta) {
+    event.preventDefault();
+    player.value?.skipBy(skipDelta);
+  } else if (event.key === " ") {
+    event.preventDefault();
+    void player.value?.togglePlayback();
+  }
 }
 function locateCurrent() {
   if (props.locator?.location.kind === "media") seekTo(props.locator.location.startMs, true);
@@ -102,6 +140,7 @@ function resetReadingState() {
 }
 
 onMounted(locateCurrent);
+onBeforeUnmount(() => store?.clearMediaPlayback(props.node.id));
 watch(() => props.node.id, resetReadingState);
 watch(() => [props.locator, props.locateNonce] as const, locateCurrent, { flush: "post" });
 watch(
@@ -118,13 +157,37 @@ watch(
       v-model:query="query"
       :media="node.data"
       :has-segments="Boolean(segments.length)"
+      :visible="visible"
       @time-update="updateActiveSegment"
-    />
+      @playback="handlePlayback"
+    >
+      <template #actions>
+        <UiIconButton
+          size="sm"
+          tooltip
+          :active="autoFollow"
+          :label="t('spaces.media.player.followPlayback')"
+          @click="autoFollow = !autoFollow"
+        >
+          <LocateFixed class="size-3.5" :stroke-width="1.6" />
+        </UiIconButton>
+        <UiIconButton size="sm" tooltip :label="t('spaces.transcript.text.copyAll')" @click="copyTranscript">
+          <Copy class="size-3.5" />
+        </UiIconButton>
+        <UiDropdownMenu :items="exportItems" align="end">
+          <template #trigger>
+            <UiIconButton size="sm" tooltip :label="t('spaces.transcript.text.export')">
+              <Download class="size-3.5" />
+            </UiIconButton>
+          </template>
+        </UiDropdownMenu>
+      </template>
+    </SpaceTranscriptPlayer>
     <div v-if="segments.length" class="relative flex min-h-0 flex-1 overflow-hidden">
       <div
         ref="scroller"
-        class="transcript-rows min-h-0 flex-1 overflow-y-auto bg-surface-raised py-2 pb-10"
-        :class="chapterOutline.length ? 'pr-10 pl-3' : 'px-3'"
+        class="transcript-rows min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-surface-raised py-2 pb-10"
+        :class="chapterOutline.length ? 'pr-9 pl-3' : 'px-3'"
       >
         <div v-if="visibleSegments.length" class="relative w-full" :style="{ height: `${totalSize}px` }">
           <div
@@ -137,7 +200,13 @@ watch(
           >
             <SpaceTranscriptCue
               :segment="visibleSegments[row.index]!"
+              :speaker="
+                visibleSegments[row.index]!.speakerId
+                  ? speakers.get(visibleSegments[row.index]!.speakerId!)
+                  : undefined
+              "
               :active="activeSegmentId === visibleSegments[row.index]!.id"
+              :current-ms="activeSegmentId === visibleSegments[row.index]!.id ? currentMs : undefined"
               :highlighted="isHighlightedSegment(visibleSegments[row.index]!)"
               :quote="quote"
               @seek="seekTo"

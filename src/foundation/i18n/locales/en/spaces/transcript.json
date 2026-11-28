@@ -17,11 +17,19 @@
     },
     "alignSelected": "Align selected",
     "alignmentLimit": "Up to 8 segments / 5 minutes",
-    "selectForAlignment": "Select for alignment"
+    "selectForAlignment": "Select for alignment",
+    "seek": "Jump to segment",
+    "copyAll": "Copy transcript",
+    "copied": "Transcript copied",
+    "export": "Export transcript",
+    "exportTxt": "Export text (.txt)",
+    "exportSrt": "Export subtitles (.srt)",
+    "editClearsInsights": "Saving transcript edits clears generated summary and chapters so they can be regenerated."
   },
   "speakers": {
     "title": "Speaker tracks",
     "durationLimit": "Speaker diarization supports recordings up to two hours.",
-    "generate": "Identify speakers"
+    "generate": "Identify speakers",
+    "label": "Speaker {index}"
   }
 }

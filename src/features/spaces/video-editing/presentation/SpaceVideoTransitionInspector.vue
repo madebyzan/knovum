@@ -2,12 +2,14 @@
 import { Trash2 } from "@lucide/vue";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiButton from "../../../../shared/ui/UiButton.vue";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import { VIDEO_TRANSITION_KINDS } from "../../model/nodes/schema/video-edit-media";
 import { applyTransition, maxTransitionMs, removeTransition, resizeTransition } from "../edits/transition";
-import type { VideoTransition, VideoTransitionKind } from "../project";
+import type { VideoEditProject, VideoTransition, VideoTransitionKind } from "../project";
 import SpaceVideoTimeField from "./SpaceVideoTimeField.vue";
 import type { VideoEditor } from "./use-video-editor";
 
@@ -24,9 +26,19 @@ const kinds = computed(() =>
   })),
 );
 
+function apply(next: () => VideoEditProject) {
+  try {
+    commit(next());
+  } catch (error) {
+    toast.error(getErrorMessage(error));
+  }
+}
+
 function setKind(kind: VideoTransitionKind) {
   if (!project.value) return;
-  commit(applyTransition(project.value, props.transition.fromClipId, kind, props.transition.durationMs));
+  apply(() =>
+    applyTransition(project.value!, props.transition.fromClipId, kind, props.transition.durationMs),
+  );
 }
 </script>
 
@@ -47,7 +59,7 @@ function setKind(kind: VideoTransitionKind) {
       :value="transition.durationMs"
       :min="100"
       :max="maximum"
-      @change="commit(resizeTransition(project!, transition.id, $event))"
+      @change="apply(() => resizeTransition(project!, transition.id, $event))"
     />
     <p class="text-caption-sm text-fg-tertiary">
       {{ t("spaces.media.videoEditor.transitions.hint") }}
@@ -55,7 +67,7 @@ function setKind(kind: VideoTransitionKind) {
     <UiButton
       size="sm"
       class="w-full justify-center"
-      @click="commit(removeTransition(project!, transition.id))"
+      @click="apply(() => removeTransition(project!, transition.id))"
     >
       <Trash2 class="size-3.5" />{{ t("spaces.media.videoEditor.transitions.remove") }}
     </UiButton>

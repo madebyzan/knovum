@@ -9,6 +9,8 @@ interface SourceMedia {
   /** The source's own video track, present only when this WebView can decode it. */
   video: InputVideoTrack | undefined;
   audible: boolean;
+  /** Asset URL used for direct hardware playback when the WebView decodes the source natively. */
+  url: string;
 }
 
 /**
@@ -34,7 +36,7 @@ export function createSourceMediaLibrary(materials: () => ReadonlyMap<string, Vi
     const input = new Input({ formats: ALL_FORMATS, source: new UrlSource(url) });
     inputsByKey.set(key, input);
     const [video, audio] = await Promise.all([input.getPrimaryVideoTrack(), input.getPrimaryAudioTrack()]);
-    return { video: video && (await video.canDecode()) ? video : undefined, audible: !!audio };
+    return { video: video && (await video.canDecode()) ? video : undefined, audible: !!audio, url };
   }
 
   const cache = createAssetCache(open);

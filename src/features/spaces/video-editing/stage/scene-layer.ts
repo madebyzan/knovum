@@ -1,5 +1,4 @@
 import { Group } from "konva/lib/Group";
-import { Image } from "konva/lib/shapes/Image";
 import { Rect } from "konva/lib/shapes/Rect";
 
 import { layerGeometry } from "../geometry";
@@ -9,32 +8,23 @@ import type { LayerStyle } from "./scene-transition";
 
 export interface LayerNode {
   group: Group;
-  backdrop: Rect;
-  picture: Image;
-  curtain: Rect;
+  picture: Rect;
 }
 
 /**
- * One composed clip: the project background, the picture under its own transform, and the fade
- * curtain. Each layer carries its background so a slide or wipe moves a complete frame, exactly
- * like the two inputs of the export's `xfade` filter.
+ * Transparent Konva hit proxy for a hardware-rendered clip layer. Konva handles pointer selection,
+ * drag-to-reposition, resize, and rotation handles without redrawing video pixels on a 2D canvas.
  */
 export function createLayerNode(clipId: string): LayerNode {
   const group = new Group({ id: clipId });
-  const backdrop = new Rect({ listening: false });
-  const picture = new Image({
-    image: undefined,
+  const picture = new Rect({
+    fill: "rgba(0,0,0,0)",
     name: "video-layer",
     id: `picture:${clipId}`,
     draggable: true,
   });
-  const curtain = new Rect({ listening: false, fill: "#000000", opacity: 0 });
-  group.add(backdrop, picture, curtain);
-  return { group, backdrop, picture, curtain };
-}
-
-function frameAttrs(output: VideoOutput) {
-  return { x: 0, y: 0, width: output.width, height: output.height };
+  group.add(picture);
+  return { group, picture };
 }
 
 export function applyGroupStyle(group: Group, style: LayerStyle) {
@@ -57,10 +47,14 @@ export function applyGroupStyle(group: Group, style: LayerStyle) {
   }
 }
 
-function pictureAttrs(layer: SceneLayer, output: VideoOutput) {
-  const geometry = layerGeometry(layer.asset, layer.transform, output);
-  return {
-    image: layer.image,
+export function updateLayerNode(
+  node: LayerNode,
+  layer: SceneLayer,
+  frame: { output: VideoOutput; style: LayerStyle },
+) {
+  applyGroupStyle(node.group, frame.style);
+  const geometry = layerGeometry(layer.asset, layer.transform, frame.output);
+  node.picture.setAttrs({
     x: geometry.centerX,
     y: geometry.centerY,
     offsetX: geometry.width / 2,
@@ -70,17 +64,5 @@ function pictureAttrs(layer: SceneLayer, output: VideoOutput) {
     rotation: layer.transform.rotation,
     scaleX: layer.transform.flipHorizontal ? -1 : 1,
     scaleY: layer.transform.flipVertical ? -1 : 1,
-    opacity: layer.transform.opacity,
-  };
-}
-
-export function updateLayerNode(
-  node: LayerNode,
-  layer: SceneLayer,
-  frame: { output: VideoOutput; style: LayerStyle },
-) {
-  applyGroupStyle(node.group, frame.style);
-  node.backdrop.setAttrs({ ...frameAttrs(frame.output), fill: frame.output.background });
-  node.picture.setAttrs(pictureAttrs(layer, frame.output));
-  node.curtain.setAttrs({ ...frameAttrs(frame.output), opacity: 1 - layer.fade });
+  });
 }

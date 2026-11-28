@@ -17,11 +17,19 @@
     },
     "alignSelected": "Aligner la sélection",
     "alignmentLimit": "Jusqu'à 8 segments / 5 minutes",
-    "selectForAlignment": "Sélectionner pour l'alignement"
+    "selectForAlignment": "Sélectionner pour l'alignement",
+    "seek": "Aller au segment",
+    "copyAll": "Copier la transcription",
+    "copied": "Transcription copiée",
+    "export": "Exporter la transcription",
+    "exportTxt": "Exporter en texte (.txt)",
+    "exportSrt": "Exporter en sous-titres (.srt)",
+    "editClearsInsights": "Enregistrer les modifications effacera le résumé et les chapitres générés."
   },
   "speakers": {
     "title": "Pistes d'enceintes",
     "durationLimit": "La diarisation des haut-parleurs prend en charge les enregistrements jusqu'à deux heures.",
-    "generate": "Identifier les intervenants"
+    "generate": "Identifier les intervenants",
+    "label": "Intervenant {index}"
   }
 }

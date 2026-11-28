@@ -26,12 +26,24 @@ const coverDuration = computed(() =>
   props.data.durationSeconds ? formatDurationMs(props.data.durationSeconds * 1000) : undefined,
 );
 
-const { loaded, playing, currentMs, durationMs, togglePlayback, seekTo, seekFromControl, unload } =
-  useMediaPlayback(mediaElement, {
-    sourceRevision: () => props.data.sourceRevision,
-    onPlayback: (state) => emit("playback", state),
-    onUnload: () => emit("unload"),
-  });
+const {
+  loaded,
+  playing,
+  currentMs,
+  durationMs,
+  rate,
+  muted,
+  togglePlayback,
+  seekTo,
+  seekFromControl,
+  cycleRate,
+  toggleMute,
+  unload,
+} = useMediaPlayback(mediaElement, {
+  sourceRevision: () => props.data.sourceRevision,
+  onPlayback: (state) => emit("playback", state),
+  onUnload: () => emit("unload"),
+});
 
 const { controlsVisible, flashFeedback, handlePointerLeave, triggerFlash, wakeControls } =
   useVideoPlayerOverlay(playing);
@@ -96,7 +108,7 @@ defineExpose({ seekTo, togglePlayback, unload });
         :src="source"
         preload="metadata"
         class="pointer-events-none block size-full object-contain"
-        @ended="unload"
+        @ended="wakeControls"
       />
       <Transition
         enter-active-class="transition duration-150 ease-out"
@@ -132,8 +144,12 @@ defineExpose({ seekTo, togglePlayback, unload });
             :playing="playing"
             :current-ms="currentMs"
             :duration-ms="durationMs"
+            :rate="rate"
+            :muted="muted"
             @toggle="requestPlayback"
             @seek="seekFromControl"
+            @cycle-rate="cycleRate"
+            @toggle-mute="toggleMute"
           />
         </div>
       </Transition>

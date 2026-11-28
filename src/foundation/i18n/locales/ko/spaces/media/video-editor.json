@@ -45,7 +45,7 @@
     "zoomIn": "타임라인 확대",
     "fit": "전체 비디오에 맞추기",
     "seek": "타임라인 탐색",
-    "clearSelection": "선택 해제"
+    "snapping": "자석 스냅"
   },
   "clip": {
     "selected": "선택한 클립",
@@ -98,7 +98,33 @@
   },
   "captions": {
     "search": "캡션 검색",
-    "noMatches": "일치하는 캡션이 없습니다."
+    "noMatches": "일치하는 캡션이 없습니다.",
+    "empty": "아직 텍스트 오버레이가 없습니다. T 키를 누르거나 텍스트 추가를 클릭하세요.",
+    "fromTranscript": "전사에서 자막 생성",
+    "fromTranscriptDone": "전사에서 자막 {count}개를 생성했습니다",
+    "fromTranscriptEmpty": "자막을 생성하려면 먼저 타임라인 영상의 전사를 완료하세요.",
+    "importFile": "SRT / VTT 가져오기",
+    "importDone": "자막 {count}개를 가져왔습니다",
+    "exportMenu": "자막 내보내기",
+    "exportSrt": "SRT 내보내기 (.srt)",
+    "exportVtt": "WebVTT 내보내기 (.vtt)",
+    "applyStyleAll": "모든 자막에 스타일과 위치 적용",
+    "applyStyleDone": "전체 자막 {count}개에 스타일과 위치를 적용했습니다",
+    "splitCaption": "재생 헤드에서 분할",
+    "mergeNext": "다음 자막과 병합",
+    "position": "위치",
+    "posTop": "상단",
+    "posCenter": "중앙",
+    "posBottom": "하단",
+    "templateTitle": "자막 스타일",
+    "templates": {
+      "classic": "클래식",
+      "cinemaPill": "시네마",
+      "highlight": "하이라이트",
+      "softShadow": "그림자",
+      "lightPill": "라이트",
+      "minimal": "미니멀"
+    }
   },
   "font": {
     "family": "글꼴",
@@ -107,7 +133,8 @@
     "unavailable": "이 컴퓨터에는 글꼴 {family}가 설치되어 있지 않습니다. 다른 글꼴을 선택하세요.",
     "catalogEmpty": "설치된 글꼴을 사용할 수 없습니다.",
     "size": "크기",
-    "color": "텍스트 색상"
+    "color": "텍스트 색상",
+    "italic": "기울임꼴"
   },
   "transitions": {
     "title": "전환",
@@ -127,19 +154,23 @@
       "slideRight": "오른쪽 슬라이드",
       "slideUp": "위쪽 슬라이드",
       "slideDown": "아래쪽 슬라이드"
-    }
+    },
+    "noTarget": "전환 효과를 적용하려면 클립을 분할하거나 두 번째 클립을 추가하세요."
   },
   "output": {
     "title": "출력 설정",
     "size": "화면 크기 및 해상도",
-    "frameRate": "프레임 속도",
     "background": "배경색"
   },
   "playback": {
     "stepBackward": "이전 출력 프레임",
     "stepForward": "다음 출력 프레임",
     "goToStart": "처음으로",
-    "goToEnd": "끝으로"
+    "goToEnd": "끝으로",
+    "stepBackTen": "10프레임 뒤로",
+    "stepForwardTen": "10프레임 앞으로",
+    "previousCut": "이전 편집점",
+    "nextCut": "다음 편집점"
   },
   "trim": {
     "start": "트림 클립 시작",

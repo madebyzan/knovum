@@ -17,11 +17,19 @@
     },
     "alignSelected": "선택 항목 정렬",
     "alignmentLimit": "최대 8개 세그먼트/5분",
-    "selectForAlignment": "정렬을 위해 선택"
+    "selectForAlignment": "정렬을 위해 선택",
+    "seek": "이 구간으로 이동",
+    "copyAll": "전체 텍스트 복사",
+    "copied": "텍스트를 복사했습니다",
+    "export": "내보내기",
+    "exportTxt": "텍스트 내보내기 (.txt)",
+    "exportSrt": "자막 내보내기 (.srt)",
+    "editClearsInsights": "전사 수정 사항을 저장하면 생성된 요약과 챕터가 초기화됩니다."
   },
   "speakers": {
     "title": "스피커 트랙",
     "durationLimit": "화자 분할은 최대 2시간까지 녹음을 지원합니다.",
-    "generate": "화자 식별"
+    "generate": "화자 식별",
+    "label": "화자 {index}"
   }
 }

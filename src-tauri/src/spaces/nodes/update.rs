@@ -88,7 +88,7 @@ async fn apply_node_change(
     let kind: String = row.try_get("kind").map_err(db::sql_error)?;
     let previous_payload_json: String = row.try_get("data").map_err(db::sql_error)?;
     let before: Value = serde_json::from_str(&previous_payload_json).map_err(db::json_error)?;
-    if before != change.expected_content {
+    if !json_values_equal(&before, &change.expected_content) {
         return Err(format!(
             "Space node {} changed before this edit was saved",
             change.id
@@ -175,4 +175,35 @@ async fn apply_node_change(
         jobs::intent::synchronize_for_node(tx, space_id, &change.id, &change.data, now).await?;
     }
     Ok(())
+}
+
+/// Compares JSON values by mathematical numeric equality so Rust floats serialized as `0.0` / `1.0`
+/// (e.g. waveform peaks, transcript confidence scores, transform scale/opacity) match JavaScript
+/// IPC round-trips (`0` / `1`) without falsely tripping optimistic-lock conflict checks.
+fn json_values_equal(left: &Value, right: &Value) -> bool {
+    match (left, right) {
+        (Value::Number(a), Value::Number(b)) => json_numbers_equal(a, b),
+        (Value::Array(a), Value::Array(b)) => {
+            a.len() == b.len() && a.iter().zip(b).all(|(x, y)| json_values_equal(x, y))
+        }
+        (Value::Object(a), Value::Object(b)) => {
+            a.len() == b.len()
+                && a.iter()
+                    .all(|(k, v)| b.get(k).is_some_and(|other| json_values_equal(v, other)))
+        }
+        _ => left == right,
+    }
+}
+
+fn json_numbers_equal(left: &serde_json::Number, right: &serde_json::Number) -> bool {
+    if left == right {
+        return true;
+    }
+    if let (Some(a), Some(b)) = (left.as_i64(), right.as_i64()) {
+        return a == b;
+    }
+    if let (Some(a), Some(b)) = (left.as_u64(), right.as_u64()) {
+        return a == b;
+    }
+    matches!((left.as_f64(), right.as_f64()), (Some(a), Some(b)) if a == b)
 }

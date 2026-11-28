@@ -52,5 +52,17 @@
     "audiobook": "오디오북 생성",
     "shortDubbing": "음성 생성",
     "videoDubbing": "더빙된 비디오 생성"
+  },
+  "prepareNarration": {
+    "action": "Knovum으로 정리",
+    "actionAll": "Knovum으로 전체 정리",
+    "clean": "낭독용 원고 정리",
+    "cleanDescription": "마크업, 인용 번호 등 노이즈를 제거하고 의미 유지",
+    "adapt": "자연스러운 낭독체로 다듬기",
+    "adaptDescription": "복잡한 문어체를 자연스러운 구어체로 다듬기",
+    "restore": "정리 전 원고 복원",
+    "restoreAll": "전체 챕터 복원",
+    "model": "모델",
+    "hint": "Knovum으로 잡음을 제거하거나 자연스러운 낭독 원고로 정리합니다"
   }
 }

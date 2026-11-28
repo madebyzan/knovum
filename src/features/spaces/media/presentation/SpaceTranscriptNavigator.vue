@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { LocateFixed } from "@lucide/vue";
 import { useVirtualizer } from "@tanstack/vue-virtual";
+import { refDebounced } from "@vueuse/core";
 import { sumBy } from "es-toolkit";
 import { search } from "fast-fuzzy";
 import { computed, nextTick, ref, useTemplateRef, watch, type ComponentPublicInstance } from "vue";
@@ -11,13 +12,17 @@ import UiIconButton from "../../../../shared/ui/UiIconButton.vue";
 import UiScrollEdgeFade from "../../../../shared/ui/UiScrollEdgeFade.vue";
 import UiSearchInput from "../../../../shared/ui/UiSearchInput.vue";
 import type { SpaceTranscriptEdit } from "../schema/knowledge";
-import type { SpaceTranscriptSegment } from "../schema/transcript";
+import type { SpaceMediaTranscript, SpaceTranscriptSegment } from "../schema/transcript";
+import { buildSpeakerMap } from "../speaker-display";
 import SpaceTranscriptAlignmentControl from "./SpaceTranscriptAlignmentControl.vue";
 import SpaceTranscriptSegmentEditor from "./SpaceTranscriptSegmentEditor.vue";
 
 const props = defineProps<{
   nodeId: string;
   segments: SpaceTranscriptSegment[];
+  speakerTracks?: readonly SpaceMediaTranscript["speakerTracks"][number][] | undefined;
+  transcriptRevision?: number | undefined;
+  hasInsights?: boolean;
   currentMs?: number;
   disabled?: boolean;
   alignmentDisabled?: boolean;
@@ -30,8 +35,12 @@ const emit = defineEmits<{
 const { t } = useI18n();
 const scroller = useTemplateRef<HTMLDivElement>("scroller");
 const query = ref("");
+const debouncedQuery = refDebounced(query, 120);
 const autoFollow = ref(true);
 const selected = ref<string[]>([]);
+const speakers = computed(() =>
+  buildSpeakerMap(props.speakerTracks, (index) => t("spaces.transcript.speakers.label", { index })),
+);
 const canAlign = computed(
   () =>
     selected.value.length > 0 &&
@@ -47,13 +56,14 @@ function selectSegment(segmentId: string, checked: boolean) {
     : selected.value.filter((value) => value !== segmentId);
 }
 watch(
-  () => props.segments,
+  () => [props.segments.length, props.transcriptRevision] as const,
   () => {
     selected.value = [];
+    virtualizer.value.measure();
   },
 );
 const visibleIndices = computed(() => {
-  const needle = query.value.trim();
+  const needle = debouncedQuery.value.trim();
   if (!needle) return props.segments.map((_, index) => index);
   const indexed = props.segments.map((segment, index) => ({ segment, index }));
   const matched = search(needle, indexed, {
@@ -71,7 +81,8 @@ const virtualizer = useVirtualizer(
   computed(() => ({
     count: visibleIndices.value.length,
     getScrollElement: () => scroller.value,
-    estimateSize: () => 34,
+    getItemKey: (index) => props.segments[visibleIndices.value[index]!]?.id ?? index,
+    estimateSize: () => 38,
     overscan: 8,
   })),
 );
@@ -80,11 +91,6 @@ const totalSize = computed(() => virtualizer.value.getTotalSize());
 watch(activeVisibleIndex, (index) => {
   if (autoFollow.value && index >= 0) virtualizer.value.scrollToIndex(index, { align: "center" });
 });
-watch(
-  () => props.segments,
-  () => virtualizer.value.measure(),
-  { deep: true },
-);
 function measureElement(element: Element | ComponentPublicInstance | null) {
   const row = element instanceof Element ? element : element?.$el;
   if (row instanceof Element) virtualizer.value.measureElement(row);
@@ -136,6 +142,12 @@ async function remeasure() {
               :node-id="nodeId"
               :segment="segments[visibleIndices[row.index]!]!"
               :index="visibleIndices[row.index]!"
+              :speaker="
+                segments[visibleIndices[row.index]!]?.speakerId
+                  ? speakers.get(segments[visibleIndices[row.index]!]!.speakerId!)
+                  : undefined
+              "
+              :has-insights="hasInsights"
               :active="visibleIndices[row.index] === activeIndex"
               :selected="selected.includes(segments[visibleIndices[row.index]!]!.id)"
               :selection-active="selected.length > 0"

@@ -69,7 +69,7 @@ export function createAudioMixer(context: () => AudioContext, pieces: AudioPiece
     if (voice.fadeInMs > 0 && risenAt > startAt) gain.gain.linearRampToValueAtTime(voice.volume, risenAt);
     if (voice.fadeOutMs > 0) {
       const fallsAt = Math.max(risenAt, contextTimeOf(endMs - voice.fadeOutMs));
-      gain.gain.setValueAtTime(voice.volume, fallsAt);
+      if (fallsAt > startAt) gain.gain.setValueAtTime(voice.volume, fallsAt);
       const endsAt = Math.max(fallsAt, contextTimeOf(endMs));
       if (endsAt > fallsAt) gain.gain.linearRampToValueAtTime(0, endsAt);
     }

@@ -1,5 +1,5 @@
 import { useEventListener, useResizeObserver } from "@vueuse/core";
-import { computed, onScopeDispose, shallowRef } from "vue";
+import { computed, nextTick, onScopeDispose, shallowRef } from "vue";
 
 import { isTopmostAt, type ViewportPoint } from "../../../../shared/ui/use-pointer-drag";
 import type { VideoEditProject } from "../project";
@@ -9,20 +9,24 @@ import {
   fitPxPerSecond,
   pxToTime,
   scrollToReveal,
+  tickStepMs,
+  TIMELINE_GUTTER_PX,
   timelineWidth,
+  timeToTimelineX,
   visibleTicks,
   zoomAroundPointer,
 } from "./scale";
 
 interface TimelineViewOptions {
   project: () => VideoEditProject | undefined;
+  playheadMs?: () => number;
   /** Per-frame playback position; following the playhead must not re-render the lanes. */
   subscribe: (listener: (timeMs: number, playing: boolean) => void) => () => void;
 }
 
 /**
  * Owns the timeline viewport: a pixels-per-second scale, the scroll window, ruler ticks, zooming
- * around the pointer and following the playhead during playback.
+ * around the pointer (or visible playhead) and following the playhead during playback.
  */
 export function useTimelineView(options: TimelineViewOptions) {
   const viewport = shallowRef<HTMLElement | null>(null);
@@ -37,8 +41,12 @@ export function useTimelineView(options: TimelineViewOptions) {
     return project ? projectDurationMs(project) : 0;
   });
   const contentWidth = computed(() =>
-    Math.max(viewportWidth.value, timelineWidth(durationMs.value, pxPerSecond.value)),
+    Math.max(
+      viewportWidth.value,
+      timelineWidth(durationMs.value, pxPerSecond.value) + TIMELINE_GUTTER_PX * 2,
+    ),
   );
+  const tickStep = computed(() => tickStepMs(pxPerSecond.value));
   const ticks = computed(() =>
     visibleTicks({
       pxPerSecond: pxPerSecond.value,
@@ -77,12 +85,25 @@ export function useTimelineView(options: TimelineViewOptions) {
   );
 
   function fit() {
-    pxPerSecond.value = fitPxPerSecond(durationMs.value, viewportWidth.value);
+    pxPerSecond.value = fitPxPerSecond(
+      durationMs.value,
+      Math.max(1, viewportWidth.value - TIMELINE_GUTTER_PX * 2),
+    );
     userScaled = false;
-    if (viewport.value) viewport.value.scrollLeft = 0;
+    void nextTick(() => {
+      if (viewport.value) viewport.value.scrollLeft = 0;
+    });
   }
 
-  function zoom(factor: number, pointerX = viewportWidth.value / 2) {
+  function defaultZoomAnchorX() {
+    if (options.playheadMs) {
+      const playheadX = timeToTimelineX(options.playheadMs(), pxPerSecond.value) - scrollLeft.value;
+      if (playheadX >= 0 && playheadX <= viewportWidth.value) return playheadX;
+    }
+    return viewportWidth.value / 2;
+  }
+
+  function zoom(factor: number, pointerX = defaultZoomAnchorX()) {
     const next = zoomAroundPointer({
       pxPerSecond: pxPerSecond.value,
       factor,
@@ -91,7 +112,9 @@ export function useTimelineView(options: TimelineViewOptions) {
     });
     pxPerSecond.value = next.pxPerSecond;
     userScaled = true;
-    if (viewport.value) viewport.value.scrollLeft = next.scrollLeft;
+    void nextTick(() => {
+      if (viewport.value) viewport.value.scrollLeft = next.scrollLeft;
+    });
   }
 
   /** Ctrl/Cmd plus wheel zooms around the pointer; a plain wheel scrolls the lanes. */
@@ -105,7 +128,10 @@ export function useTimelineView(options: TimelineViewOptions) {
   function timeAt(event: { clientX: number }) {
     const element = surface.value;
     if (!element) return 0;
-    return Math.max(0, pxToTime(event.clientX - element.getBoundingClientRect().left, pxPerSecond.value));
+    return Math.max(
+      0,
+      pxToTime(event.clientX - element.getBoundingClientRect().left - TIMELINE_GUTTER_PX, pxPerSecond.value),
+    );
   }
 
   /** The time under a viewport point while the timeline is what the pointer is over there. */
@@ -123,6 +149,7 @@ export function useTimelineView(options: TimelineViewOptions) {
     pxPerSecond,
     contentWidth,
     durationMs,
+    tickStep,
     ticks,
     visible,
     fit,

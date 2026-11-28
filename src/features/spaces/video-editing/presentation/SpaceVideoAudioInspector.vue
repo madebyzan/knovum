@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { toast } from "vue-sonner";
 
+import { getErrorMessage } from "../../../../foundation/errors/error-format";
 import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import UiSlider from "../../../../shared/ui/UiSlider.vue";
 import { moveAudioClip, setAudioClipGain, setAudioClipLane, trimAudioClip } from "../edits/audio";
-import type { VideoAudioClip } from "../project";
+import type { VideoAudioClip, VideoEditProject } from "../project";
 import { AUDIO_LANE_LIMIT } from "../timeline/track-geometry";
 import { clipEndMs, clipLengthMs, projectDurationMs } from "../timing";
 import SpaceVideoFadeFields from "./SpaceVideoFadeFields.vue";
@@ -24,9 +26,18 @@ const lanes = computed(() =>
   })),
 );
 
+function apply(next: () => VideoEditProject, mergeKey?: string) {
+  try {
+    commit(next(), mergeKey);
+  } catch (error) {
+    toast.error(getErrorMessage(error));
+  }
+}
+
 function setLane(value: string) {
   const lane = Number(value);
-  if (project.value && !Number.isNaN(lane)) commit(setAudioClipLane(project.value, props.clip.id, lane));
+  if (project.value && !Number.isNaN(lane))
+    apply(() => setAudioClipLane(project.value!, props.clip.id, lane));
 }
 </script>
 
@@ -36,7 +47,7 @@ function setLane(value: string) {
       :label="t('spaces.media.videoEditor.clip.startsAt')"
       :value="clip.timelineStartMs"
       :max="Math.max(0, durationMs - clipLengthMs(clip))"
-      @change="commit(moveAudioClip(project!, clip.id, $event))"
+      @change="apply(() => moveAudioClip(project!, clip.id, $event))"
     />
     <section class="grid grid-cols-2 gap-2">
       <SpaceVideoTimeField
@@ -44,7 +55,9 @@ function setLane(value: string) {
         :value="clip.sourceInMs"
         :max="clip.sourceOutMs - 100"
         @change="
-          commit(trimAudioClip(project!, clip.id, 'start', clip.timelineStartMs + ($event - clip.sourceInMs)))
+          apply(() =>
+            trimAudioClip(project!, clip.id, 'start', clip.timelineStartMs + ($event - clip.sourceInMs)),
+          )
         "
       />
       <SpaceVideoTimeField
@@ -53,7 +66,7 @@ function setLane(value: string) {
         :min="clip.sourceInMs + 100"
         :max="asset?.durationMs ?? clip.sourceOutMs"
         @change="
-          commit(trimAudioClip(project!, clip.id, 'end', clipEndMs(clip) + ($event - clip.sourceOutMs)))
+          apply(() => trimAudioClip(project!, clip.id, 'end', clipEndMs(clip) + ($event - clip.sourceOutMs)))
         "
       />
     </section>
@@ -78,7 +91,7 @@ function setLane(value: string) {
         :step="0.05"
         :label="t('spaces.media.videoEditor.clip.volume')"
         @update:model-value="
-          commit(setAudioClipGain(project!, clip.id, { volume: $event }), `volume:${clip.id}`)
+          apply(() => setAudioClipGain(project!, clip.id, { volume: $event }), `volume:${clip.id}`)
         "
       />
     </section>
@@ -86,7 +99,7 @@ function setLane(value: string) {
       :fade-in-ms="clip.fadeInMs"
       :fade-out-ms="clip.fadeOutMs"
       :duration-ms="clipLengthMs(clip)"
-      @change="commit(setAudioClipGain(project!, clip.id, $event))"
+      @change="apply(() => setAudioClipGain(project!, clip.id, $event))"
     />
   </div>
 </template>

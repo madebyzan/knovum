@@ -7,13 +7,22 @@
   "note": "錄音筆記",
   "startFailed": "無法啟動錄音或儲存音訊。",
   "microphone": {
-    "settingsHint": "麥克風權限受限，請在系統偏好設定中允許存取。"
+    "settingsHint": "麥克風權限受限，請在系統偏好設定中允許存取。",
+    "select": "選擇麥克風",
+    "default": "系統預設"
   },
   "problems": {
     "denied": "麥克風存取權限被拒絕。",
     "missing": "未偵測到可用麥克風設備。",
     "busy": "麥克風被其他應用程式佔用。",
     "unsupported": "當前環境不支援音訊採集。",
-    "unknown": "無法開啟麥克風設備。"
+    "unknown": "無法開啟麥克風設備。",
+    "saveFailed": "錄音儲存失敗。",
+    "interrupted": "麥克風已中斷連線，錄音中止。"
+  },
+  "discard": {
+    "prompt": "放棄目前錄音？",
+    "confirm": "放棄",
+    "keep": "繼續"
   }
 }

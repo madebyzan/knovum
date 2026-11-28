@@ -56,6 +56,7 @@ export function useVideoEditor(
   });
   const timeline = useTimelineView({
     project: () => visibleProject.value,
+    playheadMs: player.positionMs,
     subscribe: player.subscribe,
   });
   const gestures = useTimelineGestures({
@@ -78,6 +79,10 @@ export function useVideoEditor(
     selection,
     playheadMs: player.positionMs,
     seek: player.seek,
+    reveal: timeline.reveal,
+    zoom: (factor) => timeline.zoom(factor),
+    fitTimeline: timeline.fit,
+    toggleSnapping: gestures.toggleSnap,
     pause: player.pause,
     toggle: player.toggle,
     focusText: () => editorRoot.value?.querySelector<HTMLTextAreaElement>("#video-edit-text")?.select(),

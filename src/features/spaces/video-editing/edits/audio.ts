@@ -106,6 +106,61 @@ export function setAudioClipLane(project: VideoEditProject, clipId: string, lane
   return blocked ? project : replace(project, { ...clip, lane });
 }
 
+export function canSplitAudioAt(clip: VideoAudioClip, atMs: number): boolean {
+  const at = Math.round(atMs);
+  return at >= clip.timelineStartMs + MIN_CLIP_MS && at <= clipEndMs(clip) - MIN_CLIP_MS;
+}
+
+export function splitAudioClip(project: VideoEditProject, clipId: string, atMs: number): VideoEditProject {
+  const clip = audioClipById(project, clipId);
+  const at = Math.round(atMs);
+  if (!clip || !canSplitAudioAt(clip, at)) return project;
+  const offsetMs = at - clip.timelineStartMs;
+  const splitSourceMs = clip.sourceInMs + offsetMs;
+  const head: VideoAudioClip = {
+    ...clip,
+    sourceOutMs: splitSourceMs,
+    fadeOutMs: 0,
+    fadeInMs: Math.min(clip.fadeInMs, offsetMs),
+  };
+  const tailLen = clipEndMs(clip) - at;
+  const tail: VideoAudioClip = {
+    ...clip,
+    id: crypto.randomUUID(),
+    sourceInMs: splitSourceMs,
+    timelineStartMs: at,
+    fadeInMs: 0,
+    fadeOutMs: Math.min(clip.fadeOutMs, tailLen),
+  };
+  const clips = project.audioTrack.clips.flatMap((c) => (c.id === clipId ? [head, tail] : [c]));
+  return commitProject({ ...project, audioTrack: { clips } });
+}
+
+export function duplicateAudioClip(project: VideoEditProject, clipId: string): VideoEditProject {
+  const clip = audioClipById(project, clipId);
+  if (!clip) return project;
+  const durationMs = projectDurationMs(project);
+  const startMs = clipEndMs(clip);
+  if (startMs > durationMs - MIN_CLIP_MS) return project;
+  const lengthMs = Math.min(clipLengthMs(clip), durationMs - startMs);
+  const copy: VideoAudioClip = {
+    ...clip,
+    id: crypto.randomUUID(),
+    timelineStartMs: startMs,
+    sourceOutMs: clip.sourceInMs + lengthMs,
+    fadeInMs: Math.min(clip.fadeInMs, Math.floor(lengthMs / 2)),
+    fadeOutMs: Math.min(clip.fadeOutMs, Math.floor(lengthMs / 2)),
+  };
+  const blocked = project.audioTrack.clips.some(
+    (candidate) =>
+      candidate.lane === copy.lane &&
+      candidate.timelineStartMs < clipEndMs(copy) &&
+      copy.timelineStartMs < clipEndMs(candidate),
+  );
+  if (blocked) return project;
+  return commitProject({ ...project, audioTrack: { clips: [...project.audioTrack.clips, copy] } });
+}
+
 export function removeAudioClip(project: VideoEditProject, clipId: string): VideoEditProject {
   return commitProject({
     ...project,

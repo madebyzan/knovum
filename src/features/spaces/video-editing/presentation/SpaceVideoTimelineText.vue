@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useI18n } from "vue-i18n";
 
 import type { VideoTextOverlay } from "../project";
-import { timeToPx } from "../timeline/scale";
+import { timeToPx, timeToTimelineX } from "../timeline/scale";
 import type { VideoEditor } from "./use-video-editor";
 
 const props = defineProps<{ item: VideoTextOverlay; editor: VideoEditor }>();
@@ -13,7 +13,7 @@ const EDGES = ["start", "end"] as const;
 
 const selected = computed(() => selection.selection.value?.id === props.item.id);
 const geometry = computed(() => ({
-  left: `${timeToPx(props.item.startMs, timeline.pxPerSecond.value)}px`,
+  left: `${timeToTimelineX(props.item.startMs, timeline.pxPerSecond.value)}px`,
   width: `${Math.max(10, timeToPx(props.item.endMs - props.item.startMs, timeline.pxPerSecond.value))}px`,
 }));
 
@@ -28,20 +28,25 @@ function grab(event: PointerEvent) {
 
 <template>
   <div
-    class="absolute inset-y-1 overflow-hidden rounded border bg-surface-selected"
-    :class="selected ? 'border-stroke-accent ring-1 ring-stroke-accent' : 'border-stroke-accent/25'"
+    class="group absolute inset-y-1 overflow-hidden rounded-md border bg-surface-selected/90 shadow-2xs transition-colors"
+    :class="
+      selected
+        ? 'border-stroke-accent ring-1 ring-stroke-accent'
+        : 'border-stroke-accent/35 hover:border-stroke-accent/70'
+    "
     :style="geometry"
   >
     <button
       type="button"
-      class="size-full cursor-grab touch-none truncate px-2 text-left text-caption-sm text-fg-accent focus-visible:outline-2 focus-visible:outline-stroke-focus active:cursor-grabbing"
+      class="flex size-full cursor-grab touch-none items-center text-left text-caption-sm font-medium text-fg-accent focus-visible:outline-2 focus-visible:outline-stroke-focus active:cursor-grabbing"
       :aria-label="item.text"
+      :title="item.text"
       @pointerdown="grab"
       @pointermove="gestures.move"
       @pointerup="gestures.finish"
       @pointercancel="gestures.cancel"
     >
-      {{ item.text }}
+      <span class="sticky left-1.5 max-w-full truncate px-1.5">{{ item.text }}</span>
     </button>
     <button
       v-for="edge in EDGES"

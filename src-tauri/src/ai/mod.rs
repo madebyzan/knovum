@@ -61,6 +61,7 @@ pub fn plugin() -> TauriPlugin<Wry> {
             crate::ai::queries::catalog::detect_local_ollama_models,
             crate::ai::queries::catalog::list_external_agent_descriptors,
             crate::ai::queries::catalog::list_provider_descriptors,
+            crate::ai::commands::text::prepare_narration_script_stream,
             crate::ai::commands::text::transform_editor_text_stream,
             crate::ai::commands::text::translate_text_stream,
             crate::ai::settings::validate_model_settings,

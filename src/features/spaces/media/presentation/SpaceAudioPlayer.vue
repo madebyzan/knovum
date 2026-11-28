@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Pause, Play, X } from "@lucide/vue";
+import { Pause, Play, Volume2, VolumeX, X } from "@lucide/vue";
 import { computed, useTemplateRef, watch } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -11,6 +11,7 @@ import { versionedMediaSource } from "../media-element-source";
 import type { SpaceMediaPlaybackState } from "../playback";
 import { mediaProviderDisplayName } from "../provider-display-name";
 import { useMediaPlayback } from "../use-media-playback";
+import SpaceMediaTimeline from "./SpaceMediaTimeline.vue";
 
 const WAVEFORM_BAR_COUNT = 52;
 
@@ -32,20 +33,33 @@ const analysis = computed(() => {
 });
 const waveform = computed(() => compactWaveform(analysis.value?.waveform));
 
-const { loaded, playing, currentMs, togglePlayback, seekTo, seekFromControl, unload } = useMediaPlayback(
-  mediaElement,
-  {
-    sourceRevision: () => props.data.sourceRevision,
-    onPlayback: (state) => emit("playback", state),
-    onUnload: () => emit("unload"),
-  },
-);
+const {
+  loaded,
+  playing,
+  currentMs,
+  durationMs,
+  rate,
+  muted,
+  togglePlayback,
+  seekTo,
+  seekFromControl,
+  cycleRate,
+  toggleMute,
+  unload,
+} = useMediaPlayback(mediaElement, {
+  sourceRevision: () => props.data.sourceRevision,
+  onPlayback: (state) => emit("playback", state),
+  onUnload: () => emit("unload"),
+});
 
-const durationLabel = computed(() => (analysis.value ? formatDurationMs(analysis.value.durationMs) : "—"));
-const playedRatio = computed(() =>
-  analysis.value ? Math.min(currentMs.value / analysis.value.durationMs, 1) : 0,
+const effectiveDurationMs = computed(() => analysis.value?.durationMs || durationMs.value || 0);
+const durationLabel = computed(() =>
+  effectiveDurationMs.value > 0 ? formatDurationMs(effectiveDurationMs.value) : "—",
 );
-const seekable = computed(() => Boolean(props.interactive && loaded.value));
+const playedRatio = computed(() =>
+  effectiveDurationMs.value > 0 ? Math.min(currentMs.value / effectiveDurationMs.value, 1) : 0,
+);
+const seekable = computed(() => Boolean(props.interactive && loaded.value && effectiveDurationMs.value > 0));
 
 function requestPlayback() {
   void togglePlayback().catch((error) => emit("playbackError", getErrorMessage(error)));
@@ -71,9 +85,7 @@ function compactWaveform(samples?: number[]) {
 watch(
   () => props.interactive,
   (interactive) => {
-    if (!interactive && (playing.value || loaded.value)) {
-      unload();
-    }
+    if (!interactive && (playing.value || loaded.value)) unload();
   },
 );
 
@@ -94,72 +106,82 @@ defineExpose({ seekTo, togglePlayback, unload });
       <Play v-else class="ml-px size-3.5" fill="currentColor" />
     </UiIconButton>
 
-    <div class="flex min-w-0 items-center gap-2">
+    <div class="flex min-w-0 items-center gap-1.5">
       <strong class="min-w-0 flex-1 truncate text-label font-medium">{{ data.title }}</strong>
-      <span v-if="data.origin" class="max-w-16 shrink-0 truncate text-caption-sm text-fg-tertiary">
+      <span v-if="data.origin && !loaded" class="max-w-16 shrink-0 truncate text-caption-sm text-fg-tertiary">
         {{ mediaProviderDisplayName(data.origin.provider) }}
       </span>
       <span class="shrink-0 text-caption-sm text-fg-tertiary tabular-nums">
         <template v-if="loaded">{{ formatDurationMs(currentMs) }} / </template>{{ durationLabel }}
       </span>
-      <UiIconButton
-        v-if="loaded"
-        class="nodrag pointer-events-auto -mr-1 size-6 shrink-0"
-        :label="t('spaces.media.player.closePlayback')"
-        size="sm"
-        @click.stop="unload"
-      >
-        <X class="size-3" />
-      </UiIconButton>
+      <template v-if="loaded">
+        <button
+          type="button"
+          class="nodrag pointer-events-auto shrink-0 rounded px-1 py-0.5 font-mono text-caption-sm font-medium text-fg-secondary tabular-nums transition-colors hover:bg-surface-control-hover hover:text-fg-primary"
+          :aria-label="t('spaces.media.player.speed')"
+          :title="t('spaces.media.player.speed')"
+          @click.stop="cycleRate"
+        >
+          {{ rate }}×
+        </button>
+        <UiIconButton
+          class="nodrag pointer-events-auto size-6 shrink-0"
+          :label="muted ? t('spaces.media.player.unmute') : t('spaces.media.player.mute')"
+          size="sm"
+          @click.stop="toggleMute"
+        >
+          <VolumeX v-if="muted" class="size-3" />
+          <Volume2 v-else class="size-3" />
+        </UiIconButton>
+        <UiIconButton
+          class="nodrag pointer-events-auto -mr-1 size-6 shrink-0"
+          :label="t('spaces.media.player.closePlayback')"
+          size="sm"
+          @click.stop="unload"
+        >
+          <X class="size-3" />
+        </UiIconButton>
+      </template>
     </div>
 
-    <div class="relative min-w-0 rounded-sm focus-within:ring-1 focus-within:ring-stroke-accent">
-      <span v-if="analysis" class="audio-waveform" aria-hidden="true">
-        <span
-          v-for="(amplitude, index) in waveform"
-          :key="index"
-          class="audio-waveform-bar"
-          :class="(index + 1) / waveform.length <= playedRatio && 'audio-waveform-bar-played'"
-          :style="{ height: `${Math.round(5 + amplitude * 27)}px` }"
+    <div
+      class="relative flex min-w-0 items-center rounded-sm focus-within:ring-1 focus-within:ring-stroke-accent"
+    >
+      <template v-if="analysis && waveform.length">
+        <span class="flex h-full w-full items-center justify-between" aria-hidden="true">
+          <span
+            v-for="(amplitude, index) in waveform"
+            :key="index"
+            class="w-0.5 flex-none rounded-full"
+            :class="(index + 1) / waveform.length <= playedRatio ? 'bg-fg-accent' : 'bg-current/28'"
+            :style="{ height: `${Math.round(5 + amplitude * 27)}px` }"
+          />
+        </span>
+        <input
+          class="nodrag absolute inset-0 size-full opacity-0"
+          :class="seekable ? 'pointer-events-auto cursor-pointer' : 'pointer-events-none cursor-default'"
+          type="range"
+          min="0"
+          :max="effectiveDurationMs"
+          :value="currentMs"
+          :disabled="!seekable"
+          :aria-label="t('spaces.media.player.timeline')"
+          @input="seekFromSlider"
         />
-      </span>
+      </template>
+      <SpaceMediaTimeline
+        v-else-if="loaded && effectiveDurationMs > 0"
+        class="nodrag pointer-events-auto w-full"
+        tone="control"
+        :current-ms="currentMs"
+        :duration-ms="effectiveDurationMs"
+        @seek="seekFromControl"
+      />
       <span v-else class="flex h-full items-center text-caption-sm text-fg-tertiary" role="status">
         {{ t("spaces.media.analysis.unavailable") }}
       </span>
-      <input
-        v-if="analysis"
-        class="nodrag absolute inset-0 size-full opacity-0"
-        :class="seekable ? 'pointer-events-auto cursor-pointer' : 'pointer-events-none cursor-default'"
-        type="range"
-        min="0"
-        :max="analysis.durationMs"
-        :value="currentMs"
-        :disabled="!seekable"
-        :aria-label="t('spaces.media.player.timeline')"
-        @input="seekFromSlider"
-      />
     </div>
 
-    <audio v-if="loaded" ref="mediaElement" :src="source" preload="metadata" class="hidden" @ended="unload" />
+    <audio v-if="loaded" ref="mediaElement" :src="source" preload="metadata" class="hidden" />
   </div>
 </template>
-
-<style scoped>
-.audio-waveform {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.audio-waveform-bar {
-  width: 2px;
-  flex: 0 0 2px;
-  border-radius: 999px;
-  background: color-mix(in srgb, currentColor 28%, transparent);
-}
-
-.audio-waveform-bar-played {
-  background: var(--color-fg-accent);
-}
-</style>

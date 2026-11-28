@@ -52,5 +52,17 @@
     "audiobook": "Generate audiobook",
     "shortDubbing": "Generate speech",
     "videoDubbing": "Generate dubbed video"
+  },
+  "prepareNarration": {
+    "action": "Prepare with Knovum",
+    "actionAll": "Prepare all with Knovum",
+    "clean": "Clean for speech",
+    "cleanDescription": "Remove markup, citations, and noise while keeping meaning",
+    "adapt": "Adapt for natural narration",
+    "adaptDescription": "Smooth dense prose into natural spoken phrasing",
+    "restore": "Restore previous script",
+    "restoreAll": "Restore all chapters",
+    "model": "Model",
+    "hint": "Use Knovum to clean noisy text or adapt it for natural speech"
   }
 }

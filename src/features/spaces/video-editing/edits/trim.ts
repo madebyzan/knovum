@@ -86,6 +86,8 @@ export function setClipWindow(
     next.sourceOutMs - next.sourceInMs > maxLength
   )
     return project;
+  const { outgoingMs } = clipHeadroom(project, clip);
+  if (outgoingMs > 0 && clipLengthMs(next) !== clipLengthMs(clip)) return project;
   const trailing = trimBounds(project, clipId, "end");
   if (trailing && next.timelineStartMs + (next.sourceOutMs - next.sourceInMs) > trailing.maxMs)
     return project;

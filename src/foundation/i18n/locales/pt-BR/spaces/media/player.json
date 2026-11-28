@@ -7,5 +7,10 @@
   "timeline": "Linha do tempo da mídia",
   "transcribe": "Transcrever",
   "transcribing": "Processando transcrição",
-  "retranscribe": "Retranscrever"
+  "retranscribe": "Retranscrever",
+  "speed": "Velocidade de reprodução",
+  "mute": "Silenciar",
+  "unmute": "Ativar som",
+  "skipBack": "Voltar 10 segundos",
+  "skipForward": "Avançar 10 segundos"
 }

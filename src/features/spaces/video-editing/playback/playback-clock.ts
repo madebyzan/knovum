@@ -12,13 +12,13 @@ interface ClockOptions {
  */
 export function createPlaybackClock(options: ClockOptions) {
   const playing = shallowRef(false);
-  let anchorMs = 0;
+  const anchorMs = shallowRef(0);
   let anchorContextS = 0;
 
   function positionMs() {
-    if (!playing.value) return anchorMs;
+    if (!playing.value) return anchorMs.value;
     const elapsedMs = (options.context().currentTime - anchorContextS) * 1000;
-    return Math.max(anchorMs, Math.min(anchorMs + elapsedMs, options.durationMs()));
+    return Math.max(anchorMs.value, Math.min(anchorMs.value + elapsedMs, options.durationMs()));
   }
 
   return {
@@ -26,7 +26,7 @@ export function createPlaybackClock(options: ClockOptions) {
     positionMs,
     /** Audio-context time at which a timeline position is heard; scheduling reads this. */
     contextTimeOf(timelineMs: number) {
-      return anchorContextS + (timelineMs - anchorMs) / 1000;
+      return anchorContextS + (timelineMs - anchorMs.value) / 1000;
     },
     async play() {
       if (playing.value) return;
@@ -37,11 +37,12 @@ export function createPlaybackClock(options: ClockOptions) {
     },
     pause() {
       if (!playing.value) return;
-      anchorMs = positionMs();
+      anchorMs.value = positionMs();
       playing.value = false;
     },
     seek(timelineMs: number) {
-      anchorMs = Math.max(0, timelineMs);
+      const maxMs = Math.max(0, options.durationMs());
+      anchorMs.value = Math.max(0, Math.min(timelineMs, maxMs));
       if (playing.value) anchorContextS = options.context().currentTime;
     },
     endReached() {

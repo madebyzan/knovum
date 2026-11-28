@@ -162,6 +162,9 @@ function runInsights(targetId?: string) {
             <SpaceTranscriptNavigator
               :node-id="nodeId"
               :segments="media.knowledge.value.transcript.segments"
+              :speaker-tracks="media.knowledge.value.transcript.speakerTracks"
+              :transcript-revision="media.knowledge.value.transcript.revision"
+              :has-insights="Boolean(media.insights.value)"
               v-bind="media.playback.value ? { currentMs: media.playback.value.currentMs } : {}"
               :disabled="transcriptEditLocked"
               :alignment-disabled="deriveLocked"

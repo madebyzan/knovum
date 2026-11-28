@@ -1,5 +1,6 @@
 pub(crate) mod action_execution;
 pub(crate) mod action_request;
+mod ass_format;
 pub(crate) mod commands;
 pub(crate) mod comparison;
 mod contracts;

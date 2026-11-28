@@ -11,7 +11,6 @@ use uuid::Uuid;
 use super::persistence::VideoSubtitleSource;
 use super::{progress, SubtitledVideoProgress, CANCELLED};
 use crate::{
-    desktop::system_font::SYSTEM_SANS_FAMILY,
     foundation::scratch_file::ScratchFile,
     foundation::subprocess,
     local_resources::tools,
@@ -55,8 +54,8 @@ fn burn_in_subtitles(
     channel: &Channel<SubtitledVideoProgress>,
     cancellation: &CancellationToken,
 ) -> Result<(), String> {
-    let subtitle = ScratchFile::new(directory.join(format!("subtitle-{derivation_id}.srt")));
-    fs::write(subtitle.path(), &source.srt).map_err(|error| error.to_string())?;
+    let subtitle = ScratchFile::new(directory.join(format!("subtitle-{derivation_id}.ass")));
+    fs::write(subtitle.path(), &source.ass).map_err(|error| error.to_string())?;
     run_ffmpeg(
         app,
         &source.path,
@@ -107,9 +106,7 @@ fn run_ffmpeg(
 }
 
 pub(super) fn ffmpeg_arguments(source: &str, subtitle_name: &str) -> Result<Vec<String>, String> {
-    let filter = format!(
-        "subtitles={subtitle_name}:force_style='FontName={SYSTEM_SANS_FAMILY},Alignment=2,MarginL=36,MarginR=36,MarginV=28,FontSize=14,Outline=1.5,Shadow=0,WrapStyle=0'"
-    );
+    let filter = format!("subtitles={subtitle_name}");
     Ok(vec![
         "-hide_banner".into(),
         "-loglevel".into(),

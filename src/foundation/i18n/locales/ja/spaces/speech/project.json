@@ -52,5 +52,17 @@
     "audiobook": "オーディオブックの生成",
     "shortDubbing": "音声を生成する",
     "videoDubbing": "ダビング ビデオの生成"
+  },
+  "prepareNarration": {
+    "action": "Knovum で整える",
+    "actionAll": "Knovum で全章を整える",
+    "clean": "読み上げ用にクリーニング",
+    "cleanDescription": "記号や引用番号などのノイズを除去し意味を保持",
+    "adapt": "自然な朗読文に整える",
+    "adaptDescription": "硬い表現や長文を自然な話し言葉へ調整",
+    "restore": "整理前の原稿に戻す",
+    "restoreAll": "全章を整理前に戻す",
+    "model": "モデル",
+    "hint": "Knovum でノイズを除去するか、自然な朗読原稿へ整えます"
   }
 }

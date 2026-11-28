@@ -130,6 +130,7 @@ function submitOnShortcut(event: KeyboardEvent) {
           :source-text="narrationText(sourceNode)"
           :voices="voices"
           :disabled="editorDisabled"
+          @busy="isOperationBusy = $event"
           @draft-state="updateDraft"
           @preview="(...args) => emit('preview', ...args)"
         />

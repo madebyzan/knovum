@@ -4,7 +4,7 @@ import { useI18n } from "vue-i18n";
 
 import type { VideoClip } from "../project";
 import { stepTrimFrame } from "../timeline/frame-step";
-import { timeToPx } from "../timeline/scale";
+import { timeToPx, timeToTimelineX } from "../timeline/scale";
 import { clipLengthMs } from "../timing";
 import SpaceVideoFilmstrip from "./SpaceVideoFilmstrip.vue";
 import type { VideoEditor } from "./use-video-editor";
@@ -16,7 +16,7 @@ const EDGES = ["start", "end"] as const;
 
 const selected = computed(() => selection.selection.value?.id === props.clip.id);
 const geometry = computed(() => ({
-  left: `${timeToPx(props.clip.timelineStartMs, timeline.pxPerSecond.value)}px`,
+  left: `${timeToTimelineX(props.clip.timelineStartMs, timeline.pxPerSecond.value)}px`,
   width: `${Math.max(8, timeToPx(clipLengthMs(props.clip), timeline.pxPerSecond.value))}px`,
 }));
 const title = computed(
@@ -55,7 +55,7 @@ function nudge(edge: "start" | "end", direction: -1 | 1) {
     <SpaceVideoFilmstrip :clip="clip" :editor="editor" />
     <button
       type="button"
-      class="absolute inset-0 w-full cursor-grab touch-none px-2 text-left focus-visible:outline-2 focus-visible:outline-stroke-focus active:cursor-grabbing"
+      class="absolute inset-0 flex w-full cursor-grab touch-none items-start text-left focus-visible:outline-2 focus-visible:outline-stroke-focus active:cursor-grabbing"
       :aria-label="`${title} · ${t('spaces.media.videoEditor.clip.selected')}`"
       @pointerdown="grab"
       @pointermove="gestures.move"
@@ -63,7 +63,7 @@ function nudge(edge: "start" | "end", direction: -1 | 1) {
       @pointercancel="gestures.cancel"
     >
       <span
-        class="absolute top-0 left-0 max-w-full truncate rounded-br-md bg-surface-scrim/80 px-1.5 py-0.5 text-caption-sm font-medium text-fg-on-image backdrop-blur-xs"
+        class="sticky left-1.5 mt-1 ml-1 max-w-full truncate rounded bg-surface-scrim/80 px-1.5 py-0.5 text-caption-sm font-medium text-fg-on-image backdrop-blur-xs"
         >{{ title }}</span
       >
     </button>

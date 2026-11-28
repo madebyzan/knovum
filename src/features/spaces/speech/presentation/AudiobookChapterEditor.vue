@@ -9,13 +9,16 @@ import UiSelect from "../../../../shared/ui/UiSelect.vue";
 import UiTextarea from "../../../../shared/ui/UiTextarea.vue";
 import type { VoiceLibraryRevision } from "../../contracts/generated/VoiceLibraryRevision";
 import type { ChapterDraft } from "../audiobook-draft";
+import type { AudiobookChapterPreparation } from "../use-audiobook-chapter-preparation";
 import type { useAudiobookDraft } from "../use-audiobook-draft";
 import AudiobookChapterHeader from "./AudiobookChapterHeader.vue";
 import SpeechDeliveryInstructionField from "./SpeechDeliveryInstructionField.vue";
+import SpeechNarrationPrepareMenu from "./SpeechNarrationPrepareMenu.vue";
 
 const props = defineProps<{
   draft: ReturnType<typeof useAudiobookDraft>;
   voices: readonly VoiceLibraryRevision[];
+  preparation: AudiobookChapterPreparation;
   disabled: boolean;
 }>();
 const emit = defineEmits<{
@@ -64,10 +67,26 @@ function supportsDeliveryInstruction(speakerKey: string) {
         v-model:title="chapter.title"
         :index="chapterIndex"
         :count="draft.chapters.value.length"
-        :disabled="disabled"
+        :disabled="disabled || preparation.preparing.value"
         @move="draft.moveChapter(chapterIndex, $event)"
         @remove="draft.removeChapter(chapterIndex)"
-      />
+      >
+        <template #actions>
+          <SpeechNarrationPrepareMenu
+            compact
+            :disabled="
+              disabled ||
+              (preparation.preparing.value && preparation.preparingChapterKey.value !== chapter.key)
+            "
+            :empty="!chapter.paragraphs.some((paragraph) => paragraph.text.trim())"
+            :preparing="preparation.preparing.value && preparation.preparingChapterKey.value === chapter.key"
+            :can-restore="preparation.canRestoreChapter(chapter.key)"
+            @prepare="(mode, target) => preparation.prepareChapter(chapter, mode, target)"
+            @cancel="preparation.cancel()"
+            @restore="preparation.restoreChapter(chapter)"
+          />
+        </template>
+      </AudiobookChapterHeader>
       <div class="space-y-1.5">
         <div
           v-for="(paragraph, paragraphIndex) in chapter.paragraphs"
