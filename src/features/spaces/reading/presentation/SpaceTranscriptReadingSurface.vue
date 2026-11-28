@@ -70,10 +70,8 @@ const visibleSegments = computed(() => {
   const needle = debouncedQuery.value.trim();
   return needle ? search(needle, segments.value, { keySelector: (s) => s.text }) : segments.value;
 });
-const { rows, totalSize, measureElement, scrollToSegment } = useTranscriptVirtualizer(
-  scroller,
-  visibleSegments,
-);
+const { rows, paddingTop, paddingBottom, measureElement, scrollToSegment, resetScroll, refreshLayout } =
+  useTranscriptVirtualizer(scroller, visibleSegments);
 
 function updateActiveSegment(ms: number) {
   currentMs.value = ms;
@@ -136,12 +134,23 @@ function resetReadingState() {
   query.value = "";
   activeSegmentId.value = undefined;
   currentMs.value = 0;
-  if (scroller.value) scroller.value.scrollTop = 0;
+  resetScroll();
 }
 
-onMounted(locateCurrent);
+onMounted(() => {
+  refreshLayout();
+  locateCurrent();
+});
 onBeforeUnmount(() => store?.clearMediaPlayback(props.node.id));
 watch(() => props.node.id, resetReadingState);
+watch(debouncedQuery, resetScroll);
+watch(
+  () => props.visible,
+  (shown) => {
+    if (shown) refreshLayout();
+  },
+  { flush: "post" },
+);
 watch(() => [props.locator, props.locateNonce] as const, locateCurrent, { flush: "post" });
 watch(
   () => [props.quote, segments.value.length] as const,
@@ -183,22 +192,26 @@ watch(
         </UiDropdownMenu>
       </template>
     </SpaceTranscriptPlayer>
-    <div v-if="segments.length" class="relative flex min-h-0 flex-1 overflow-hidden">
+    <div v-if="segments.length" class="relative flex min-h-0 flex-1 flex-col overflow-hidden">
       <div
         ref="scroller"
         class="transcript-rows min-h-0 flex-1 overflow-x-hidden overflow-y-auto bg-surface-raised py-2 pb-10"
         :class="chapterOutline.length ? 'pr-9 pl-3' : 'px-3'"
       >
-        <div v-if="visibleSegments.length" class="relative w-full" :style="{ height: `${totalSize}px` }">
+        <div
+          v-if="visibleSegments.length"
+          class="w-full"
+          :style="{ paddingTop: `${paddingTop}px`, paddingBottom: `${paddingBottom}px` }"
+        >
           <div
             v-for="row in rows"
-            :key="visibleSegments[row.index]!.id"
+            :key="String(row.key)"
             :ref="measureElement"
             :data-index="row.index"
-            class="absolute top-0 left-0 w-full pb-0.5"
-            :style="{ transform: `translateY(${row.start}px)` }"
+            class="w-full pb-0.5"
           >
             <SpaceTranscriptCue
+              v-if="visibleSegments[row.index]"
               :segment="visibleSegments[row.index]!"
               :speaker="
                 visibleSegments[row.index]!.speakerId

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { LocateFixed } from "@lucide/vue";
-import { useVirtualizer } from "@tanstack/vue-virtual";
+import { observeElementRect, useVirtualizer, type Rect, type Virtualizer } from "@tanstack/vue-virtual";
 import { refDebounced } from "@vueuse/core";
 import { sumBy } from "es-toolkit";
 import { search } from "fast-fuzzy";
@@ -77,22 +77,33 @@ const activeIndex = computed(() => {
   return props.segments.findLastIndex((segment) => segment.startMs <= current);
 });
 const activeVisibleIndex = computed(() => visibleIndices.value.indexOf(activeIndex.value));
-const virtualizer = useVirtualizer(
+const virtualizer = useVirtualizer<HTMLDivElement, Element>(
   computed(() => ({
     count: visibleIndices.value.length,
     getScrollElement: () => scroller.value,
     getItemKey: (index) => props.segments[visibleIndices.value[index]!]?.id ?? index,
     estimateSize: () => 38,
     overscan: 8,
+    initialRect: { width: 320, height: 320 },
+    observeElementRect: (instance: Virtualizer<HTMLDivElement, Element>, cb: (rect: Rect) => void) =>
+      observeElementRect(instance, (rect) => rect.height > 0 && cb(rect)),
   })),
 );
 const rows = computed(() => virtualizer.value.getVirtualItems());
-const totalSize = computed(() => virtualizer.value.getTotalSize());
+const paddingTop = computed(() => rows.value[0]?.start ?? 0);
+const paddingBottom = computed(() =>
+  rows.value.length ? Math.max(0, virtualizer.value.getTotalSize() - rows.value.at(-1)!.end) : 0,
+);
+function speakerFor(index: number) {
+  const speakerId = props.segments[index]?.speakerId;
+  return speakerId ? speakers.value.get(speakerId) : undefined;
+}
 watch(activeVisibleIndex, (index) => {
   if (autoFollow.value && index >= 0) virtualizer.value.scrollToIndex(index, { align: "center" });
 });
 function measureElement(element: Element | ComponentPublicInstance | null) {
   const row = element instanceof Element ? element : element?.$el;
+  if (row instanceof HTMLElement && row.offsetHeight === 0) return;
   if (row instanceof Element) virtualizer.value.measureElement(row);
 }
 async function remeasure() {
@@ -129,24 +140,19 @@ async function remeasure() {
     />
     <div class="relative -mx-1.5 overflow-hidden">
       <div ref="scroller" class="h-80 overflow-y-auto overscroll-contain pt-0.5 pb-2">
-        <div class="relative w-full" :style="{ height: `${totalSize}px` }">
+        <div class="w-full" :style="{ paddingTop: `${paddingTop}px`, paddingBottom: `${paddingBottom}px` }">
           <div
             v-for="row in rows"
             :key="visibleIndices[row.index]!"
             :ref="measureElement"
             :data-index="row.index"
-            class="absolute top-0 left-0 w-full"
-            :style="{ transform: `translateY(${row.start}px)` }"
+            class="w-full"
           >
             <SpaceTranscriptSegmentEditor
               :node-id="nodeId"
               :segment="segments[visibleIndices[row.index]!]!"
               :index="visibleIndices[row.index]!"
-              :speaker="
-                segments[visibleIndices[row.index]!]?.speakerId
-                  ? speakers.get(segments[visibleIndices[row.index]!]!.speakerId!)
-                  : undefined
-              "
+              :speaker="speakerFor(visibleIndices[row.index]!)"
               :has-insights="hasInsights"
               :active="visibleIndices[row.index] === activeIndex"
               :selected="selected.includes(segments[visibleIndices[row.index]!]!.id)"

@@ -113,6 +113,7 @@ const isSpreadsheet = computed(() => isSpreadsheetPayload(props.node.data));
   />
   <SpaceTranscriptReadingSurface
     v-else-if="kind === 'media' && (node.data.kind === 'video' || node.data.kind === 'audio')"
+    :key="node.id"
     :node="node as SpaceCanvasNode<SpaceVideoPayload | SpaceAudioPayload>"
     :locator="locator"
     :locate-nonce="locateNonce"

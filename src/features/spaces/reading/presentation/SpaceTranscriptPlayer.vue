@@ -60,6 +60,9 @@ const {
     emit("timeUpdate", state.currentMs);
     emit("playback", state);
   },
+  onUnload: () => {
+    loaded.value = true;
+  },
 });
 
 loaded.value = true;
